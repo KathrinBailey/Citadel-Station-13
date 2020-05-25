@@ -65,6 +65,9 @@
 	update_icon()
 
 /obj/item/gun/energy/Destroy()
+	//no need to delete them, since contents are already deleted in atom/movable/Destroy().
+	cell = null
+	ammo_type = null
 	STOP_PROCESSING(SSobj, src)
 	return ..()
 

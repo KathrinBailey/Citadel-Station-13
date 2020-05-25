@@ -57,12 +57,6 @@
 	else
 		return ..()
 
-/mob/proc/whisper_keybind()
-	var/message = input(src, "", "whisper") as text|null
-	if(!length(message))
-		return
-	return whisper_verb(message)
-
 /mob/verb/whisper_verb(message as text)
 	set name = "Whisper"
 	set category = "IC"

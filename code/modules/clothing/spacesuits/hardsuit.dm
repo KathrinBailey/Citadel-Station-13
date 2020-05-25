@@ -649,6 +649,7 @@
 	max_heat_protection_temperature = FIRE_IMMUNITY_MAX_TEMP_PROTECT
 	clothing_flags = STOPSPRESSUREDAMAGE | THICKMATERIAL | IMMUTABLE_SLOW
 	resistance_flags = LAVA_PROOF | FIRE_PROOF | ACID_PROOF
+	flags_1 = TESLA_IGNORE_1
 
 /obj/item/clothing/head/helmet/space/hardsuit/ancient/mason
 	name = "M.A.S.O.N RIG helmet"
@@ -664,6 +665,7 @@
 	max_heat_protection_temperature = FIRE_IMMUNITY_MAX_TEMP_PROTECT
 	clothing_flags = STOPSPRESSUREDAMAGE | THICKMATERIAL | BLOCK_GAS_SMOKE_EFFECT | ALLOWINTERNALS | SCAN_REAGENTS
 	resistance_flags = LAVA_PROOF | FIRE_PROOF | ACID_PROOF
+	flags_1 = TESLA_IGNORE_1
 
 /obj/item/clothing/head/helmet/space/hardsuit/ancient/mason/Initialize()
 	. = ..()
@@ -674,14 +676,12 @@
 	if (slot == SLOT_HEAD)
 		var/datum/atom_hud/DHUD = GLOB.huds[DATA_HUD_DIAGNOSTIC_BASIC]
 		DHUD.add_hud_to(user)
-		ADD_TRAIT(user, TRAIT_TESLA_SHOCKIMMUNE, "mason_hardsuit")
 
 /obj/item/clothing/head/helmet/space/hardsuit/ancient/mason/dropped(mob/living/carbon/human/user)
 	..()
-	if (HAS_TRAIT_FROM(user, TRAIT_TESLA_SHOCKIMMUNE, "mason_hardsuit"))
+	if (user.head == src)
 		var/datum/atom_hud/DHUD = GLOB.huds[DATA_HUD_DIAGNOSTIC_BASIC]
 		DHUD.remove_hud_from(user)
-		REMOVE_TRAIT(user, TRAIT_TESLA_SHOCKIMMUNE, "mason_hardsuit")
 
 /obj/item/clothing/suit/space/hardsuit/ancient/proc/on_mob_move()
 	var/mob/living/carbon/human/H = loc
