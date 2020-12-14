@@ -52,6 +52,13 @@ GLOBAL_LIST_INIT(bitflags, list(
 #define PREVENT_CONTENTS_EXPLOSION_1 (1<<16)
 /// Early returns mob.face_atom()
 #define BLOCK_FACE_ATOM_1			(1<<17)
+#define IS_ONTOP_1			(1 << 22)
+
+
+/// If the thing can reflect light (lasers/energy)
+#define RICOCHET_SHINY			(1<<0)
+/// If the thing can reflect matter (bullets/bomb shrapnel)
+#define RICOCHET_HARD			(1<<1)
 
 //turf-only flags
 #define NOJAUNT_1 (1<<0)

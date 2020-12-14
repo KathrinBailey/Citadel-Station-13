@@ -5,8 +5,50 @@
 	var/required_machine = /obj/machinery/processor
 
 /datum/food_processor_process/meat
-	input = /obj/item/reagent_containers/food/snacks/meat/slab
-	output = /obj/item/reagent_containers/food/snacks/rawmeatball
+	input = /obj/item/food/meat/slab
+	output = /obj/item/food/raw_meatball
+	multiplier = 3
+
+/datum/food_processor_process/cutlet
+	input = /obj/item/food/meat/cutlet/plain
+	output = /obj/item/food/raw_meatball
+
+/datum/food_processor_process/meat/human
+	input = /obj/item/food/meat/slab/human
+	output = /obj/item/food/raw_meatball/human
+
+/datum/food_processor_process/cutlet/human
+	input = /obj/item/food/meat/cutlet/plain/human
+	output = /obj/item/food/raw_meatball/human
+
+/datum/food_processor_process/meat/corgi
+	input = /obj/item/food/meat/slab/corgi
+	output = /obj/item/food/raw_meatball/corgi
+
+/datum/food_processor_process/meat/xeno
+	input = /obj/item/food/meat/slab/xeno
+	output = /obj/item/food/raw_meatball/xeno
+
+/datum/food_processor_process/cutlet/xeno
+	input = /obj/item/food/meat/cutlet/xeno
+	output = /obj/item/food/raw_meatball/xeno
+
+/datum/food_processor_process/meat/bear
+	input = /obj/item/food/meat/slab/bear
+	output = /obj/item/food/raw_meatball/bear
+
+/datum/food_processor_process/cutlet/bear
+	input = /obj/item/food/meat/cutlet/bear
+	output = /obj/item/food/raw_meatball/bear
+
+/datum/food_processor_process/meat/chicken
+	input = /obj/item/food/meat/slab/chicken
+	output = /obj/item/food/raw_meatball/chicken
+	multiplier = 3
+
+/datum/food_processor_process/cutlet/chicken
+	input = /obj/item/food/meat/cutlet/chicken
+	output = /obj/item/food/raw_meatball/chicken
 
 /datum/food_processor_process/bacon
 	input = /obj/item/reagent_containers/food/snacks/meat/rawcutlet

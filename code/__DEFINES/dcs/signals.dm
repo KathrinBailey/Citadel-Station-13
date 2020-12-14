@@ -491,6 +491,57 @@
 	#define COMPONENT_BLOCK_SHARPEN_MAXED 8
 #define COMSIG_ITEM_MICROWAVE_ACT "microwave_act"               //called on item when microwaved (): (obj/machinery/microwave/M)
 
+///from base of obj/item/equipped(): (/mob/equipper, slot)
+#define COMSIG_ITEM_EQUIPPED "item_equip"
+///from base of obj/item/on_grind(): ())
+#define COMSIG_ITEM_ON_GRIND "on_grind"
+///from base of obj/item/on_juice(): ()
+#define COMSIG_ITEM_ON_JUICE "on_juice"
+///from /obj/machinery/hydroponics/attackby(obj/item/O, mob/user, params) when an object is used as compost: (mob/user)
+#define COMSIG_ITEM_ON_COMPOSTED "on_composted"
+///Called when an item is dried by a drying rack:
+#define COMSIG_ITEM_DRIED "item_dried"
+///from base of obj/item/dropped(): (mob/user)
+#define COMSIG_ITEM_DROPPED "item_drop"
+///from base of obj/item/pickup(): (/mob/taker)
+#define COMSIG_ITEM_PICKUP "item_pickup"
+///from base of mob/living/carbon/attacked_by(): (mob/living/carbon/target, mob/living/user, hit_zone)
+#define COMSIG_ITEM_ATTACK_ZONE "item_attack_zone"
+///return a truthy value to prevent ensouling, checked in /obj/effect/proc_holder/spell/targeted/lichdom/cast(): (mob/user)
+#define COMSIG_ITEM_IMBUE_SOUL "item_imbue_soul"
+///called before marking an object for retrieval, checked in /obj/effect/proc_holder/spell/targeted/summonitem/cast() : (mob/user)
+#define COMSIG_ITEM_MARK_RETRIEVAL "item_mark_retrieval"
+	#define COMPONENT_BLOCK_MARK_RETRIEVAL (1<<0)
+///from base of obj/item/hit_reaction(): (list/args)
+#define COMSIG_ITEM_HIT_REACT "item_hit_react"
+///called on item when crossed by something (): (/atom/movable, mob/living/crossed)
+#define COMSIG_ITEM_WEARERCROSSED "wearer_crossed"
+///called on item when microwaved (): (obj/machinery/microwave/M)
+#define COMSIG_ITEM_MICROWAVE_ACT "microwave_act"
+	#define COMPONENT_SUCCESFUL_MICROWAVE (1<<0)
+///called on item when created through microwaving (): (obj/machinery/microwave/M, cooking_efficiency)
+#define COMSIG_ITEM_MICROWAVE_COOKED "microwave_cooked"
+///from base of item/sharpener/attackby(): (amount, max)
+#define COMSIG_ITEM_SHARPEN_ACT "sharpen_act"
+	#define COMPONENT_BLOCK_SHARPEN_APPLIED (1<<0)
+	#define COMPONENT_BLOCK_SHARPEN_BLOCKED (1<<1)
+	#define COMPONENT_BLOCK_SHARPEN_ALREADY (1<<2)
+	#define COMPONENT_BLOCK_SHARPEN_MAXED (1<<3)
+///Called when an object is grilled ontop of a griddle
+#define COMSIG_ITEM_GRILLED "item_griddled"
+	#define COMPONENT_HANDLED_GRILLING (1<<0)
+///Called when an object is turned into another item through grilling ontop of a griddle
+#define COMSIG_GRILL_COMPLETED "item_grill_completed"
+
+///from base of [/obj/item/proc/tool_check_callback]: (mob/living/user)
+#define COMSIG_TOOL_IN_USE "tool_in_use"
+///from base of [/obj/item/proc/tool_start_check]: (mob/living/user)
+#define COMSIG_TOOL_START_USE "tool_start_use"
+///from [/obj/item/proc/disableEmbedding]:
+#define COMSIG_ITEM_DISABLE_EMBED "item_disable_embed"
+///from [/obj/effect/mine/proc/triggermine]:
+#define COMSIG_MINE_TRIGGERED "minegoboom"
+///from [/obj/structure/closet/supplypod/proc/preOpen]:
 // /obj/item signals for economy
 #define COMSIG_ITEM_SOLD "item_sold"							//called when an item is sold by the exports subsystem
 #define COMSIG_STRUCTURE_UNWRAPPED "structure_unwrapped"		//called when a wrapped up structure is opened by hand
