@@ -16,7 +16,6 @@
 	response_disarm = "gently pushes aside"
 	response_harm = "hits"
 	speed = 0
-	threat = 1
 	maxHealth = 75
 	health = 75
 	harm_intent_damage = 18

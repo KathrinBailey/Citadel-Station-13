@@ -46,6 +46,8 @@
 	for(var/C in GLOB.traitor_classes)
 		if(!(C in blacklist))
 			var/datum/traitor_class/class = GLOB.traitor_classes[C]
+			if(class.min_players > length(GLOB.joined_player_list))
+				continue
 			var/weight = LOGISTIC_FUNCTION(1.5*class.weight,chaos_weight,class.chaos,0)
 			weights[C] = weight * 1000
 	var/choice = pickweight(weights, 0)
@@ -209,7 +211,7 @@
 	)
 
 	var/where = "At your feet"
-	var/equipped_slot = mob.equip_in_one_of_slots(folder, slots)
+	var/equipped_slot = mob.equip_in_one_of_slots(folder, slots, critical = TRUE)
 	if (equipped_slot)
 		where = "In your [equipped_slot]"
 	to_chat(mob, "<BR><BR><span class='info'>[where] is a folder containing <b>secret documents</b> that another Syndicate group wants. We have set up a meeting with one of their agents on station to make an exchange. Exercise extreme caution as they cannot be trusted and may be hostile.</span><BR>")

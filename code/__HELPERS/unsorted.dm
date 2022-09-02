@@ -15,6 +15,8 @@
 	var/textb = copytext(HTMLstring, 6, 8)
 	return rgb(255 - hex2num(textr), 255 - hex2num(textg), 255 - hex2num(textb))
 
+//Better performant than an artisanal proc and more reliable than Turn(). From TGMC.
+#define REVERSE_DIR(dir) ( ((dir & 85) << 1) | ((dir & 170) >> 1) )
 //Returns location. Returns null if no location was found.
 /proc/get_teleport_loc(turf/location,mob/target,distance = 1, density = FALSE, errorx = 0, errory = 0, eoffsetx = 0, eoffsety = 0)
 /*
@@ -455,21 +457,23 @@ Turf and target are separate in case you want to teleport some distance from a t
 
 /atom/proc/GetAllContents(var/T)
 	var/list/processing_list = list(src)
+	var/i = 0
+	var/lim = 1
 	if(T)
 		. = list()
-		var/i = 0
-		while(i < length(processing_list))
+		while(i < lim)
 			var/atom/A = processing_list[++i]
 			//Byond does not allow things to be in multiple contents, or double parent-child hierarchies, so only += is needed
 			//This is also why we don't need to check against assembled as we go along
 			processing_list += A.contents
+			lim = processing_list.len
 			if(istype(A,T))
 				. += A
 	else
-		var/i = 0
-		while(i < length(processing_list))
+		while(i < lim)
 			var/atom/A = processing_list[++i]
 			processing_list += A.contents
+			lim = processing_list.len
 		return processing_list
 
 /atom/proc/GetAllContentsIgnoring(list/ignore_typecache)
@@ -478,10 +482,12 @@ Turf and target are separate in case you want to teleport some distance from a t
 	var/list/processing = list(src)
 	. = list()
 	var/i = 0
-	while(i < length(processing))
+	var/lim = 1
+	while(i < lim)
 		var/atom/A = processing[++i]
 		if(!ignore_typecache[A.type])
 			processing += A.contents
+			lim = processing.len
 			. += A
 
 
@@ -672,12 +678,6 @@ Turf and target are separate in case you want to teleport some distance from a t
 			return loc
 		loc = loc.loc
 	return null
-
-//For objects that should embed, but make no sense being is_sharp or is_pointed()
-//e.g: rods
-GLOBAL_LIST_INIT(can_embed_types, typecacheof(list(
-	/obj/item/stack/rods,
-	/obj/item/pipe)))
 
 /*
 Checks if that loc and dir has an item on the wall
@@ -1258,6 +1258,10 @@ GLOBAL_DATUM_INIT(dview_mob, /mob/dview, new)
 			var/obj/structure/window/W = O
 			if(W.ini_dir == dir_to_check || W.ini_dir == FULLTILE_WINDOW_DIR || dir_to_check == FULLTILE_WINDOW_DIR)
 				return FALSE
+		if(istype(O, /obj/structure/railing))
+			var/obj/structure/railing/rail = O
+			if(rail.ini_dir == dir_to_check || rail.ini_dir == FULLTILE_WINDOW_DIR || dir_to_check == FULLTILE_WINDOW_DIR)
+				return FALSE
 	return TRUE
 
 /proc/pass()
@@ -1441,7 +1445,6 @@ GLOBAL_DATUM_INIT(dview_mob, /mob/dview, new)
 		/obj/item/reagent_containers/food/snacks/grown,
 		/obj/item/reagent_containers/food/snacks/grown/mushroom,
 		/obj/item/reagent_containers/food/snacks/grown/nettle, // base type
-		/obj/item/reagent_containers/food/snacks/deepfryholder,
 		/obj/item/reagent_containers/food/snacks/grown/shell,
 		/obj/item/reagent_containers/food/snacks/clothing,
 		/obj/item/reagent_containers/food/snacks/store/bread
@@ -1512,6 +1515,8 @@ GLOBAL_DATUM_INIT(dview_mob, /mob/dview, new)
 /proc/CallAsync(datum/source, proctype, list/arguments)
 	set waitfor = FALSE
 	return call(source, proctype)(arglist(arguments))
+
+#define TURF_FROM_COORDS_LIST(List) (locate(List[1], List[2], List[3]))
 
 /proc/num2sign(numeric)
 	if(numeric > 0)

@@ -66,8 +66,12 @@
 
 	if(emote_type == EMOTE_AUDIBLE)
 		user.audible_message(msg)
-	else
+	else if(emote_type == EMOTE_VISIBLE)
 		user.visible_message(msg)
+	else if(emote_type == EMOTE_BOTH)
+		user.visible_message(msg, blind_message = msg)
+	else if(emote_type == EMOTE_OMNI)
+		user.visible_message(msg, omni = TRUE)
 
 /datum/emote/proc/replace_pronoun(mob/user, message)
 	if(findtext(message, "their"))
@@ -102,8 +106,9 @@
 
 /datum/emote/proc/can_run_emote(mob/user, status_check = TRUE, intentional = FALSE)
 	. = TRUE
-	if(!is_type_in_typecache(user, mob_type_allowed_typecache))
-		return FALSE
+	if(mob_type_allowed_typecache) //empty list = anyone can use it unless specifically blacklisted
+		if(!is_type_in_typecache(user, mob_type_allowed_typecache))
+			return FALSE
 	if(is_type_in_typecache(user, mob_type_blacklist_typecache))
 		return FALSE
 	if(status_check && !is_type_in_typecache(user, mob_type_ignore_stat_typecache))

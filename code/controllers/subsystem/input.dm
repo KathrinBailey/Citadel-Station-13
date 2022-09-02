@@ -6,6 +6,12 @@ SUBSYSTEM_DEF(input)
 	priority = FIRE_PRIORITY_INPUT
 	runlevels = RUNLEVELS_DEFAULT | RUNLEVEL_LOBBY
 
+	/// KEEP THIS UP TO DATE!
+	var/static/list/all_macrosets = list(
+		SKIN_MACROSET_HOTKEYS,
+		SKIN_MACROSET_CLASSIC_HOTKEYS,
+		SKIN_MACROSET_CLASSIC_INPUT
+	)
 	/// Classic mode input focused macro set. Manually set because we can't define ANY or ANY+UP for classic.
 	var/static/list/macroset_classic_input
 	/// Classic mode map focused macro set. Manually set because it needs to be clientside and go to macroset_classic_input.
@@ -51,11 +57,6 @@ SUBSYSTEM_DEF(input)
 	// let's play the ascii game of A to Z (UPPERCASE)
 	for(var/i in 65 to 90)
 		classic_ctrl_override_keys += ascii2text(i)
-	// let's play the game of clientside bind overrides!
-	classic_ctrl_override_keys -= list("T", "O", "M", "L")
-	macroset_classic_input["Ctrl+T"] = "say"
-	macroset_classic_input["Ctrl+O"] = "ooc"
-	macroset_classic_input["Ctrl+L"] = "looc"
 	// let's play the list iteration game x2
 	for(var/key in classic_ctrl_override_keys)
 		// make sure to double double quote to ensure things are treated as a key combo instead of addition/semicolon logic.
@@ -66,16 +67,13 @@ SUBSYSTEM_DEF(input)
 	macroset_classic_input["Escape"] = "\".winset \\\"input.text=\\\"\\\"\\\"\""
 
 	// FINALLY, WE CAN DO SOMETHING MORE NORMAL FOR THE SNOWFLAKE-BUT-LESS KEYSET.
+
 	macroset_classic_hotkey = list(
 	"Any" = "\"KeyDown \[\[*\]\]\"",
 	"Any+UP" = "\"KeyUp \[\[*\]\]\"",
 	"Tab" = "\".winset \\\"mainwindow.macro=[SKIN_MACROSET_CLASSIC_INPUT] input.focus=true input.background-color=[COLOR_INPUT_ENABLED]\\\"\"",
 	"Escape" = "\".winset \\\"input.text=\\\"\\\"\\\"\"",
 	"Back" = "\".winset \\\"input.text=\\\"\\\"\\\"\"",
-	"O" = "ooc",
-	"T" = "say",
-	"L" = "looc",
-	"M" = "me"
 	)
 
 	// And finally, the modern set.
@@ -85,10 +83,6 @@ SUBSYSTEM_DEF(input)
 	"Tab" = "\".winset \\\"input.focus=true?map.focus=true input.background-color=[COLOR_INPUT_DISABLED]:input.focus=true input.background-color=[COLOR_INPUT_ENABLED]\\\"\"",
 	"Escape" = "\".winset \\\"input.text=\\\"\\\"\\\"\"",
 	"Back" = "\".winset \\\"input.text=\\\"\\\"\\\"\"",
-	"O" = "ooc",
-	"T" = "say",
-	"L" = "looc",
-	"M" = "me"
 	)
 
 // Badmins just wanna have fun ♪
@@ -96,11 +90,15 @@ SUBSYSTEM_DEF(input)
 	var/list/clients = GLOB.clients
 	for(var/i in 1 to clients.len)
 		var/client/user = clients[i]
-		user.set_macros()
-		user.update_movement_keys()
+		user.full_macro_assert()
 
 /datum/controller/subsystem/input/fire()
 	var/list/clients = GLOB.clients // Let's sing the list cache song
 	for(var/i in 1 to clients.len)
 		var/client/C = clients[i]
 		C.keyLoop()
+
+/// *sigh
+/client/verb/NONSENSICAL_VERB_THAT_DOES_NOTHING()
+	set name = ".NONSENSICAL_VERB_THAT_DOES_NOTHING"
+	set hidden = TRUE
