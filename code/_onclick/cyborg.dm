@@ -43,7 +43,7 @@
 		INVOKE_ASYNC(aicamera, /obj/item/camera.proc/captureimage, A, usr)
 		return
 
-	var/obj/item/W = get_active_held_item()
+	var/obj/item/W = get_active_held_item(TRUE)
 
 	if(!W && A.Adjacent(src) && (isobj(A) || ismob(A)))
 		var/atom/movable/C = A
@@ -169,5 +169,9 @@
 	A.attack_robot(src)
 
 /atom/proc/attack_robot(mob/user)
+	if((isturf(src) || istype(src, /obj/structure/table) || istype(src, /obj/machinery/conveyor)) && get_dist(user, src) <= 1)
+		user.Move_Pulled(src)
+		return
+
 	attack_ai(user)
 	return

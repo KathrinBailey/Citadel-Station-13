@@ -79,6 +79,8 @@ GLOBAL_LIST_EMPTY(rubber_toolbox_icons)
 	name = "mechanical toolbox"
 	icon_state = "blue"
 	item_state = "toolbox_blue"
+	/// If FALSE, someone with a ensouled soulstone can sacrifice a spirit to change the sprite of this toolbox.
+	var/has_soul = FALSE
 
 /obj/item/storage/toolbox/mechanical/PopulateContents()
 	new /obj/item/screwdriver(src)
@@ -93,6 +95,7 @@ GLOBAL_LIST_EMPTY(rubber_toolbox_icons)
 	icon_state = "toolbox_blue_old"
 	has_latches = FALSE
 	can_rubberify = FALSE
+	has_soul = TRUE
 
 /obj/item/storage/toolbox/mechanical/old/heirloom
 	name = "old, robust toolbox" //this will be named "X family toolbox"
@@ -102,6 +105,39 @@ GLOBAL_LIST_EMPTY(rubber_toolbox_icons)
 
 /obj/item/storage/toolbox/mechanical/old/heirloom/PopulateContents()
 	return
+
+/obj/item/storage/toolbox/mechanical/old/clean // the assistant traitor toolbox, damage scales with TC inside
+	name = "toolbox"
+	desc = "An old, blue toolbox. It menaces with a sickening miasma of robust energies. You sure about this, Brain?"
+	icon_state = "toolbox_blue_clean"
+	force = 19
+	throwforce = 22
+	wound_bonus = 0
+	bare_wound_bonus = 10
+
+/obj/item/storage/toolbox/mechanical/old/clean/proc/calc_damage()
+	var/power = 0
+	for (var/obj/item/stack/telecrystal/TC in GetAllContents())
+		power += TC.amount
+	force = 19 + power
+	throwforce = 22 + power
+
+/obj/item/storage/toolbox/mechanical/old/clean/attack(mob/target, mob/living/user)
+	calc_damage() // one damage for one telecrystal equals about thirty seven(?) damage if you pour ALL your tc
+	..()
+
+/obj/item/storage/toolbox/mechanical/old/clean/throw_impact(atom/hit_atom, datum/thrownthing/throwingdatum)
+	calc_damage()
+	..()
+
+/obj/item/storage/toolbox/mechanical/old/clean/PopulateContents()
+	new /obj/item/screwdriver(src)
+	new /obj/item/wrench(src)
+	new /obj/item/weldingtool(src)
+	new /obj/item/crowbar(src)
+	new /obj/item/wirecutters(src)
+	new /obj/item/multitool(src)
+	new /obj/item/clothing/gloves/color/yellow(src)
 
 /obj/item/storage/toolbox/electrical
 	name = "electrical toolbox"
@@ -334,7 +370,7 @@ GLOBAL_LIST_EMPTY(rubber_toolbox_icons)
 	desc = replacetext(desc, "Danger", "Bouncy")
 	desc = replacetext(desc, "robust", "safe")
 	desc = replacetext(desc, "heavier", "bouncier")
-	DISABLE_BITFIELD(flags_1, CONDUCT_1)
+	flags_1 &= ~(CONDUCT_1)
 	custom_materials = null
 	damtype = STAMINA
 	force += 3 //to compensate the higher stamina K.O. threshold compared to actual health.
@@ -364,7 +400,7 @@ GLOBAL_LIST_EMPTY(rubber_toolbox_icons)
 	attack_verb = list("robusted", "bounced")
 	can_rubberify = FALSE //we are already the future.
 
-/obj/item/storage/toolbox/rubber/Initialize()
+/obj/item/storage/toolbox/rubber/Initialize(mapload)
 	icon_state = pick("blue", "red", "yellow", "green")
 	item_state = "toolbox_[icon_state]"
 	if(!GLOB.rubber_toolbox_icons[icon_state])

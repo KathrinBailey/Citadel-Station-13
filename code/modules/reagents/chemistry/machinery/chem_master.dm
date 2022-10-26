@@ -22,7 +22,7 @@
 	var/list/pillStyles
 	var/fermianalyze //Give more detail on fermireactions on analysis
 
-/obj/machinery/chem_master/Initialize()
+/obj/machinery/chem_master/Initialize(mapload)
 	create_reagents(100)
 
 	//Calculate the span tags and ids fo all the available pill icons
@@ -46,16 +46,16 @@
 	for(var/obj/item/reagent_containers/glass/beaker/B in component_parts)
 		reagents.maximum_volume += B.reagents.maximum_volume
 
-/obj/machinery/chem_master/ex_act(severity, target)
+/obj/machinery/chem_master/ex_act(severity, target, origin)
 	if(severity < 3)
 		..()
 
-/obj/machinery/chem_master/contents_explosion(severity, target)
+/obj/machinery/chem_master/contents_explosion(severity, target, origin)
 	..()
 	if(beaker)
-		beaker.ex_act(severity, target)
+		beaker.ex_act(severity, target, origin)
 	if(bottle)
-		bottle.ex_act(severity, target)
+		bottle.ex_act(severity, target, origin)
 
 /obj/machinery/chem_master/Exited(atom/movable/A, atom/newloc)
 	. = ..()
@@ -184,13 +184,13 @@
 	var/beakerContents[0]
 	if(beaker)
 		for(var/datum/reagent/R in beaker.reagents.reagent_list)
-			beakerContents.Add(list(list("name" = R.name, "id" = ckey(R.name), "volume" = R.volume))) // list in a list because Byond merges the first list...
+			beakerContents.Add(list(list("name" = R.name, "id" = R.type, "volume" = R.volume))) // list in a list because Byond merges the first list...
 	data["beakerContents"] = beakerContents
 
 	var/bufferContents[0]
 	if(reagents.total_volume)
 		for(var/datum/reagent/N in reagents.reagent_list)
-			bufferContents.Add(list(list("name" = N.name, "id" = ckey(N.name), "volume" = N.volume))) // ^
+			bufferContents.Add(list(list("name" = N.name, "id" = N.type, "volume" = N.volume))) // ^
 	data["bufferContents"] = bufferContents
 
 	//Calculated at init time as it never changes
@@ -216,7 +216,7 @@
 	if(action == "transfer")
 		if(!beaker)
 			return FALSE
-		var/reagent = GLOB.name2reagent[params["id"]]
+		var/reagent = text2path(params["id"])
 		var/amount = text2num(params["amount"])
 		var/to_container = params["to"]
 		// Custom amount
@@ -257,9 +257,9 @@
 		var/amount = text2num(params["amount"])
 		if(amount == null)
 			amount = text2num(input(usr,
-				"Max 10. Buffer content will be split evenly.",
+				"Max 20. Buffer content will be split evenly.",
 				"How many to make?", 1))
-		amount = clamp(round(amount), 0, 10)
+		amount = clamp(round(amount), 0, 20)
 		if (amount <= 0)
 			return FALSE
 		// Get units per item
@@ -386,26 +386,35 @@
 
 	if(action == "analyze")
 		// var/datum/reagent/R = GLOB.name2reagent[params["id"]]
-		var/reagent = GLOB.name2reagent[params["id"]]
+		var/reagent = text2path(params["id"])
 		var/datum/reagent/R = GLOB.chemical_reagents_list[reagent]
 		if(R)
 			var/state = "Unknown"
-			if(initial(R.reagent_state) == 1)
+			if(initial(R.reagent_state) == SOLID)
 				state = "Solid"
-			else if(initial(R.reagent_state) == 2)
+			else if(initial(R.reagent_state) == LIQUID)
 				state = "Liquid"
-			else if(initial(R.reagent_state) == 3)
+			else if(initial(R.reagent_state) == GAS)
 				state = "Gas"
 			var/const/P = 3 //The number of seconds between life ticks
 			var/T = initial(R.metabolization_rate) * (60 / P)
+			var/processtype
+			if(CHECK_MULTIPLE_BITFIELDS(R.chemical_flags, (REAGENT_ROBOTIC_PROCESS | REAGENT_ORGANIC_PROCESS)))
+				processtype = "Both robots and organics"
+			else if(R.chemical_flags & REAGENT_ROBOTIC_PROCESS)
+				processtype = "Robots only"
+			else if(R.chemical_flags & REAGENT_ORGANIC_PROCESS)
+				processtype = "Organics only"
+			else
+				processtype = "Noone?! (Report this to Nanotrasen's spacetime department immediately)"
 			if(istype(R, /datum/reagent/fermi))
 				fermianalyze = TRUE
 				var/datum/chemical_reaction/Rcr = get_chemical_reaction(reagent)
 				var/pHpeakCache = (Rcr.OptimalpHMin + Rcr.OptimalpHMax)/2
-				analyzeVars = list("name" = initial(R.name), "state" = state, "color" = initial(R.color), "description" = initial(R.description), "metaRate" = T, "overD" = initial(R.overdose_threshold), "addicD" = initial(R.addiction_threshold), "purityF" = R.purity, "inverseRatioF" = initial(R.inverse_chem_val), "purityE" = initial(Rcr.PurityMin), "minTemp" = initial(Rcr.OptimalTempMin), "maxTemp" = initial(Rcr.OptimalTempMax), "eTemp" = initial(Rcr.ExplodeTemp), "pHpeak" = pHpeakCache)
+				analyzeVars = list("name" = initial(R.name), "state" = state, "color" = initial(R.color), "description" = initial(R.description), "metaRate" = T, "overD" = initial(R.overdose_threshold), "addicD" = initial(R.addiction_threshold), "processType" = processtype, "purityF" = R.purity, "inverseRatioF" = initial(R.inverse_chem_val), "purityE" = initial(Rcr.PurityMin), "minTemp" = initial(Rcr.OptimalTempMin), "maxTemp" = initial(Rcr.OptimalTempMax), "eTemp" = initial(Rcr.ExplodeTemp), "pHpeak" = pHpeakCache)
 			else
 				fermianalyze = FALSE
-				analyzeVars = list("name" = initial(R.name), "state" = state, "color" = initial(R.color), "description" = initial(R.description), "metaRate" = T, "overD" = initial(R.overdose_threshold), "addicD" = initial(R.addiction_threshold))
+				analyzeVars = list("name" = initial(R.name), "state" = state, "color" = initial(R.color), "description" = initial(R.description), "metaRate" = T, "overD" = initial(R.overdose_threshold), "addicD" = initial(R.addiction_threshold), "processType" = processtype, "purityF" = R.purity)
 			screen = "analyze"
 			return TRUE
 

@@ -20,7 +20,7 @@
 	var/is_knotted		= FALSE
 	//Lists moved to _cit_helpers.dm as globals so they're not instanced individually
 
-/obj/item/dildo/proc/update_appearance()
+/obj/item/dildo/update_appearance()
 	icon_state = "[dildo_type]_[dildo_shape]_[dildo_size]"
 	var/sizeword = ""
 	switch(dildo_size)
@@ -71,7 +71,7 @@
 	update_appearance()
 	return TRUE
 
-/obj/item/dildo/Initialize()
+/obj/item/dildo/Initialize(mapload)
 	. = ..()
 	if(random_color == TRUE)
 		var/randcolor = pick(GLOB.dildo_colors)
@@ -103,28 +103,29 @@
 	name 				= "knotted dildo"
 	attack_verb 		= list("penetrated", "knotted", "slapped", "inseminated")
 
-obj/item/dildo/human
+/obj/item/dildo/human
 	dildo_shape 		= "human"
 	name 				= "human dildo"
 	attack_verb = list("penetrated", "slapped", "inseminated")
 
-obj/item/dildo/plain
+/obj/item/dildo/plain
 	dildo_shape 		= "plain"
 	name 				= "plain dildo"
 	attack_verb 		= list("penetrated", "slapped", "inseminated")
 
-obj/item/dildo/flared
+/obj/item/dildo/flared
 	dildo_shape 		= "flared"
 	name 				= "flared dildo"
 	attack_verb 		= list("penetrated", "slapped", "neighed", "gaped", "prolapsed", "inseminated")
 
-obj/item/dildo/flared/huge
+/obj/item/dildo/flared/huge
 	name 				= "literal horse cock"
 	desc 				= "THIS THING IS HUGE!"
 	dildo_size 			= 4
 	force				= 10
+	hitsound = 'sound/weapons/klonk.ogg'
 
-obj/item/dildo/custom
+/obj/item/dildo/custom
 	name 				= "customizable dildo"
 	desc 				= "Thanks to significant advances in synthetic nanomaterials, this dildo is capable of taking on many different forms to fit the user's preferences! Pricy!"
 	can_customize		= TRUE
@@ -135,9 +136,9 @@ obj/item/dildo/custom
 // Suicide acts, by request
 
 /obj/item/dildo/proc/manual_suicide(mob/living/user)
-		user.visible_message("<span class='suicide'>[user] finally finishes deepthroating the [src], and their life.</span>")
-		user.adjustOxyLoss(200)
-		user.death(0)
+	user.visible_message("<span class='suicide'>[user] finally finishes deepthroating the [src], and their life.</span>")
+	user.adjustOxyLoss(200)
+	user.death(0)
 
 /obj/item/dildo/suicide_act(mob/living/user)
 //	is_knotted = ((src.dildo_shape == "knotted")?"They swallowed the knot":"Their face is turning blue")

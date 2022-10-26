@@ -8,19 +8,19 @@
 	device_type = MC_HDD
 	var/max_capacity = 128
 	var/used_capacity = 0
-	var/list/stored_files = list()		// List of stored files on this drive. DO NOT MODIFY DIRECTLY!
+	var/list/stored_files = list() // List of stored files on this drive. DO NOT MODIFY DIRECTLY!
 
 /obj/item/computer_hardware/hard_drive/on_remove(obj/item/modular_computer/MC, mob/user)
 	MC.shutdown_computer()
 
 /obj/item/computer_hardware/hard_drive/proc/install_default_programs()
-	store_file(new/datum/computer_file/program/computerconfig(src)) 	// Computer configuration utility, allows hardware control and displays more info than status bar
-	store_file(new/datum/computer_file/program/ntnetdownload(src))		// NTNet Downloader Utility, allows users to download more software from NTNet repository
-	store_file(new/datum/computer_file/program/filemanager(src))		// File manager, allows text editor functions and basic file manipulation.
+	store_file(new/datum/computer_file/program/computerconfig(src)) // Computer configuration utility, allows hardware control and displays more info than status bar
+	store_file(new/datum/computer_file/program/ntnetdownload(src)) // NTNet Downloader Utility, allows users to download more software from NTNet repository
+	store_file(new/datum/computer_file/program/filemanager(src)) // File manager, allows text editor functions and basic file manipulation.
 
 /obj/item/computer_hardware/hard_drive/examine(user)
 	. = ..()
-	. += "<span class='notice'>It has [max_capacity] GQ of storage capacity.</span>"
+	. += span_notice("It has [max_capacity] GQ of storage capacity.")
 
 /obj/item/computer_hardware/hard_drive/diagnostics(mob/user)
 	..()
@@ -31,43 +31,43 @@
 // Use this proc to add file to the drive. Returns 1 on success and 0 on failure. Contains necessary sanity checks.
 /obj/item/computer_hardware/hard_drive/proc/store_file(datum/computer_file/F)
 	if(!F || !istype(F))
-		return 0
+		return FALSE
 
 	if(!can_store_file(F))
-		return 0
+		return FALSE
 
 	if(!check_functionality())
-		return 0
+		return FALSE
 
 	if(!stored_files)
-		return 0
+		return FALSE
 
 	// This file is already stored. Don't store it again.
 	if(F in stored_files)
-		return 0
+		return FALSE
 
 	F.holder = src
 	stored_files.Add(F)
 	recalculate_size()
-	return 1
+	return TRUE
 
 // Use this proc to remove file from the drive. Returns 1 on success and 0 on failure. Contains necessary sanity checks.
 /obj/item/computer_hardware/hard_drive/proc/remove_file(datum/computer_file/F)
 	if(!F || !istype(F))
-		return 0
+		return FALSE
 
 	if(!stored_files)
-		return 0
+		return FALSE
 
 	if(!check_functionality())
-		return 0
+		return FALSE
 
 	if(F in stored_files)
 		stored_files -= F
 		recalculate_size()
-		return 1
+		return TRUE
 	else
-		return 0
+		return FALSE
 
 // Loops through all stored files and recalculates used_capacity of this drive
 /obj/item/computer_hardware/hard_drive/proc/recalculate_size()
@@ -80,24 +80,24 @@
 // Checks whether file can be stored on the hard drive. We can only store unique files, so this checks whether we wouldn't get a duplicity by adding a file.
 /obj/item/computer_hardware/hard_drive/proc/can_store_file(datum/computer_file/F)
 	if(!F || !istype(F))
-		return 0
+		return FALSE
 
 	if(F in stored_files)
-		return 0
+		return FALSE
 
 	var/name = F.filename + "." + F.filetype
 	for(var/datum/computer_file/file in stored_files)
 		if((file.filename + "." + file.filetype) == name)
-			return 0
+			return FALSE
 
 	// In the unlikely event someone manages to create that many files.
 	// BYOND is acting weird with numbers above 999 in loops (infinite loop prevention)
 	if(stored_files.len >= 999)
-		return 0
+		return FALSE
 	if((used_capacity + F.size) > max_capacity)
-		return 0
+		return FALSE
 	else
-		return 1
+		return TRUE
 
 
 // Tries to find the file by filename. Returns null on failure
@@ -117,10 +117,10 @@
 	return null
 
 /obj/item/computer_hardware/hard_drive/Destroy()
-	stored_files = null
+	QDEL_LIST(stored_files)
 	return ..()
 
-/obj/item/computer_hardware/hard_drive/Initialize()
+/obj/item/computer_hardware/hard_drive/Initialize(mapload)
 	. = ..()
 	install_default_programs()
 
@@ -129,7 +129,7 @@
 	name = "advanced hard disk drive"
 	desc = "A hybrid HDD, for use in higher grade computers where balance between power efficiency and capacity is desired."
 	max_capacity = 256
-	power_usage = 50 					// Hybrid, medium capacity and medium power storage
+	power_usage = 50 // Hybrid, medium capacity and medium power storage
 	icon_state = "harddisk_mini"
 	w_class = WEIGHT_CLASS_SMALL
 
@@ -137,7 +137,7 @@
 	name = "super hard disk drive"
 	desc = "A high capacity HDD, for use in cluster storage solutions where capacity is more important than power efficiency."
 	max_capacity = 512
-	power_usage = 100					// High-capacity but uses lots of power, shortening battery life. Best used with APC link.
+	power_usage = 100 // High-capacity but uses lots of power, shortening battery life. Best used with APC link.
 	icon_state = "harddisk_mini"
 	w_class = WEIGHT_CLASS_SMALL
 
@@ -157,7 +157,14 @@
 	max_capacity = 64
 	icon_state = "ssd_mini"
 	w_class = WEIGHT_CLASS_TINY
-	custom_price = 150
+	custom_price = PAYCHECK_MEDIUM * 2
+
+// For borg integrated tablets. No downloader.
+/obj/item/computer_hardware/hard_drive/small/integrated/install_default_programs()
+	store_file(new /datum/computer_file/program/computerconfig(src)) // Computer configuration utility, allows hardware control and displays more info than status bar
+	store_file(new /datum/computer_file/program/filemanager(src)) // File manager, allows text editor functions and basic file manipulation.
+	store_file(new /datum/computer_file/program/robotact(src))
+
 
 // Syndicate variant - very slight better
 /obj/item/computer_hardware/hard_drive/small/syndicate

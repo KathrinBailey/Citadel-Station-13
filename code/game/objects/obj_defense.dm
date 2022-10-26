@@ -22,6 +22,8 @@
 
 //returns the damage value of the attack after processing the obj's various armor protections
 /obj/proc/run_obj_armor(damage_amount, damage_type, damage_flag = 0, attack_dir, armour_penetration = 0)
+	if(damage_flag == MELEE && damage_amount < damage_deflection)		// TODO: Refactor armor datums and types entirely jfc
+		return 0
 	switch(damage_type)
 		if(BRUTE)
 		if(BURN)
@@ -52,9 +54,9 @@
 		var/obj/O = AM
 		if(O.damtype == STAMINA)
 			throwdamage = 0
-	take_damage(throwdamage, BRUTE, "melee", 1, get_dir(src, AM))
+	take_damage(throwdamage, BRUTE, MELEE, 1, get_dir(src, AM))
 
-/obj/ex_act(severity, target)
+/obj/ex_act(severity, target, origin)
 	if(resistance_flags & INDESTRUCTIBLE)
 		return
 	..() //contents explosion
@@ -67,9 +69,22 @@
 			obj_integrity = 0
 			qdel(src)
 		if(2)
-			take_damage(rand(100, 250), BRUTE, "bomb", 0)
+			take_damage(rand(100, 250), BRUTE, BOMB, 0)
 		if(3)
-			take_damage(rand(10, 90), BRUTE, "bomb", 0)
+			take_damage(rand(10, 90), BRUTE, BOMB, 0)
+
+/obj/wave_ex_act(power, datum/wave_explosion/explosion, dir)
+	if(resistance_flags & INDESTRUCTIBLE)
+		return power
+	. = ..()
+	if(explosion.source == src)
+		obj_integrity = 0
+		qdel(src)
+		return
+	take_damage(wave_explosion_damage(power, explosion), BRUTE, BOMB, 0)
+
+/obj/proc/wave_explosion_damage(power, datum/wave_explosion/explosion)
+	return (explosion_flags & EXPLOSION_FLAG_HARD_OBSTACLE)? EXPLOSION_POWER_STANDARD_SCALE_HARD_OBSTACLE_DAMAGE(power, explosion.hard_obstacle_mod) : EXPLOSION_POWER_STANDARD_SCALE_OBJECT_DAMAGE(power, explosion.object_damage_mod)
 
 /obj/bullet_act(obj/item/projectile/P)
 	. = ..()
@@ -91,7 +106,7 @@
 			user.say(pick(";RAAAAAAAARGH!", ";HNNNNNNNNNGGGGGGH!", ";GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", ";AAAAAAARRRGH!" ), forced="hulk")
 		else
 			playsound(src, 'sound/effects/bang.ogg', 50, 1)
-		take_damage(hulk_damage(), BRUTE, "melee", 0, get_dir(src, user))
+		take_damage(hulk_damage(), BRUTE, MELEE, 0, get_dir(src, user))
 		return 1
 	return 0
 
@@ -100,7 +115,7 @@
 		var/turf/T = loc
 		if(T.intact && level == 1) //the blob doesn't destroy thing below the floor
 			return
-	take_damage(400, BRUTE, "melee", 0, get_dir(src, B))
+	take_damage(400, BRUTE, MELEE, 0, get_dir(src, B))
 
 /obj/proc/attack_generic(mob/user, damage_amount = 0, damage_type = BRUTE, damage_flag = 0, sound_effect = 1, armor_penetration = 0) //used by attack_alien, attack_animal, and attack_slime
 	if(SEND_SIGNAL(src, COMSIG_OBJ_ATTACK_GENERIC, user, damage_amount, damage_type, damage_flag, sound_effect, armor_penetration) & COMPONENT_STOP_GENERIC_ATTACK)
@@ -109,10 +124,10 @@
 		return
 	user.do_attack_animation(src)
 	. = take_damage(damage_amount, damage_type, damage_flag, sound_effect, get_dir(src, user), armor_penetration)
-	user.DelayNextAction()
+	user.DelayNextAction(CLICK_CD_MELEE)
 
 /obj/attack_alien(mob/living/carbon/alien/humanoid/user)
-	if(attack_generic(user, 60, BRUTE, "melee", 0))
+	if(attack_generic(user, 60, BRUTE, MELEE, 0))
 		playsound(src.loc, 'sound/weapons/slash.ogg', 100, 1)
 
 /obj/attack_animal(mob/living/simple_animal/M)
@@ -126,9 +141,9 @@
 		if(M.environment_smash)
 			play_soundeffect = 0
 		if(M.obj_damage)
-			. = attack_generic(M, M.obj_damage, M.melee_damage_type, "melee", play_soundeffect, M.armour_penetration)
+			. = attack_generic(M, M.obj_damage, M.melee_damage_type, MELEE, play_soundeffect, M.armour_penetration)
 		else
-			. = attack_generic(M, rand(M.melee_damage_lower,M.melee_damage_upper), M.melee_damage_type, "melee", play_soundeffect, M.armour_penetration)
+			. = attack_generic(M, rand(M.melee_damage_lower,M.melee_damage_upper), M.melee_damage_type, MELEE, play_soundeffect, M.armour_penetration)
 		if(. && !play_soundeffect)
 			playsound(src, 'sound/effects/meteorimpact.ogg', 100, 1)
 
@@ -152,30 +167,10 @@
 		return
 	if(istype(src, /obj/machinery/atmospherics))
 		return
-	attack_generic(user, rand(10, 15), BRUTE, "melee", 1)
+	attack_generic(user, rand(10, 15), BRUTE, MELEE, 1)
 
 #undef BLACKLISTED_OBJECTS
 
-/obj/mech_melee_attack(obj/mecha/M)
-	M.do_attack_animation(src)
-	var/play_soundeffect = 0
-	var/mech_damtype = M.damtype
-	if(M.selected)
-		mech_damtype = M.selected.damtype
-		play_soundeffect = 1
-	else
-		switch(M.damtype)
-			if(BRUTE)
-				playsound(src, 'sound/weapons/punch4.ogg', 50, 1)
-			if(BURN)
-				playsound(src, 'sound/items/welder.ogg', 50, 1)
-			if(TOX)
-				playsound(src, 'sound/effects/spray2.ogg', 50, 1)
-				return 0
-			else
-				return 0
-	visible_message("<span class='danger'>[M.name] has hit [src].</span>", null, null, COMBAT_MESSAGE_RANGE)
-	return take_damage(M.force*3, mech_damtype, "melee", play_soundeffect, get_dir(src, M)) // multiplied by 3 so we can hit objs hard but not be overpowered against mobs.
 
 /obj/singularity_act()
 	ex_act(EXPLODE_DEVASTATE)
@@ -186,36 +181,27 @@
 
 ///// ACID
 
-GLOBAL_DATUM_INIT(acid_overlay, /mutable_appearance, mutable_appearance('icons/effects/effects.dmi', "acid"))
+GLOBAL_DATUM_INIT(acid_overlay, /mutable_appearance, mutable_appearance('icons/effects/effects.dmi', ACID))
 
 //the obj's reaction when touched by acid
 /obj/acid_act(acidpwr, acid_volume)
 	if(!(resistance_flags & UNACIDABLE) && acid_volume)
-
-		if(!acid_level)
-			SSacid.processing[src] = src
-			update_icon()
-		var/acid_cap = acidpwr * 300 //so we cannot use huge amounts of weak acids to do as well as strong acids.
-		if(acid_level < acid_cap)
-			acid_level = min(acid_level + acidpwr * acid_volume, acid_cap)
+		AddComponent(/datum/component/acid, acidpwr, acid_volume)
 		return 1
-
-//the proc called by the acid subsystem to process the acid that's on the obj
-/obj/proc/acid_processing()
-	. = 1
-	if(!(resistance_flags & ACID_PROOF))
-		if(prob(33))
-			playsound(loc, 'sound/items/welder.ogg', 150, 1)
-		take_damage(min(1 + round(sqrt(acid_level)*0.3), 300), BURN, "acid", 0)
-
-	acid_level = max(acid_level - (5 + 3*round(sqrt(acid_level))), 0)
-	if(!acid_level)
-		return 0
 
 //called when the obj is destroyed by acid.
 /obj/proc/acid_melt()
-	SSacid.processing -= src
+	var/datum/component/acid/acid = GetComponent(/datum/component/acid)
+	if(acid)
+		acid.RemoveComponent()
 	deconstruct(FALSE)
+
+/obj/proc/acid_level()
+	var/datum/component/acid/acid = GetComponent(/datum/component/acid)
+	if(acid)
+		return acid.level
+	else
+		return 0
 
 //// FIRE
 
@@ -225,7 +211,7 @@ GLOBAL_DATUM_INIT(acid_overlay, /mutable_appearance, mutable_appearance('icons/e
 		if(T.intact && level == 1) //fire can't damage things hidden below the floor.
 			return
 	if(exposed_temperature && !(resistance_flags & FIRE_PROOF))
-		take_damage(clamp(0.02 * exposed_temperature, 0, 20), BURN, "fire", 0)
+		take_damage(clamp(0.02 * exposed_temperature, 0, 20), BURN, FIRE, 0)
 	if(!(resistance_flags & ON_FIRE) && (resistance_flags & FLAMMABLE))
 		resistance_flags |= ON_FIRE
 		SSfire_burning.processing[src] = src
@@ -273,9 +259,9 @@ GLOBAL_DATUM_INIT(acid_overlay, /mutable_appearance, mutable_appearance('icons/e
 
 //what happens when the obj's integrity reaches zero.
 /obj/proc/obj_destruction(damage_flag)
-	if(damage_flag == "acid")
+	if(damage_flag == ACID)
 		acid_melt()
-	else if(damage_flag == "fire")
+	else if(damage_flag == FIRE)
 		burn()
 	else
 		deconstruct(FALSE)

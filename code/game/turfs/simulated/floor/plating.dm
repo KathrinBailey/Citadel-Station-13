@@ -29,7 +29,7 @@
 	else
 		. += "<span class='notice'>You might be able to build ontop of it with some <i>tiles</i>...</span>"
 
-/turf/open/floor/plating/Initialize()
+/turf/open/floor/plating/Initialize(mapload)
 	if (!broken_states)
 		broken_states = list("platingdmg1", "platingdmg2", "platingdmg3")
 	if (!burnt_states)
@@ -61,6 +61,9 @@
 			to_chat(user, "<span class='notice'>You begin reinforcing the floor...</span>")
 			if(do_after(user, 30, target = src))
 				if (R.get_amount() >= 2 && !istype(src, /turf/open/floor/engine))
+					for(var/obj/effect/decal/cleanable/decal in src)
+						if(decal.wiped_by_floor_change)
+							qdel(decal)
 					PlaceOnTop(/turf/open/floor/engine, flags = CHANGETURF_INHERIT_AIR)
 					playsound(src, 'sound/items/deconstruct.ogg', 80, 1)
 					R.use(2)
@@ -77,8 +80,11 @@
 		else
 			to_chat(user, "<span class='notice'>You begin adding glass to the floor...</span>")
 			if(do_after(user, 5, target = src))
-				if (G.get_amount() >= 2 && !istype(src, /turf/open/transparent/glass))
-					PlaceOnTop(/turf/open/transparent/glass, flags = CHANGETURF_INHERIT_AIR)
+				if (G.get_amount() >= 2 && !istype(src, /turf/open/floor/glass))
+					for(var/obj/effect/decal/cleanable/decal in src)
+						if(decal.wiped_by_floor_change)
+							qdel(decal)
+					PlaceOnTop(/turf/open/floor/glass, flags = CHANGETURF_INHERIT_AIR)
 					playsound(src, 'sound/items/deconstruct.ogg', 80, 1)
 					G.use(2)
 					to_chat(user, "<span class='notice'>You add glass to the floor.</span>")
@@ -94,8 +100,11 @@
 		else
 			to_chat(user, "<span class='notice'>You begin adding reinforced glass to the floor...</span>")
 			if(do_after(user, 10, target = src))
-				if (RG.get_amount() >= 2 && !istype(src, /turf/open/transparent/glass/reinforced))
-					PlaceOnTop(/turf/open/transparent/glass/reinforced, flags = CHANGETURF_INHERIT_AIR)
+				if (RG.get_amount() >= 2 && !istype(src, /turf/open/floor/glass/reinforced))
+					for(var/obj/effect/decal/cleanable/decal in src)
+						if(decal.wiped_by_floor_change)
+							qdel(decal)
+					PlaceOnTop(/turf/open/floor/glass/reinforced, flags = CHANGETURF_INHERIT_AIR)
 					playsound(src, 'sound/items/deconstruct.ogg', 80, 1)
 					RG.use(2)
 					to_chat(user, "<span class='notice'>You add reinforced glass to the floor.</span>")
@@ -110,11 +119,18 @@
 			var/obj/item/stack/tile/W = C
 			if(!W.use(1))
 				return
+			for(var/obj/effect/decal/cleanable/decal in src)
+				if(decal.wiped_by_floor_change)
+					qdel(decal)
 			if(istype(W, /obj/item/stack/tile/material))
 				var/turf/newturf = PlaceOnTop(/turf/open/floor/material, flags = CHANGETURF_INHERIT_AIR)
 				newturf.set_custom_materials(W.custom_materials)
+				if(length(C.atom_colours) && C.atom_colours[WASHABLE_COLOUR_PRIORITY] != null)
+					newturf.add_atom_colour(C.atom_colours[WASHABLE_COLOUR_PRIORITY], FIXED_COLOUR_PRIORITY)
 			else if(W.turf_type)
 				var/turf/open/floor/T = PlaceOnTop(W.turf_type, flags = CHANGETURF_INHERIT_AIR)
+				if(length(C.atom_colours) && C.atom_colours[WASHABLE_COLOUR_PRIORITY] != null)
+					T.add_atom_colour(C.atom_colours[WASHABLE_COLOUR_PRIORITY], FIXED_COLOUR_PRIORITY)
 				if(istype(W, /obj/item/stack/tile/light)) //TODO: get rid of this ugly check somehow
 					var/obj/item/stack/tile/light/L = W
 					var/turf/open/floor/light/F = T
@@ -183,7 +199,7 @@
 		return TRUE
 	return FALSE
 
-/turf/open/floor/plating/foam/ex_act()
+/turf/open/floor/plating/foam/ex_act(severity, target, origin)
 	..()
 	ScrapeAway(flags = CHANGETURF_INHERIT_AIR)
 

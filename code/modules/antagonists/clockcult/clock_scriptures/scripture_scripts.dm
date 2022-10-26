@@ -29,7 +29,7 @@
 	descname = "Structure, Turret"
 	name = "Ocular Warden"
 	desc = "Forms an automatic short-range turret which will automatically attack nearby unrestrained non-Servants that can see it."
-	invocations = list("Guardians of Engine...", "...judge those who would harm us!")
+	invocations = list("Guardians of Engine...", "...judge those who would harm us.")
 	channel_time = 100
 	power_cost = 250
 	object_path = /obj/structure/destructible/clockwork/ocular_warden
@@ -105,7 +105,7 @@
 	descname = "Delayed Area Knockdown Glasses"
 	name = "Judicial Visor"
 	desc = "Creates a visor that can smite an area, applying Belligerent and briefly stunning. The smote area will explode after 3 seconds."
-	invocations = list("Grant me the flames of Engine!")
+	invocations = list("Grant me the flames of Engine.")
 	channel_time = 10
 	power_cost = 400
 	whispered = TRUE
@@ -124,7 +124,7 @@
 	descname = "Shield with empowerable bashes"
 	name = "Nezbere's shield"
 	desc = "Creates a shield which generates charge from blocking damage, using it to empower its bashes tremendously. It is repaired with brass, and while very durable, extremely weak to lasers and, even more so, to energy weaponry."
-	invocations = list("Shield me...", "... from the coming dark!")
+	invocations = list("Shield me...", "... from the coming dark.")
 	channel_time = 20
 	power_cost = 600 //Shouldn't be too spammable but not too hard to get either
 	whispered = TRUE
@@ -143,7 +143,7 @@
 	descname = "Summonable Armor and Weapons"
 	name = "Clockwork Armaments"
 	desc = "Allows the invoker to summon clockwork armor and a Ratvarian spear at will. The spear's attacks will generate Vitality, used for healing."
-	invocations = list("Grant me armaments...", "...from the forge of Armorer!")
+	invocations = list("Grant me armaments...", "...from the forge of Armorer.")
 	channel_time = 20
 	power_cost = 250
 	whispered = TRUE
@@ -200,18 +200,18 @@
 
 /datum/action/innate/clockwork_armaments/Activate()
 	var/do_message = 0
-	var/obj/item/I = owner.get_item_by_slot(SLOT_WEAR_SUIT)
+	var/obj/item/I = owner.get_item_by_slot(ITEM_SLOT_OCLOTHING)
 	if(remove_item_if_better(I, owner))
-		do_message += owner.equip_to_slot_or_del(new/obj/item/clothing/suit/armor/clockwork(null), SLOT_WEAR_SUIT)
-	I = owner.get_item_by_slot(SLOT_HEAD)
+		do_message += owner.equip_to_slot_or_del(new/obj/item/clothing/suit/armor/clockwork(null), ITEM_SLOT_OCLOTHING)
+	I = owner.get_item_by_slot(ITEM_SLOT_HEAD)
 	if(remove_item_if_better(I, owner))
-		do_message += owner.equip_to_slot_or_del(new/obj/item/clothing/head/helmet/clockwork(null), SLOT_HEAD)
-	I = owner.get_item_by_slot(SLOT_GLOVES)
+		do_message += owner.equip_to_slot_or_del(new/obj/item/clothing/head/helmet/clockwork(null), ITEM_SLOT_HEAD)
+	I = owner.get_item_by_slot(ITEM_SLOT_GLOVES)
 	if(remove_item_if_better(I, owner))
-		do_message += owner.equip_to_slot_or_del(new/obj/item/clothing/gloves/clockwork(null), SLOT_GLOVES)
-	I = owner.get_item_by_slot(SLOT_SHOES)
+		do_message += owner.equip_to_slot_or_del(new/obj/item/clothing/gloves/clockwork(null), ITEM_SLOT_GLOVES)
+	I = owner.get_item_by_slot(ITEM_SLOT_FEET)
 	if(remove_item_if_better(I, owner))
-		do_message += owner.equip_to_slot_or_del(new/obj/item/clothing/shoes/clockwork(null), SLOT_SHOES)
+		do_message += owner.equip_to_slot_or_del(new/obj/item/clothing/shoes/clockwork(null), ITEM_SLOT_FEET)
 	if(do_message)
 		owner.visible_message("<span class='warning'>Strange armor appears on [owner]!</span>", "<span class='heavy_brass'>A bright shimmer runs down your body, equipping you with Ratvarian armor.</span>")
 		playsound(owner, 'sound/magic/clockwork/fellowship_armory.ogg', 15 * do_message, TRUE) //get sound loudness based on how much we equipped
@@ -309,16 +309,16 @@
 					continue
 				T = get_turf(M)
 				var/heal_ticks = 0 //one heal tick for each piece of ratvarian armor worn
-				var/obj/item/I = H.get_item_by_slot(SLOT_WEAR_SUIT)
+				var/obj/item/I = H.get_item_by_slot(ITEM_SLOT_OCLOTHING)
 				if(is_type_in_typecache(I, ratvarian_armor_typecache))
 					heal_ticks++
-				I = H.get_item_by_slot(SLOT_HEAD)
+				I = H.get_item_by_slot(ITEM_SLOT_HEAD)
 				if(is_type_in_typecache(I, ratvarian_armor_typecache))
 					heal_ticks++
-				I = H.get_item_by_slot(SLOT_GLOVES)
+				I = H.get_item_by_slot(ITEM_SLOT_GLOVES)
 				if(is_type_in_typecache(I, ratvarian_armor_typecache))
 					heal_ticks++
-				I = H.get_item_by_slot(SLOT_SHOES)
+				I = H.get_item_by_slot(ITEM_SLOT_FEET)
 				if(is_type_in_typecache(I, ratvarian_armor_typecache))
 					heal_ticks++
 				if(heal_ticks)

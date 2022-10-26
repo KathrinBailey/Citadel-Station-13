@@ -23,7 +23,7 @@
 /obj/machinery/power/tesla_coil/power
 	circuit = /obj/item/circuitboard/machine/tesla_coil/power
 
-/obj/machinery/power/tesla_coil/Initialize()
+/obj/machinery/power/tesla_coil/Initialize(mapload)
 	. = ..()
 	wires = new /datum/wires/tesla_coil(src)
 	linked_techweb = SSresearch.science_tech
@@ -131,8 +131,10 @@
 	else
 		..()
 
-/obj/machinery/power/tesla_coil/research/default_unfasten_wrench(mob/user, obj/item/wrench/W, time = 20)
+/obj/machinery/power/tesla_coil/research/default_unfasten_wrench(mob/user, obj/item/W, time = 20)
 	. = ..()
+	if(!W.tool_behaviour == TOOL_WRENCH)
+		return
 	if(. == SUCCESSFUL_UNFASTEN)
 		if(panel_open)
 			icon_state = "rpcoil_open[anchored]"
@@ -160,7 +162,7 @@
 	buckle_lying = FALSE
 	buckle_requires_restraints = TRUE
 
-/obj/machinery/power/grounding_rod/Initialize()
+/obj/machinery/power/grounding_rod/Initialize(mapload)
 	GLOB.grounding_rods |= src
 	return ..()
 

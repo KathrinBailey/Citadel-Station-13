@@ -1,6 +1,7 @@
 /obj/vehicle/sealed
 	enclosed = TRUE // you're in a sealed vehicle dont get dinked idiot
 	var/enter_delay = 20
+	var/explode_on_death = TRUE
 	flags_1 = BLOCK_FACE_ATOM_1
 
 /obj/vehicle/sealed/generate_actions()
@@ -46,10 +47,12 @@
 	mob_exit(M, silent, randomstep)
 
 /obj/vehicle/sealed/proc/mob_exit(mob/M, silent = FALSE, randomstep = FALSE)
+	SIGNAL_HANDLER
 	if(!istype(M))
 		return FALSE
 	remove_occupant(M)
-	M.forceMove(exit_location(M))
+	if(!isAI(M))//This is the ONE mob we dont want to be moved to the vehicle that should be handeled when used
+		M.forceMove(exit_location(M))
 	if(randomstep)
 		var/turf/target_turf = get_step(exit_location(M), pick(GLOB.cardinals))
 		M.throw_at(target_turf, 5, 10)
@@ -87,7 +90,8 @@
 
 /obj/vehicle/sealed/Destroy()
 	DumpMobs()
-	explosion(loc, 0, 1, 2, 3, 0)
+	if(explode_on_death)
+		explosion(loc, 0, 1, 2, 3, 0)
 	return ..()
 
 /obj/vehicle/sealed/proc/DumpMobs(randomstep = TRUE)

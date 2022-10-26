@@ -15,6 +15,7 @@
 
 /datum/movespeed_modifier/hunger
 	variable = TRUE
+	blacklisted_movetypes = FLOATING|FLYING
 
 /datum/movespeed_modifier/slaughter
 	multiplicative_slowdown = -1
@@ -60,6 +61,11 @@
 /datum/movespeed_modifier/config_walk_run/walk/sync()
 	var/mod = CONFIG_GET(number/movedelay/walk_delay)
 	multiplicative_slowdown = isnum(mod)? mod : initial(multiplicative_slowdown)
+
+/datum/movespeed_modifier/config_wak_run/walk/apply_multiplicative(existing, mob/target)
+	. = ..()
+	if(HAS_TRAIT(target, TRAIT_SPEEDY_STEP))
+		. -= 1.25
 
 /datum/movespeed_modifier/config_walk_run/run/sync()
 	var/mod = CONFIG_GET(number/movedelay/run_delay)
@@ -107,6 +113,7 @@
 	multiplicative_slowdown = CRAWLING_ADD_SLOWDOWN
 	movetypes = CRAWLING
 	flags = IGNORE_NOSLOW
+	priority = 20000
 
 /datum/movespeed_modifier/mob_config_speedmod
 	variable = TRUE
@@ -140,6 +147,8 @@
 		var/mob/living/L = target
 		if(!(L.mobility_flags & MOBILITY_STAND))
 			return
+	if(iscyborg(target))
+		return max(1, existing - 1)
 	var/static/datum/config_entry/number/movedelay/sprint_max_tiles_increase/SMTI
 	if(!SMTI)
 		SMTI = CONFIG_GET_ENTRY(number/movedelay/sprint_max_tiles_increase)
@@ -152,3 +161,12 @@
 	var/current_tiles = 10 / max(existing, world.tick_lag)
 	var/minimum_speed = 10 / min(max(SAMT.config_entry_value, current_tiles), current_tiles + SMTI.config_entry_value)
 	. = min(., max(minimum_speed, existing - SSI.config_entry_value))
+
+/datum/movespeed_modifier/dragon_rage
+	multiplicative_slowdown = -0.5
+
+/datum/movespeed_modifier/dragon_depression
+	multiplicative_slowdown = 5
+
+/datum/movespeed_modifier/gauntlet_concussion
+	multiplicative_slowdown = 5

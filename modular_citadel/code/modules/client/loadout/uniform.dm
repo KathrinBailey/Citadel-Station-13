@@ -1,7 +1,7 @@
 /datum/gear/uniform
 	category = LOADOUT_CATEGORY_UNIFORM
 	subcategory = LOADOUT_SUBCATEGORY_UNIFORM_GENERAL
-	slot = SLOT_W_UNIFORM
+	slot = ITEM_SLOT_ICLOTHING
 
 /datum/gear/uniform/suit
 	name = "Black suit"
@@ -32,6 +32,10 @@
 	name = "Tan suit"
 	path = /obj/item/clothing/under/suit/tan
 
+/datum/gear/uniform/suit/charismatic_suit
+	name = "Charismatic suit"
+	path = /obj/item/clothing/under/suit/charismatic_suit
+
 /datum/gear/uniform/suit/white
 	name = "White suit"
 	path = /obj/item/clothing/under/suit/white
@@ -47,6 +51,8 @@
 /datum/gear/uniform/maidcostume/polychromic
 	name = "Polychromic maid costume"
 	path = /obj/item/clothing/under/rank/civilian/janitor/maid/polychromic
+	loadout_flags = LOADOUT_CAN_NAME | LOADOUT_CAN_DESCRIPTION | LOADOUT_CAN_COLOR_POLYCHROMIC
+	loadout_initial_colors = list("#333333", "#FFFFFF")
 
 /datum/gear/uniform/mailmanuniform
 	name = "Mailman's jumpsuit"
@@ -164,6 +170,20 @@
 	name = "Tan Pants"
 	path = /obj/item/clothing/under/pants/tan
 
+/datum/gear/uniform/pants/polypants
+	name = "Polychromic Pants"
+	path = /obj/item/clothing/under/pants/polypants
+	cost = 2
+	loadout_flags = LOADOUT_CAN_NAME | LOADOUT_CAN_DESCRIPTION | LOADOUT_CAN_COLOR_POLYCHROMIC
+	loadout_initial_colors = list("#75634F", "#3D3D3D", "#575757")
+
+/datum/gear/uniform/pants/workout
+	name = "Polychromatic Workout Shorts"
+	path = /obj/item/clothing/under/shorts/polychromic/polyworkout
+	cost = 2
+	loadout_flags = LOADOUT_CAN_NAME | LOADOUT_CAN_DESCRIPTION | LOADOUT_CAN_COLOR_POLYCHROMIC
+	loadout_initial_colors = list("#323232", "#FFFFFF")
+
 /datum/gear/uniform/pants/track
 	name = "Track Pants"
 	path = /obj/item/clothing/under/pants/track
@@ -185,6 +205,10 @@
 /datum/gear/uniform/turtleneck
 	name = "Tactitool Turtleneck"
 	path = /obj/item/clothing/under/syndicate/cosmetic
+
+/datum/gear/uniform/skirtleneck
+	name = "Tactitool Skirtleneck"
+	path = /obj/item/clothing/under/syndicate/cosmetic/skirt
 
 /datum/gear/uniform/sweater
 	name = "Cream Commando Sweater"
@@ -223,40 +247,70 @@
 	name = "Grey Turtleneck"
 	path = /obj/item/clothing/under/suit/turtle/grey
 
+/datum/gear/uniform/purpleturtle
+	name = "Purple Turtleneck"
+	path = /obj/item/clothing/under/suit/turtle/purple
+
+/datum/gear/uniform/orangeturtle
+	name = "Orange Turtleneck"
+	path = /obj/item/clothing/under/suit/turtle/orange
+
+/datum/gear/uniform/blueturtle
+	name = "Blue Turtleneck"
+	path = /obj/item/clothing/under/suit/turtle/blue
+
+/datum/gear/uniform/redturtle
+	name = "Red Turtleneck"
+	path = /obj/item/clothing/under/suit/turtle/red
+
 /datum/gear/uniform/polyjump
 	name = "Polychromic Jumpsuit"
 	path = /obj/item/clothing/under/misc/polyjumpsuit
 	cost = 2
+	loadout_flags = LOADOUT_CAN_NAME | LOADOUT_CAN_DESCRIPTION | LOADOUT_CAN_COLOR_POLYCHROMIC
+	loadout_initial_colors = list("#FFFFFF", "#808080", "#353535")
 
 /datum/gear/uniform/skirt/poly
 	name = "Polychromic Jumpskirt"
 	path = /obj/item/clothing/under/dress/skirt/polychromic
 	cost = 2
+	loadout_flags = LOADOUT_CAN_NAME | LOADOUT_CAN_DESCRIPTION | LOADOUT_CAN_COLOR_POLYCHROMIC
+	loadout_initial_colors = list("#FFFFFF", "#F08080", "#808080")
 
 /datum/gear/uniform/suit/poly
 	name = "Polychromic Button-up Shirt"
 	path = /obj/item/clothing/under/misc/poly_shirt
 	cost = 3
+	loadout_flags = LOADOUT_CAN_NAME | LOADOUT_CAN_DESCRIPTION | LOADOUT_CAN_COLOR_POLYCHROMIC
+	loadout_initial_colors = list("#FFFFFF", "#353535", "#353535")
 
 /datum/gear/uniform/skirt/poly/pleated
 	name = "Polychromic Pleated Sweaterskirt"
 	path = /obj/item/clothing/under/dress/skirt/polychromic/pleated
 	cost = 3
+	loadout_flags = LOADOUT_CAN_NAME | LOADOUT_CAN_DESCRIPTION | LOADOUT_CAN_COLOR_POLYCHROMIC
+	loadout_initial_colors = list("#8CC6FF", "#808080", "#FF3535")
 
 /datum/gear/uniform/polykilt
 	name = "Polychromic Kilt"
 	path = /obj/item/clothing/under/costume/kilt/polychromic
 	cost = 3
+	loadout_flags = LOADOUT_CAN_NAME | LOADOUT_CAN_DESCRIPTION | LOADOUT_CAN_COLOR_POLYCHROMIC
+	loadout_initial_colors = list("#FFFFFF", "#F08080")
 
 /datum/gear/uniform/shorts/poly
 	name = "Polychromic Shorts"
 	path = /obj/item/clothing/under/misc/polyshorts
 	cost = 3
+	loadout_flags = LOADOUT_CAN_NAME | LOADOUT_CAN_DESCRIPTION | LOADOUT_CAN_COLOR_POLYCHROMIC
+	loadout_initial_colors = list("#353535", "#808080", "#808080")
 
 /datum/gear/uniform/shorts/poly/athletic
 	name = "Polychromic Athletic Shorts"
 	path = /obj/item/clothing/under/shorts/polychromic
 	cost = 2
+	loadout_flags = LOADOUT_CAN_NAME | LOADOUT_CAN_DESCRIPTION | LOADOUT_CAN_COLOR_POLYCHROMIC
+	loadout_initial_colors = list("#FFFFFF", "#F08080")
 
 /datum/gear/uniform/hopcasual
 	name = "Casual Head of Personnel's uniform"
@@ -541,18 +595,31 @@
 	subcategory = LOADOUT_SUBCATEGORY_UNIFORM_JOBS
 	restricted_roles = list("Chief Medical Officer", "Research Director")
 
-/datum/gear/uniform/orvops
-	name = "ORV uniform, ops/sec"
-	path = /obj/item/clothing/under/trek/engsec/orv
+/datum/gear/uniform/orvsec
+	name = "ORV uniform, sec"
+	path = /obj/item/clothing/under/trek/sec/orv
 	subcategory = LOADOUT_SUBCATEGORY_UNIFORM_JOBS
-	restricted_desc = "Engineering, Security and Cargo"
-	restricted_roles = list("Chief Engineer", "Atmospheric Technician", "Station Engineer", "Warden", "Detective", "Security Officer", "Head of Security", "Cargo Technician", "Shaft Miner", "Quartermaster")
+	restricted_desc = "Security"
+	restricted_roles = list("Warden", "Detective", "Security Officer", "Head of Security")
 
-/datum/gear/uniform/orvcmd_ops
-	name = "ORV uniform, ops/sec, cmd"
-	path = /obj/item/clothing/under/trek/command/orv/engsec
+/datum/gear/uniform/orveng
+	name = "ORV uniform, eng"
+	path = /obj/item/clothing/under/trek/eng/orv
 	subcategory = LOADOUT_SUBCATEGORY_UNIFORM_JOBS
-	restricted_roles = list("Chief Engineer", "Head of Security")
+	restricted_desc = "Engineering"
+	restricted_roles = list("Chief Engineer","Atmospheric Technician","Station Engineer")
+
+/datum/gear/uniform/orvcmd_sec
+	name = "ORV uniform, sec, cmd"
+	path = /obj/item/clothing/under/trek/command/orv/sec
+	subcategory = LOADOUT_SUBCATEGORY_UNIFORM_JOBS
+	restricted_roles = list("Head of Security")
+
+/datum/gear/uniform/orvcmd_eng
+	name = "ORV uniform, eng, cmd"
+	path = /obj/item/clothing/under/trek/command/orv/eng
+	subcategory = LOADOUT_SUBCATEGORY_UNIFORM_JOBS
+	restricted_roles = list("Chief Engineer")
 
 /datum/gear/uniform/orvass
 	name = "ORV uniform, assistant"
@@ -561,11 +628,11 @@
 	restricted_roles = list("Assistant")
 
 /datum/gear/uniform/orvsrv
-	name = "ORV uniform, service"
+	name = "ORV uniform, other"
 	path = /obj/item/clothing/under/trek/orv/service
 	subcategory = LOADOUT_SUBCATEGORY_UNIFORM_JOBS
-	restricted_roles = list("Assistant", "Bartender", "Botanist", "Cook", "Curator", "Janitor", "Chaplain")
-	restricted_desc = "Service and Civilian, barring Clown, Mime and Lawyer"
+	restricted_roles = list("Bartender", "Botanist", "Cook", "Curator", "Janitor", "Chaplain", "Cargo Technician", "Shaft Miner")
+	restricted_desc = "Service, Cargo and Civilian, barring Clown, Mime and Lawyer"
 
 //Memes
 /datum/gear/uniform/gear_harnesses
@@ -576,27 +643,27 @@
 /*Commenting out Until next Christmas or made automatic
 /datum/gear/uniform/christmasmaler
 	name = "Red Masculine Christmas Suit"
-	category = SLOT_W_UNIFORM
+	category = ITEM_SLOT_ICLOTHING
 	path = /obj/item/clothing/under/costume/christmas
 
 /datum/gear/uniform/christmasmaleg
 	name = "Green Masculine Christmas Suit"
-	category = SLOT_W_UNIFORM
+	category = ITEM_SLOT_ICLOTHING
 	path = /obj/item/clothing/under/costume/christmas/green
 
 /datum/gear/uniform/christmasfemaler
 	name = "Red Feminine Christmas Suit"
-	category = SLOT_W_UNIFORM
+	category = ITEM_SLOT_ICLOTHING
 	path = /obj/item/clothing/under/costume/christmas/croptop
 
 /datum/gear/uniform/christmasfemaleg
 	name = "Green Feminine Christmas Suit"
-	category = SLOT_W_UNIFORM
+	category = ITEM_SLOT_ICLOTHING
 	path = /obj/item/clothing/under/costume/christmas/croptop/green
 
 /datum/gear/uniform/pinkstripper
 	name = "Pink stripper outfit"
-	category = SLOT_W_UNIFORM
+	category = ITEM_SLOT_ICLOTHING
 	path = /obj/item/clothing/under/misc/stripper
 	cost = 3
 */
@@ -679,3 +746,9 @@
 	path = /obj/item/clothing/under/rank/cargo/tech/long
 	subcategory = LOADOUT_SUBCATEGORY_UNIFORM_JOBS
 	restricted_roles = list("Cargo Technician")
+
+/datum/gear/uniform/clown_polychromic
+	name = "polychromic clown suit"
+	path = /obj/item/clothing/under/rank/civilian/polychromic_clown
+	subcategory = LOADOUT_SUBCATEGORY_UNIFORM_JOBS
+	restricted_roles = list("Clown")

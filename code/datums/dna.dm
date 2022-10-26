@@ -77,6 +77,7 @@
 	new_dna.species = new species.type
 	new_dna.species.say_mod = species.say_mod
 	new_dna.species.exotic_blood_color = species.exotic_blood_color //it can change from the default value
+	new_dna.species.exotic_blood_blend_mode = species.exotic_blood_blend_mode
 	new_dna.species.eye_type = species.eye_type
 	new_dna.species.limbs_id = species.limbs_id || species.id
 	new_dna.real_name = real_name
@@ -137,9 +138,9 @@
 		L[DNA_SKIN_TONE_BLOCK] = construct_block(GLOB.skin_tones.Find(H.skin_tone), GLOB.skin_tones.len)
 		L[DNA_LEFT_EYE_COLOR_BLOCK] = sanitize_hexcolor(H.left_eye_color)
 		L[DNA_RIGHT_EYE_COLOR_BLOCK] = sanitize_hexcolor(H.right_eye_color)
-		L[DNA_COLOR_ONE_BLOCK] = sanitize_hexcolor(features["mcolor"], 6)
-		L[DNA_COLOR_TWO_BLOCK] = sanitize_hexcolor(features["mcolor2"], 6)
-		L[DNA_COLOR_THREE_BLOCK] = sanitize_hexcolor(features["mcolor3"], 6)
+		L[DNA_COLOR_ONE_BLOCK] = sanitize_hexcolor(features["mcolor"])
+		L[DNA_COLOR_TWO_BLOCK] = sanitize_hexcolor(features["mcolor2"])
+		L[DNA_COLOR_THREE_BLOCK] = sanitize_hexcolor(features["mcolor3"])
 		if(!GLOB.mam_tails_list.len)
 			init_sprite_accessory_subtypes(/datum/sprite_accessory/tails/mam_tails, GLOB.mam_tails_list)
 		L[DNA_MUTANTTAIL_BLOCK] = construct_block(GLOB.mam_tails_list.Find(features["mam_tail"]), GLOB.mam_tails_list.len)
@@ -152,6 +153,10 @@
 		if(!GLOB.taur_list.len)
 			init_sprite_accessory_subtypes(/datum/sprite_accessory/taur, GLOB.taur_list)
 		L[DNA_TAUR_BLOCK] = construct_block(GLOB.taur_list.Find(features["taur"]), GLOB.taur_list.len)
+		L[DNA_BARK_SOUND_BLOCK] = construct_block(GLOB.bark_list.Find(H.vocal_bark_id), GLOB.bark_list.len)
+		L[DNA_BARK_SPEED_BLOCK] = construct_block(H.vocal_speed * 4, 16)
+		L[DNA_BARK_PITCH_BLOCK] = construct_block(H.vocal_pitch * 30, 48)
+		L[DNA_BARK_VARIANCE_BLOCK] = construct_block(H.vocal_pitch_range * 48, 48)
 
 	for(var/i=1, i<=DNA_UNI_IDENTITY_BLOCKS, i++)
 		if(L[i])
@@ -247,19 +252,19 @@
 		if(DNA_HAIR_STYLE_BLOCK)
 			setblock(uni_identity, blocknumber, construct_block(GLOB.hair_styles_list.Find(H.hair_style), GLOB.hair_styles_list.len))
 		if(DNA_COLOR_ONE_BLOCK)
-			sanitize_hexcolor(features["mcolor"], 6)
+			setblock(uni_identity, blocknumber, sanitize_hexcolor(features["mcolor"]))
 		if(DNA_COLOR_TWO_BLOCK)
-			sanitize_hexcolor(features["mcolor2"], 6)
+			setblock(uni_identity, blocknumber, sanitize_hexcolor(features["mcolor2"]))
 		if(DNA_COLOR_THREE_BLOCK)
-			sanitize_hexcolor(features["mcolor3"], 6)
+			setblock(uni_identity, blocknumber, sanitize_hexcolor(features["mcolor3"]))
 		if(DNA_MUTANTTAIL_BLOCK)
-			construct_block(GLOB.mam_tails_list.Find(features["mam_tail"]), GLOB.mam_tails_list.len)
+			setblock(uni_identity, blocknumber, construct_block(GLOB.mam_tails_list.Find(features["mam_tail"]), GLOB.mam_tails_list.len))
 		if(DNA_MUTANTEAR_BLOCK)
-			construct_block(GLOB.mam_ears_list.Find(features["mam_ears"]), GLOB.mam_ears_list.len)
+			setblock(uni_identity, blocknumber, construct_block(GLOB.mam_ears_list.Find(features["mam_ears"]), GLOB.mam_ears_list.len))
 		if(DNA_MUTANTMARKING_BLOCK)
-			construct_block(GLOB.mam_body_markings_list.Find(features["mam_body_markings"]), GLOB.mam_body_markings_list.len)
+			setblock(uni_identity, blocknumber, construct_block(GLOB.mam_body_markings_list.Find(features["mam_body_markings"]), GLOB.mam_body_markings_list.len))
 		if(DNA_TAUR_BLOCK)
-			construct_block(GLOB.taur_list.Find(features["taur"]), GLOB.taur_list.len)
+			setblock(uni_identity, blocknumber, construct_block(GLOB.taur_list.Find(features["taur"]), GLOB.taur_list.len))
 			if(species.mutant_bodyparts["taur"] && ishuman(holder))
 				var/datum/sprite_accessory/taur/T = GLOB.taur_list[features["taur"]]
 				switch(T?.taur_mode)
@@ -271,6 +276,14 @@
 						H.physiology.footstep_type = FOOTSTEP_MOB_CRAWL
 					else
 						H.physiology.footstep_type = null
+		if(DNA_BARK_SOUND_BLOCK)
+			setblock(uni_identity, blocknumber, construct_block(GLOB.bark_list.Find(H.vocal_bark_id), GLOB.bark_list.len))
+		if(DNA_BARK_SPEED_BLOCK)
+			setblock(uni_identity, blocknumber, construct_block(H.vocal_speed * 4, 16))
+		if(DNA_BARK_PITCH_BLOCK)
+			setblock(uni_identity, blocknumber, construct_block(H.vocal_pitch * 30, 48))
+		if(DNA_BARK_VARIANCE_BLOCK)
+			setblock(uni_identity, blocknumber, construct_block(H.vocal_pitch_range * 48, 48))
 
 //Please use add_mutation or activate_mutation instead
 /datum/dna/proc/force_give(datum/mutation/human/HM)
@@ -329,12 +342,13 @@
 	uni_identity = generate_uni_identity()
 	unique_enzymes = generate_unique_enzymes()
 
-/datum/dna/proc/initialize_dna(newblood_type)
+/datum/dna/proc/initialize_dna(newblood_type, skip_index = FALSE)
 	if(newblood_type)
 		blood_type = newblood_type
 	unique_enzymes = generate_unique_enzymes()
 	uni_identity = generate_uni_identity()
-	generate_dna_blocks()
+	if(!skip_index) //I hate this
+		generate_dna_blocks()
 	features = random_features(species?.id, holder?.gender)
 
 
@@ -385,6 +399,14 @@
 			qdel(language_holder)
 			var/species_holder = initial(mrace.species_language_holder)
 			language_holder = new species_holder(src)
+
+			var/mob/living/carbon/human/H = src
+			//provide the user's additional language to the new language holder even if they change species
+			if(H.additional_language && H.additional_language != "None")
+				var/language_entry = GLOB.roundstart_languages[H.additional_language]
+				if(language_entry)
+					grant_language(language_entry, TRUE, TRUE)
+
 		update_atom_languages()
 
 /mob/living/carbon/human/set_species(datum/species/mrace, icon_update = TRUE, pref_load = FALSE)
@@ -404,7 +426,7 @@
 
 
 /mob/living/carbon/human/proc/hardset_dna(ui, list/mutation_index, newreal_name, newblood_type, datum/species/mrace, newfeatures, list/default_mutation_genes)
-
+	set waitfor = FALSE
 	if(newreal_name)
 		real_name = newreal_name
 		dna.generate_unique_enzymes()
@@ -481,6 +503,10 @@
 			update_body_parts()
 		if(mutations_overlay_update)
 			update_mutations_overlay()
+		set_bark(GLOB.bark_list[deconstruct_block(getblock(structure, DNA_BARK_SOUND_BLOCK), GLOB.bark_list.len)])
+		vocal_speed = (deconstruct_block(getblock(structure, DNA_BARK_SPEED_BLOCK), 16) / 4)
+		vocal_pitch = (deconstruct_block(getblock(structure, DNA_BARK_PITCH_BLOCK), 48) / 30)
+		vocal_pitch_range = (deconstruct_block(getblock(structure, DNA_BARK_VARIANCE_BLOCK), 48) / 48)
 
 
 /mob/proc/domutcheck()
@@ -660,27 +686,34 @@
 		return
 	if(dna.stability > 0)
 		return
-	var/instability = -dna.stability
+	var/instability = - dna.stability
 	dna.remove_all_mutations()
 	dna.stability = 100
-	if(prob(max(70-instability,0)))
+	if(prob(max(70 - instability,0)))
 		switch(rand(0,3)) //not complete and utter death
 			if(0)
 				monkeyize()
 			if(1)
 				gain_trauma(/datum/brain_trauma/severe/paralysis)
 			if(2)
+				unequip_everything()
+				drop_all_held_items()
 				corgize()
 			if(3)
 				to_chat(src, "<span class='notice'>Oh, we actually feel quite alright!</span>")
 	else
 		switch(rand(0,3))
 			if(0)
+				unequip_everything()
+				drop_all_held_items()
 				gib()
 			if(1)
+				unequip_everything()
+				drop_all_held_items()
 				dust()
-
 			if(2)
+				unequip_everything()
+				drop_all_held_items()
 				death()
 				petrify(INFINITY)
 			if(3)
@@ -689,6 +722,8 @@
 					if(BP)
 						BP.dismember()
 					else
+						unequip_everything()
+						drop_all_held_items()
 						gib()
 				else
 					set_species(/datum/species/dullahan)

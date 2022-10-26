@@ -54,6 +54,8 @@
 	assemblytype = /obj/structure/door_assembly
 	normalspeed = 1
 	explosion_block = 1
+	wave_explosion_block = EXPLOSION_BLOCK_WALL
+	wave_explosion_multiply = EXPLOSION_DAMPEN_WALL
 	hud_possible = list(DIAG_AIRLOCK_HUD)
 
 	interaction_flags_machine = INTERACT_MACHINE_WIRES_IF_OPEN | INTERACT_MACHINE_ALLOW_SILICON | INTERACT_MACHINE_OPEN_SILICON | INTERACT_MACHINE_REQUIRES_SILICON | INTERACT_MACHINE_OPEN
@@ -101,7 +103,10 @@
 
 	var/static/list/airlock_overlays = list()
 
-/obj/machinery/door/airlock/Initialize()
+	/// sigh
+	var/unelectrify_timerid
+
+/obj/machinery/door/airlock/Initialize(mapload)
 	. = ..()
 	wires = new wiretypepath(src) //CIT CHANGE - makes it possible for airlocks to have different wire datums
 	if(frequency)
@@ -686,7 +691,7 @@
 		else
 			. += "It looks very robust."
 
-	if(hasSiliconAccessInArea(user) && (!stat & BROKEN))
+	if(hasSiliconAccessInArea(user) && !(stat & BROKEN))
 		. += "<span class='notice'>Shift-click [src] to [ density ? "open" : "close"] it.</span>"
 		. += "<span class='notice'>Ctrl-click [src] to [ locked ? "raise" : "drop"] its bolts.</span>"
 		. += "<span class='notice'>Alt-click [src] to [ secondsElectrified ? "un-electrify" : "permanently electrify"] it.</span>"
@@ -789,21 +794,6 @@
 		return WIRE_INTERACTION_FAIL
 	return ..()
 
-/obj/machinery/door/airlock/proc/electrified_loop()
-	while (secondsElectrified > NOT_ELECTRIFIED)
-		sleep(10)
-		if(QDELETED(src))
-			return
-
-		secondsElectrified--
-		updateDialog()
-	// This is to protect against changing to permanent, mid loop.
-	if(secondsElectrified == NOT_ELECTRIFIED)
-		set_electrified(NOT_ELECTRIFIED)
-	else
-		set_electrified(ELECTRIFIED_PERMANENT)
-	updateDialog()
-
 /obj/machinery/door/airlock/Topic(href, href_list, var/nowindow = 0)
 	// If you add an if(..()) check you must first remove the var/nowindow parameter.
 	// Otherwise it will runtime with this kind of error: null.Topic()
@@ -864,7 +854,7 @@
 						update_icon()
 					return
 			if(AIRLOCK_SECURITY_METAL)
-				if(istype(C, /obj/item/weldingtool))
+				if(C.tool_behaviour == TOOL_WELDER)
 					if(!C.tool_start_check(user, amount=2))
 						return
 					to_chat(user, "<span class='notice'>You begin cutting the panel's shielding...</span>")
@@ -879,10 +869,9 @@
 						update_icon()
 					return
 			if(AIRLOCK_SECURITY_PLASTEEL_I_S)
-				if(istype(C, /obj/item/crowbar))
-					var/obj/item/crowbar/W = C
+				if(C.tool_behaviour == TOOL_CROWBAR)
 					to_chat(user, "<span class='notice'>You start removing the inner layer of shielding...</span>")
-					if(W.use_tool(src, user, 40, volume=100))
+					if(C.use_tool(src, user, 40, volume=100))
 						if(!panel_open)
 							return
 						if(security_level != AIRLOCK_SECURITY_PLASTEEL_I_S)
@@ -896,7 +885,7 @@
 						update_icon()
 					return
 			if(AIRLOCK_SECURITY_PLASTEEL_I)
-				if(istype(C, /obj/item/weldingtool))
+				if(C.tool_behaviour == TOOL_WELDER)
 					if(!C.tool_start_check(user, amount=2))
 						return
 					to_chat(user, "<span class='notice'>You begin cutting the inner layer of shielding...</span>")
@@ -909,7 +898,7 @@
 						security_level = AIRLOCK_SECURITY_PLASTEEL_I_S
 					return
 			if(AIRLOCK_SECURITY_PLASTEEL_O_S)
-				if(istype(C, /obj/item/crowbar))
+				if(C.tool_behaviour == TOOL_CROWBAR)
 					to_chat(user, "<span class='notice'>You start removing outer layer of shielding...</span>")
 					if(C.use_tool(src, user, 40, volume=100))
 						if(!panel_open)
@@ -922,7 +911,7 @@
 						spawn_atom_to_turf(/obj/item/stack/sheet/plasteel, user.loc, 1)
 					return
 			if(AIRLOCK_SECURITY_PLASTEEL_O)
-				if(istype(C, /obj/item/weldingtool))
+				if(C.tool_behaviour == TOOL_WELDER)
 					if(!C.tool_start_check(user, amount=2))
 						return
 					to_chat(user, "<span class='notice'>You begin cutting the outer layer of shielding...</span>")
@@ -935,7 +924,7 @@
 						security_level = AIRLOCK_SECURITY_PLASTEEL_O_S
 					return
 			if(AIRLOCK_SECURITY_PLASTEEL)
-				if(istype(C, /obj/item/wirecutters))
+				if(C.tool_behaviour == TOOL_WIRECUTTER)
 					if(src.hasPower() && src.shock(user, 60)) // Protective grille of wiring is electrified
 						return
 					to_chat(user, "<span class='notice'>You start cutting through the outer grille.</span>")
@@ -946,7 +935,7 @@
 											"<span class='notice'>You cut through \the [src]'s outer grille.</span>")
 						security_level = AIRLOCK_SECURITY_PLASTEEL_O
 					return
-	if(istype(C, /obj/item/screwdriver))
+	if(C.tool_behaviour == TOOL_SCREWDRIVER)
 		if(panel_open && detonated)
 			to_chat(user, "<span class='warning'>[src] has no maintenance panel!</span>")
 			return
@@ -954,7 +943,7 @@
 		to_chat(user, "<span class='notice'>You [panel_open ? "open":"close"] the maintenance panel of the airlock.</span>")
 		C.play_tool_sound(src)
 		src.update_icon()
-	else if(istype(C, /obj/item/wirecutters) && note)
+	else if(C.tool_behaviour == TOOL_WIRECUTTER && note)
 		user.visible_message("<span class='notice'>[user] cuts down [note] from [src].</span>", "<span class='notice'>You remove [note] from [src].</span>")
 		C.play_tool_sound(src)
 		note.forceMove(get_turf(user))
@@ -999,7 +988,9 @@
 		return ..()
 
 
-/obj/machinery/door/airlock/try_to_weld(obj/item/weldingtool/W, mob/user)
+/obj/machinery/door/airlock/try_to_weld(obj/item/W, mob/user)
+	if(!W.tool_behaviour == TOOL_WELDER)
+		return
 	if(!operating && density)
 		if(user.a_intent != INTENT_HELP)
 			if(!W.tool_start_check(user, amount=0))
@@ -1028,12 +1019,14 @@
 			else
 				to_chat(user, "<span class='notice'>The airlock doesn't need repairing.</span>")
 
-/obj/machinery/door/airlock/proc/weld_checks(obj/item/weldingtool/W, mob/user)
+/obj/machinery/door/airlock/proc/weld_checks(obj/item/W, mob/user)
+	if(!W.tool_behaviour == TOOL_WELDER)
+		return
 	return !operating && density
 
 /obj/machinery/door/airlock/try_to_crowbar(obj/item/I, mob/living/user)
 	var/beingcrowbarred = null
-	if(istype(I, /obj/item/crowbar) )
+	if(I.tool_behaviour == TOOL_CROWBAR)
 		beingcrowbarred = 1
 	else
 		beingcrowbarred = 0
@@ -1059,7 +1052,7 @@
 		to_chat(user, "<span class='warning'>The airlock's motors resist your efforts to force it!</span>")
 	else if(locked)
 		to_chat(user, "<span class='warning'>The airlock's bolts prevent it from being forced!</span>")
-	else if( !welded && !operating)
+	else if(!welded && !operating)
 		if(!beingcrowbarred) //being fireaxe'd
 			var/obj/item/fireaxe/axe = I
 			if(!axe.wielded)
@@ -1069,7 +1062,9 @@
 		else
 			INVOKE_ASYNC(src, (density ? .proc/open : .proc/close), 2)
 
-	if(istype(I, /obj/item/crowbar/power))
+	if(I.tool_behaviour == TOOL_CROWBAR)
+		if(!I.can_force_powered)
+			return
 		if(hasPower() && isElectrified())
 			shock(user,100)//it's like sticking a forck in a power socket
 			return
@@ -1283,8 +1278,8 @@
 			assemblytype = /obj/structure/door_assembly/door_assembly_extmai
 	update_icon()
 
-/obj/machinery/door/airlock/CanAStarPass(obj/item/card/id/ID)
-//Airlock is passable if it is open (!density), bot has access, and is not bolted shut or powered off)
+/obj/machinery/door/airlock/CanAStarPass(obj/item/card/id/ID, to_dir, atom/movable/caller)
+	//Airlock is passable if it is open (!density), bot has access, and is not bolted shut or powered off)
 	return !density || (check_access(ID) && !locked && hasPower())
 
 /obj/machinery/door/airlock/emag_act(mob/user)
@@ -1358,11 +1353,19 @@
 		wires.cut_all()
 		update_icon()
 
+/obj/machinery/door/airlock/proc/remove_electrify()
+	secondsElectrified = NOT_ELECTRIFIED
+	unelectrify_timerid = null
+	diag_hud_set_electrified()
+
 /obj/machinery/door/airlock/proc/set_electrified(seconds, mob/user)
 	secondsElectrified = seconds
+	if(unelectrify_timerid)
+		deltimer(unelectrify_timerid)
+		unelectrify_timerid = null
+	if(secondsElectrified != ELECTRIFIED_PERMANENT)
+		unelectrify_timerid = addtimer(CALLBACK(src, .proc/remove_electrify), secondsElectrified SECONDS, TIMER_STOPPABLE)
 	diag_hud_set_electrified()
-	if(secondsElectrified > NOT_ELECTRIFIED)
-		INVOKE_ASYNC(src, .proc/electrified_loop)
 
 	if(user)
 		var/message

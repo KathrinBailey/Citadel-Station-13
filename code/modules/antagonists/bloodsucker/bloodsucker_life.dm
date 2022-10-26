@@ -84,11 +84,12 @@
 		return FALSE
 	if(owner.current.reagents.has_reagent(/datum/reagent/consumable/garlic))
 		return FALSE
-	if(istype(owner.current.get_item_by_slot(SLOT_NECK), /obj/item/clothing/neck/garlic_necklace))
+	if(istype(owner.current.get_item_by_slot(ITEM_SLOT_NECK), /obj/item/clothing/neck/garlic_necklace))
 		return FALSE
 	owner.current.adjustStaminaLoss(-1.5 + (actual_regen * -7) * mult, 0) // Humans lose stamina damage really quickly. Vamps should heal more.
 	owner.current.adjustCloneLoss(-0.1 * (actual_regen * 2) * mult, 0)
 	owner.current.adjustOrganLoss(ORGAN_SLOT_BRAIN, -1 * (actual_regen * 4) * mult)
+	owner.current.integrating_blood = 0
 	// No Bleeding
 	/*if(ishuman(owner.current)) //NOTE Current bleeding is horrible, not to count the amount of blood ballistics delete.
 		var/mob/living/carbon/human/H = owner.current
@@ -120,9 +121,14 @@
 		if(bruteheal + fireheal + toxinheal > 0) 	// Just a check? Don't heal/spend, and return.
 			if(mult == 0)
 				return TRUE
+
 			// We have damage. Let's heal (one time)
-			C.adjustBruteLoss(-bruteheal * mult, forced = TRUE)// Heal BRUTE / BURN in random portions throughout the body.
-			C.adjustFireLoss(-fireheal * mult, forced = TRUE)
+			var/list/damaged_parts = C.get_damaged_bodyparts(TRUE,TRUE, status = list(BODYPART_ORGANIC, BODYPART_HYBRID, BODYPART_NANITES))
+			if(damaged_parts.len)
+				for(var/obj/item/bodypart/part in damaged_parts)	// Heal BRUTE / BURN equally distibuted over all damaged bodyparts.
+					part.heal_damage((bruteheal * mult)/damaged_parts.len, (fireheal * mult)/damaged_parts.len, only_organic = FALSE, updating_health = FALSE)
+				C.updatehealth()
+				C.update_damage_overlays()
 			C.adjustToxLoss(-toxinheal * mult * 2, forced = TRUE) //Toxin healing because vamps arent immune
 			//C.heal_overall_damage(bruteheal * mult, fireheal * mult)				 // REMOVED: We need to FORCE this, because otherwise, vamps won't heal EVER. Swapped to above.
 			AddBloodVolume((bruteheal * -0.5 + fireheal * -1 + toxinheal * -0.2) / mult * costMult)	// Costs blood to heal
@@ -276,7 +282,7 @@
 /datum/antagonist/bloodsucker/proc/FinalDeath()
 		//Dont bother if we are already supposed to be dead
 	if(FinalDeath)
-		return 
+		return
 	FinalDeath = TRUE //We are now supposed to die. Lets not spam it.
 	if(!iscarbon(owner.current)) //Check for non carbons.
 		owner.current.gib()

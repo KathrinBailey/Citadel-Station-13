@@ -48,18 +48,22 @@ There are several things that need to be remembered:
 
 */
 
+/mob/living/carbon/human/ComponentInitialize()
+	. = ..()
+	RegisterSignal(src, SIGNAL_TRAIT(TRAIT_HUMAN_NO_RENDER), /mob.proc/regenerate_icons)
+
 //HAIR OVERLAY
 /mob/living/carbon/human/update_hair()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		dna.species.handle_hair(src)
 
 //used when putting/removing clothes that hide certain mutant body parts to just update those and not update the whole body.
 /mob/living/carbon/human/proc/update_mutant_bodyparts()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		dna.species.handle_mutant_bodyparts(src)
 
 /mob/living/carbon/human/update_body(update_genitals = FALSE)
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		remove_overlay(BODY_LAYER)
 		dna.species.handle_body(src)
 		..()
@@ -69,11 +73,10 @@ There are several things that need to be remembered:
 /mob/living/carbon/human/update_fire()
 	..((fire_stacks > 3) ? "Standing" : "Generic_mob_burning")
 
-
 /* --------------------------------------- */
 //For legacy support.
 /mob/living/carbon/human/regenerate_icons()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		if(!..())
 			icon_render_key = null //invalidate bodyparts cache
 			update_body(TRUE)
@@ -97,16 +100,35 @@ There are several things that need to be remembered:
 			update_mutations_overlay()
 			//damage overlays
 			update_damage_overlays()
+			//antagonism
+			update_antag_overlays()
 
 /* --------------------------------------- */
 //vvvvvv UPDATE_INV PROCS vvvvvv
 
+
+/mob/living/carbon/human/update_antag_overlays()
+	remove_overlay(ANTAG_LAYER)
+	var/datum/antagonist/cult/D = src?.mind?.has_antag_datum(/datum/antagonist/cult) //check for cultism
+	if(D && D.cult_team?.cult_ascendent == TRUE)
+		var/istate = pick("halo1","halo2","halo3","halo4","halo5","halo6")
+		var/mutable_appearance/new_cult_overlay = mutable_appearance('icons/effects/32x64.dmi', istate, -ANTAG_LAYER)
+		overlays_standing[ANTAG_LAYER] = new_cult_overlay
+	var/datum/antagonist/clockcult/C = src?.mind?.has_antag_datum(/datum/antagonist/clockcult) //check for clockcultism - surely one can't be both cult and clockie, right?
+	if(C)
+		var/obj/structure/destructible/clockwork/massive/celestial_gateway/G = GLOB.ark_of_the_clockwork_justiciar
+		if(G && G.active && ishuman(src))
+			var/mutable_appearance/new_cult_overlay = mutable_appearance('icons/effects/genetics.dmi', "servitude", -ANTAG_LAYER)
+			overlays_standing[ANTAG_LAYER] = new_cult_overlay
+	apply_overlay(ANTAG_LAYER)
+
+
 /mob/living/carbon/human/update_inv_w_uniform()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		remove_overlay(UNIFORM_LAYER)
 
 		if(client && hud_used)
-			var/obj/screen/inventory/inv = hud_used.inv_slots[SLOT_W_UNIFORM]
+			var/atom/movable/screen/inventory/inv = hud_used.inv_slots[TOBITSHIFT(ITEM_SLOT_ICLOTHING) + 1]
 			inv.update_icon()
 
 		if(istype(w_uniform, /obj/item/clothing/under))
@@ -154,11 +176,11 @@ There are several things that need to be remembered:
 		update_mutant_bodyparts()
 
 /mob/living/carbon/human/update_inv_wear_id()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		remove_overlay(ID_LAYER)
 
 		if(client && hud_used)
-			var/obj/screen/inventory/inv = hud_used.inv_slots[SLOT_WEAR_ID]
+			var/atom/movable/screen/inventory/inv = hud_used.inv_slots[TOBITSHIFT(ITEM_SLOT_ID) + 1]
 			inv.update_icon()
 
 		var/mutable_appearance/id_overlay = overlays_standing[ID_LAYER]
@@ -179,15 +201,15 @@ There are several things that need to be remembered:
 
 
 /mob/living/carbon/human/update_inv_gloves()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		remove_overlay(GLOVES_LAYER)
 
-		if(client && hud_used && hud_used.inv_slots[SLOT_GLOVES])
-			var/obj/screen/inventory/inv = hud_used.inv_slots[SLOT_GLOVES]
+		if(client && hud_used && hud_used.inv_slots[TOBITSHIFT(ITEM_SLOT_GLOVES) + 1])
+			var/atom/movable/screen/inventory/inv = hud_used.inv_slots[TOBITSHIFT(ITEM_SLOT_GLOVES) + 1]
 			inv.update_icon()
 
 		if(!gloves && bloody_hands)
-			var/mutable_appearance/bloody_overlay = mutable_appearance('icons/effects/blood.dmi', "bloodyhands", -GLOVES_LAYER, color = blood_DNA_to_color())
+			var/mutable_appearance/bloody_overlay = mutable_appearance('icons/effects/blood.dmi', "bloodyhands", -GLOVES_LAYER, color = blood_DNA_to_color(), blend_mode = blood_DNA_to_blend())
 			if(get_num_arms(FALSE) < 2)
 				if(has_left_hand(FALSE))
 					bloody_overlay.icon_state = "bloodyhands_left"
@@ -213,14 +235,14 @@ There are several things that need to be remembered:
 
 
 /mob/living/carbon/human/update_inv_glasses()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		remove_overlay(GLASSES_LAYER)
 
 		if(!get_bodypart(BODY_ZONE_HEAD)) //decapitated
 			return
 
 		if(client && hud_used)
-			var/obj/screen/inventory/inv = hud_used.inv_slots[SLOT_GLASSES]
+			var/atom/movable/screen/inventory/inv = hud_used.inv_slots[TOBITSHIFT(ITEM_SLOT_EYES) + 1]
 			inv.update_icon()
 
 		if(glasses)
@@ -240,14 +262,14 @@ There are several things that need to be remembered:
 		apply_overlay(GLASSES_LAYER)
 
 /mob/living/carbon/human/update_inv_ears()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		remove_overlay(EARS_LAYER)
 
 		if(!get_bodypart(BODY_ZONE_HEAD)) //decapitated
 			return
 
 		if(client && hud_used)
-			var/obj/screen/inventory/inv = hud_used.inv_slots[SLOT_EARS]
+			var/atom/movable/screen/inventory/inv = hud_used.inv_slots[TOBITSHIFT(ITEM_SLOT_EARS) + 1]
 			inv.update_icon()
 
 		if(ears)
@@ -266,14 +288,14 @@ There are several things that need to be remembered:
 		apply_overlay(EARS_LAYER)
 
 /mob/living/carbon/human/update_inv_shoes()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		remove_overlay(SHOES_LAYER)
 
 		if(get_num_legs(FALSE) <2)
 			return
 
 		if(client && hud_used)
-			var/obj/screen/inventory/inv = hud_used.inv_slots[SLOT_SHOES]
+			var/atom/movable/screen/inventory/inv = hud_used.inv_slots[TOBITSHIFT(ITEM_SLOT_FEET) + 1]
 			inv.update_icon()
 
 		if(dna.species.mutant_bodyparts["taur"])
@@ -304,11 +326,11 @@ There are several things that need to be remembered:
 		apply_overlay(SHOES_LAYER)
 
 /mob/living/carbon/human/update_inv_s_store()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		remove_overlay(SUIT_STORE_LAYER)
 
 		if(client && hud_used)
-			var/obj/screen/inventory/inv = hud_used.inv_slots[SLOT_S_STORE]
+			var/atom/movable/screen/inventory/inv = hud_used.inv_slots[TOBITSHIFT(ITEM_SLOT_SUITSTORE) + 1]
 			inv.update_icon()
 
 		if(s_store)
@@ -328,14 +350,14 @@ There are several things that need to be remembered:
 		apply_overlay(SUIT_STORE_LAYER)
 
 /mob/living/carbon/human/update_inv_head()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		remove_overlay(HEAD_LAYER)
 
 		if(!get_bodypart(BODY_ZONE_HEAD)) //Decapitated
 			return
 
 		if(client && hud_used)
-			var/obj/screen/inventory/inv = hud_used.inv_slots[SLOT_HEAD]
+			var/atom/movable/screen/inventory/inv = hud_used.inv_slots[TOBITSHIFT(ITEM_SLOT_HEAD) + 1]
 			inv.update_icon()
 
 		if(head)
@@ -368,11 +390,11 @@ There are several things that need to be remembered:
 		update_mutant_bodyparts()
 
 /mob/living/carbon/human/update_inv_belt()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		remove_overlay(BELT_LAYER)
 
 		if(client && hud_used)
-			var/obj/screen/inventory/inv = hud_used.inv_slots[SLOT_BELT]
+			var/atom/movable/screen/inventory/inv = hud_used.inv_slots[TOBITSHIFT(ITEM_SLOT_BELT) + 1]
 			inv.update_icon()
 
 		if(belt)
@@ -390,11 +412,11 @@ There are several things that need to be remembered:
 		apply_overlay(BELT_LAYER)
 
 /mob/living/carbon/human/update_inv_wear_suit()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		remove_overlay(SUIT_LAYER)
 
 		if(client && hud_used)
-			var/obj/screen/inventory/inv = hud_used.inv_slots[SLOT_WEAR_SUIT]
+			var/atom/movable/screen/inventory/inv = hud_used.inv_slots[TOBITSHIFT(ITEM_SLOT_OCLOTHING) + 1]
 			inv.update_icon()
 
 		if(wear_suit)
@@ -455,12 +477,12 @@ There are several things that need to be remembered:
 
 /mob/living/carbon/human/update_inv_pockets()
 	if(client && hud_used)
-		var/obj/screen/inventory/inv
+		var/atom/movable/screen/inventory/inv
 
-		inv = hud_used.inv_slots[SLOT_L_STORE]
+		inv = hud_used.inv_slots[TOBITSHIFT(ITEM_SLOT_LPOCKET) + 1]
 		inv.update_icon()
 
-		inv = hud_used.inv_slots[SLOT_R_STORE]
+		inv = hud_used.inv_slots[TOBITSHIFT(ITEM_SLOT_RPOCKET) + 1]
 		inv.update_icon()
 
 		if(l_store)
@@ -477,14 +499,14 @@ There are several things that need to be remembered:
 
 
 /mob/living/carbon/human/update_inv_wear_mask()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		remove_overlay(FACEMASK_LAYER)
 
 		if(!get_bodypart(BODY_ZONE_HEAD)) //Decapitated
 			return
 
 		if(client && hud_used)
-			var/obj/screen/inventory/inv = hud_used.inv_slots[SLOT_WEAR_MASK]
+			var/atom/movable/screen/inventory/inv = hud_used.inv_slots[TOBITSHIFT(ITEM_SLOT_MASK) + 1]
 			inv.update_icon()
 
 		if(wear_mask)
@@ -518,7 +540,7 @@ There are several things that need to be remembered:
 		update_mutant_bodyparts() //e.g. upgate needed because mask now hides lizard snout
 
 /mob/living/carbon/human/update_inv_back()
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		..()
 		var/mutable_appearance/back_overlay = overlays_standing[BACK_LAYER]
 		if(back_overlay)
@@ -707,11 +729,8 @@ use_mob_overlay_icon: if FALSE, it will always use the default_icon_file even if
 				. += "-[BP.digitigrade_type]"
 		if(BP.dmg_overlay_type)
 			. += "-[BP.dmg_overlay_type]"
-		if(BP.body_markings)
-			. += "-[BP.body_markings]"
-			if(length(BP.markings_color) && length(BP.markings_color[1]))
-				for(var/color in BP.markings_color[1])
-					. += "-[color]"
+		if(BP.body_markings_list)
+			. += "-[safe_json_encode(BP.body_markings_list)]"
 		if(BP.icon)
 			. += "-[BP.icon]"
 		else
@@ -747,7 +766,7 @@ use_mob_overlay_icon: if FALSE, it will always use the default_icon_file even if
 	if(!dna.species)
 		return
 
-	if(dna.species.should_render())
+	if(!HAS_TRAIT(src, TRAIT_HUMAN_NO_RENDER))
 		return
 
 	var/obj/item/bodypart/HD = get_bodypart("head")

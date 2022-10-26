@@ -12,6 +12,8 @@
 	var/lastgenlev = -1
 	var/lastcirc = "00"
 
+	var/max_efficiency = 0.45
+
 
 /obj/machinery/power/generator/Initialize(mapload)
 	. = ..()
@@ -61,12 +63,12 @@
 
 
 			if(delta_temperature > 0 && cold_air_heat_capacity > 0 && hot_air_heat_capacity > 0)
-				var/efficiency = 0.45
+				var/efficiency = LOGISTIC_FUNCTION(max_efficiency,0.0009,delta_temperature,10000)
 
 				var/energy_transfer = delta_temperature*hot_air_heat_capacity*cold_air_heat_capacity/(hot_air_heat_capacity+cold_air_heat_capacity)
 
-				var/heat = energy_transfer*(1-efficiency)
-				lastgen += LOGISTIC_FUNCTION(500000,0.0009,delta_temperature,10000)
+				lastgen += energy_transfer * efficiency
+				var/heat = energy_transfer * (1-efficiency)
 
 				hot_air.set_temperature(hot_air.return_temperature() - energy_transfer/hot_air_heat_capacity)
 				cold_air.set_temperature(cold_air.return_temperature() + heat/cold_air_heat_capacity)

@@ -11,7 +11,7 @@
 	maxHealth = 500
 	layer = BELOW_MOB_LAYER
 	var/obj/item/instrument/piano_synth/internal_instrument
-	silicon_privileges = PRIVILEDGES_PAI
+	silicon_privileges = PRIVILEGES_PAI
 
 	var/network = "ss13"
 	var/obj/machinery/camera/current = null
@@ -95,7 +95,7 @@
 	GLOB.pai_list -= src
 	return ..()
 
-/mob/living/silicon/pai/Initialize()
+/mob/living/silicon/pai/Initialize(mapload)
 	var/obj/item/paicard/P = loc
 	START_PROCESSING(SSfastprocess, src)
 	GLOB.pai_list += src
@@ -131,6 +131,7 @@
 	var/datum/action/innate/pai/chassis/AC = new /datum/action/innate/pai/chassis
 	var/datum/action/innate/pai/rest/AR = new /datum/action/innate/pai/rest
 	var/datum/action/innate/pai/light/AL = new /datum/action/innate/pai/light
+	var/datum/action/innate/custom_holoform/custom_holoform = new /datum/action/innate/custom_holoform
 
 	var/datum/action/language_menu/ALM = new
 	SW.Grant(src)
@@ -139,14 +140,19 @@
 	AR.Grant(src)
 	AL.Grant(src)
 	ALM.Grant(src)
+	custom_holoform.Grant(src)
 	emitter_next_use = world.time + 10 SECONDS
+
+/mob/living/silicon/pai/deployed/Initialize(mapload)
+	. = ..()
+	fold_out(TRUE)
 
 /mob/living/silicon/pai/ComponentInitialize()
 	. = ..()
 	if(possible_chassis[chassis])
 		AddElement(/datum/element/mob_holder, chassis, 'icons/mob/pai_item_head.dmi', 'icons/mob/pai_item_rh.dmi', 'icons/mob/pai_item_lh.dmi', ITEM_SLOT_HEAD)
 
-/mob/living/silicon/pai/BiologicalLife(seconds, times_fired)
+/mob/living/silicon/pai/BiologicalLife(delta_time, times_fired)
 	if(!(. = ..()))
 		return
 	if(hacking)
@@ -316,6 +322,17 @@
 	else
 		to_chat(user, "Encryption Key ports not configured.")
 
+/obj/item/paicard/emag_act(mob/user) // Emag to wipe the master DNA and supplemental directive
+	. = ..()
+	if(!pai)
+		return
+	to_chat(user, "<span class='notice'>You override [pai]'s directive system, clearing its master string and supplied directive.</span>")
+	to_chat(pai, "<span class='danger'>Warning: System override detected, check directive sub-system for any changes.'</span>")
+	log_game("[key_name(user)] emagged [key_name(pai)], wiping their master DNA and supplemental directive.")
+	pai.master = null
+	pai.master_dna = null
+	pai.laws.supplied[1] = "None." // Sets supplemental directive to this
+
 /mob/living/silicon/pai/proc/short_radio()
 	if(radio_short_timerid)
 		deltimer(radio_short_timerid)
@@ -423,6 +440,10 @@
 	.["Cyborg - Science (dog - valesci)"] = curr
 	//Misc
 	.["Cyborg - Misc (dog - blade)"] = process_holoform_icon_filter(icon('modular_citadel/icons/mob/widerobot.dmi', "blade"), HOLOFORM_FILTER_PAI, FALSE)
+
+	// Gorillas
+	.["Gorilla (standing)"] = process_holoform_icon_filter(icon('icons/mob/gorilla.dmi', "standing"), HOLOFORM_FILTER_PAI, FALSE)
+	.["Gorilla (crawling)"] = process_holoform_icon_filter(icon('icons/mob/gorilla.dmi', "crawling"), HOLOFORM_FILTER_PAI, FALSE)
 
 /mob/living/silicon/pai/proc/default_chassis_pixel_offsets_x()
 	. = list()

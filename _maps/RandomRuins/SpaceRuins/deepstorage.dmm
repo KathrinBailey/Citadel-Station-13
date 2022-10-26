@@ -49,7 +49,6 @@
 /area/ruin/space/has_grav/deepstorage/crusher)
 "an" = (
 /obj/machinery/conveyor{
-	dir = 2;
 	id = "bunkerrecycle"
 	},
 /turf/open/floor/plating,
@@ -142,9 +141,8 @@
 	icon_state = "0-8"
 	},
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "Recycling APC";
-	pixel_y = -24
+	pixel_y = -23
 	},
 /turf/open/floor/plating,
 /area/ruin/space/has_grav/deepstorage/crusher)
@@ -694,9 +692,8 @@
 	icon_state = "0-8"
 	},
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "Kitchen APC";
-	pixel_y = -24
+	pixel_y = -23
 	},
 /turf/open/floor/plasteel/cafeteria,
 /area/ruin/space/has_grav/deepstorage/kitchen)
@@ -1762,9 +1759,8 @@
 	},
 /obj/structure/cable/yellow,
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "Main Area APC";
-	pixel_y = -24
+	pixel_y = -23
 	},
 /obj/effect/turf_decal/stripes/corner,
 /obj/effect/decal/cleanable/dirt,
@@ -2178,7 +2174,7 @@
 /obj/machinery/power/apc{
 	dir = 1;
 	name = "Airlock Control APC";
-	pixel_y = 24
+	pixel_y = 23
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/plasteel,
@@ -2682,6 +2678,7 @@
 /area/ruin/space/has_grav/deepstorage)
 "fU" = (
 /obj/machinery/camera{
+	c_tag = "Deep Storage - Entry";
 	network = list("bunker1")
 	},
 /obj/structure/sign/warning/securearea{

@@ -32,6 +32,8 @@ SUBSYSTEM_DEF(vote)
 
 	var/list/stored_modetier_results = list() // The aggregated tier list of the modes available in secret.
 
+	var/transfer_votes_done = 0
+
 /datum/controller/subsystem/vote/fire()	//called by master_controller
 	if(mode)
 		if(end_time < world.time)
@@ -68,6 +70,10 @@ SUBSYSTEM_DEF(vote)
 	//get the highest number of votes
 	var/greatest_votes = 0
 	var/total_votes = 0
+	if((mode == "gamemode" || mode == "roundtype") && CONFIG_GET(flag/must_be_readied_to_vote_gamemode))
+		for(var/mob/dead/new_player/P in GLOB.player_list)
+			if(P.ready != PLAYER_READY_TO_PLAY && voted[P.ckey])
+				choices[choices[voted[P.ckey]]]--
 	for(var/option in choices)
 		var/votes = choices[option]
 		total_votes += votes
@@ -100,7 +106,10 @@ SUBSYSTEM_DEF(vote)
 	return .
 
 /datum/controller/subsystem/vote/proc/calculate_condorcet_votes(var/blackbox_text)
-	// https://en.wikipedia.org/wiki/Schulze_method#Implementation
+	if((mode == "gamemode" || mode == "dynamic" || mode == "roundtype") && CONFIG_GET(flag/must_be_readied_to_vote_gamemode))
+		for(var/mob/dead/new_player/P in GLOB.player_list)
+			if(P.ready != PLAYER_READY_TO_PLAY && voted[P.ckey])
+				voted -= P.ckey
 	var/list/d[][] = new/list(choices.len,choices.len) // the basic vote matrix, how many times a beats b
 	for(var/ckey in voted)
 		var/list/this_vote = voted[ckey]
@@ -141,12 +150,16 @@ SUBSYSTEM_DEF(vote)
 					choices[choices[i]]++ // higher shortest path = better candidate, so we add to choices here
 					// choices[choices[i]] is the schulze ranking, here, rather than raw vote numbers
 
-/datum/controller/subsystem/vote/proc/calculate_majority_judgement_vote(var/blackbox_text)
-	// https://en.wikipedia.org/wiki/Majority_judgment
+/datum/controller/subsystem/vote/proc/calculate_highest_median(var/blackbox_text)
+	// https://en.wikipedia.org/wiki/Highest_median_voting_rules
 	var/list/scores_by_choice = list()
 	for(var/choice in choices)
 		scores_by_choice += "[choice]"
 		scores_by_choice["[choice]"] = list()
+	if((mode == "gamemode" || mode == "dynamic" || mode == "roundtype") && CONFIG_GET(flag/must_be_readied_to_vote_gamemode))
+		for(var/mob/dead/new_player/P in GLOB.player_list)
+			if(P.ready != PLAYER_READY_TO_PLAY && voted[P.ckey])
+				voted -= P.ckey
 	for(var/ckey in voted)
 		var/list/this_vote = voted[ckey]
 		var/list/pretty_vote = list()
@@ -161,33 +174,24 @@ SUBSYSTEM_DEF(vote)
 		// END BALLOT GATHERING
 	for(var/score_name in scores_by_choice)
 		var/list/score = scores_by_choice[score_name]
-		for(var/indiv_score in score)
-			SSblackbox.record_feedback("nested tally","voting",1,list(blackbox_text,"Scores",score_name,GLOB.vote_score_options[indiv_score]))
-		if(score.len == 0)
-			scores_by_choice -= score_name
-	while(scores_by_choice.len > 1)
-		var/highest_median = 0
-		for(var/score_name in scores_by_choice) // first get highest median
-			var/list/score = scores_by_choice[score_name]
-			if(!score.len)
-				scores_by_choice -= score_name
-				continue
+		if(!score.len)
+			choices[score_name] = 0
+		else
 			var/median = score[max(1,round(score.len/2))]
-			if(median >= highest_median)
-				highest_median = median
-		for(var/score_name in scores_by_choice) // then, remove
-			var/list/score = scores_by_choice[score_name]
-			var/median = score[max(1,round(score.len/2))]
-			if(median < highest_median)
-				scores_by_choice -= score_name
-		for(var/score_name in scores_by_choice) // after removals
-			var/list/score = scores_by_choice[score_name]
-			if(score.len == 0)
-				choices[score_name] += 100 // we're in a tie situation--just go with the first one
-				return
-			var/median_pos = max(1,round(score.len/2))
-			score.Cut(median_pos,median_pos+1)
-			choices[score_name]++
+			var/p = 0 // proponents (those with higher than median)
+			var/q = 0 // opponents (lower than median)
+			var/list/this_score_list = scores_by_choice[score_name]
+			for(var/indiv_score in score)
+				SSblackbox.record_feedback("nested tally","voting",1,list(blackbox_text,"Scores",score_name,GLOB.vote_score_options[indiv_score]))
+				if(indiv_score < median) // this is possible to do in O(logn) but n is never more than 200 so this is fine
+					q += 1
+				else if(indiv_score > median)
+					p += 1
+			p /= this_score_list.len
+			q /= this_score_list.len
+			choices[score_name] = median + (((p - q) / (1 - p - q)) * 0.5) // usual judgement
+			// choices[score_name] = median + p - q // typical judgement
+			// choices[score_name] = median + (((p - q) / (p + q)) * 0.5) // central judgement
 
 /datum/controller/subsystem/vote/proc/calculate_scores(var/blackbox_text)
 	for(var/choice in choices)
@@ -245,9 +249,19 @@ SUBSYSTEM_DEF(vote)
 		calculate_condorcet_votes(vote_title_text)
 	if(vote_system == SCORE_VOTING)
 		calculate_scores(vote_title_text)
-	if(vote_system == MAJORITY_JUDGEMENT_VOTING)
-		calculate_majority_judgement_vote(vote_title_text) // nothing uses this at the moment
-	var/list/winners = vote_system == INSTANT_RUNOFF_VOTING ? get_runoff_results() : get_result()
+	if(vote_system == HIGHEST_MEDIAN_VOTING)
+		calculate_highest_median(vote_title_text)
+	var/list/winners = list()
+	if(mode == "transfer")
+		var/amount_required = 3 + transfer_votes_done
+		transfer_votes_done += 1
+		text += "\nExtending requires at least [amount_required] votes to win."
+		if(choices[VOTE_CONTINUE] < amount_required || choices[VOTE_TRANSFER] >= choices[VOTE_CONTINUE])
+			winners = list(VOTE_TRANSFER)
+		else
+			winners = list(VOTE_CONTINUE)
+	else
+		winners = vote_system == INSTANT_RUNOFF_VOTING ? get_runoff_results() : get_result()
 	var/was_roundtype_vote = mode == "roundtype" || mode == "dynamic"
 	if(winners.len > 0)
 		if(was_roundtype_vote)
@@ -255,8 +269,8 @@ SUBSYSTEM_DEF(vote)
 		if(display_votes & SHOW_RESULTS)
 			if(vote_system == SCHULZE_VOTING)
 				text += "\nIt should be noted that this is not a raw tally of votes (impossible in ranked choice) but the score determined by the schulze method of voting, so the numbers will look weird!"
-			if(vote_system == MAJORITY_JUDGEMENT_VOTING)
-				text += "\nIt should be noted that this is not a raw tally of votes but the number of runoffs done by majority judgement!"
+			if(vote_system == HIGHEST_MEDIAN_VOTING)
+				text += "\nThis is the highest median score plus the tiebreaker!"
 		for(var/i=1,i<=choices.len,i++)
 			var/votes = choices[choices[i]]
 			if(!votes)
@@ -302,15 +316,15 @@ SUBSYSTEM_DEF(vote)
 		if(vote_system != SCORE_VOTING)
 			if(vote_system == SCHULZE_VOTING)
 				admintext += "\nIt should be noted that this is not a raw tally of votes (impossible in ranked choice) but the score determined by the schulze method of voting, so the numbers will look weird!"
-			else if(vote_system == MAJORITY_JUDGEMENT_VOTING)
-				admintext += "\nIt should be noted that this is not a raw tally of votes but the number of runoffs done by majority judgement!"
+			else if(vote_system == HIGHEST_MEDIAN_VOTING)
+				admintext += "\nIt should be noted that this is not a raw tally of votes but rather the median score plus a tiebreaker!"
 			for(var/i=1,i<=choices.len,i++)
 				var/votes = choices[choices[i]]
-				admintext += "\n<b>[choices[i]]:</b> [votes]"
+				admintext += "\n<b>[choices[i]]:</b> [votes ? votes : "0"]" //This is raw data, but the raw data is null by default. If ya don't compensate for it, then it'll look weird!
 		else
 			for(var/i=1,i<=scores.len,i++)
 				var/score = scores[scores[i]]
-				admintext += "\n<b>[scores[i]]:</b> [score]"
+				admintext += "\n<b>[scores[i]]:</b> [score ? score : "0"]"
 		message_admins(admintext)
 	return .
 
@@ -319,51 +333,17 @@ SUBSYSTEM_DEF(vote)
 	var/restart = 0
 	if(.)
 		switch(mode)
-			if("roundtype") //CIT CHANGE - adds the roundstart extended/secret vote
+			if("roundtype") //CIT CHANGE - adds the roundstart extended/dynamic vote
 				if(SSticker.current_state > GAME_STATE_PREGAME)//Don't change the mode if the round already started.
 					return message_admins("A vote has tried to change the gamemode, but the game has already started. Aborting.")
-				GLOB.master_mode = .
-				SSticker.save_mode(.)
+				GLOB.master_mode = "dynamic"
+				if(. == "extended")
+					GLOB.dynamic_extended = TRUE
 				message_admins("The gamemode has been voted for, and has been changed to: [GLOB.master_mode]")
 				log_admin("Gamemode has been voted for and switched to: [GLOB.master_mode].")
-				if(CONFIG_GET(flag/modetier_voting))
-					reset()
-					started_time = 0
-					initiate_vote("mode tiers","server", votesystem=SCORE_VOTING, forced=TRUE, vote_time = 30 MINUTES)
-					to_chat(world,"<b>The vote will end right as the round starts.</b>")
-					return .
 			if("restart")
 				if(. == "Restart Round")
 					restart = 1
-			if("gamemode")
-				if(GLOB.master_mode != .)
-					SSticker.save_mode(.)
-					if(SSticker.HasRoundStarted())
-						restart = 1
-					else
-						GLOB.master_mode = .
-			if("mode tiers")
-				var/list/raw_score_numbers = list()
-				for(var/score_name in scores)
-					sorted_insert(raw_score_numbers,scores[score_name],/proc/cmp_numeric_asc)
-				stored_modetier_results = scores.Copy()
-				for(var/score_name in stored_modetier_results)
-					if(stored_modetier_results[score_name] <= raw_score_numbers[CONFIG_GET(number/dropped_modes)])
-						stored_modetier_results -= score_name
-				stored_modetier_results += "traitor"
-			if("dynamic")
-				if(SSticker.current_state > GAME_STATE_PREGAME)//Don't change the mode if the round already started.
-					return message_admins("A vote has tried to change the gamemode, but the game has already started. Aborting.")
-				var/list/runnable_storytellers = config.get_runnable_storytellers()
-				var/datum/dynamic_storyteller/picked
-				for(var/T in runnable_storytellers)
-					var/datum/dynamic_storyteller/S = T
-					if(stored_gamemode_votes[initial(S.name)] == 1 && CHECK_BITFIELD(initial(S.flags), FORCE_IF_WON))
-						picked = S
-					runnable_storytellers[S] *= round(stored_gamemode_votes[initial(S.name)]*100000,1)
-				if(!picked)
-					picked = pickweight(runnable_storytellers, 0)
-				GLOB.dynamic_storyteller_type = picked
 			if("map")
 				var/datum/map_config/VM = config.maplist[.]
 				message_admins("The map has been voted for and will change to: [VM.map_name]")
@@ -371,7 +351,7 @@ SUBSYSTEM_DEF(vote)
 				if(SSmapping.changemap(config.maplist[.]))
 					to_chat(world, "<span class='boldannounce'>The map vote has chosen [VM.map_name] for next round!</span>")
 			if("transfer") // austation begin -- Crew autotransfer vote
-				if(. == "Initiate Crew Transfer")
+				if(. == VOTE_TRANSFER)
 					SSshuttle.autoEnd()
 					var/obj/machinery/computer/communications/C = locate() in GLOB.machines
 					if(C)
@@ -429,7 +409,7 @@ SUBSYSTEM_DEF(vote)
 						voted[usr.ckey] = list()
 					voted[usr.ckey] += vote
 					saved -= usr.ckey
-				if(SCORE_VOTING,MAJORITY_JUDGEMENT_VOTING)
+				if(SCORE_VOTING,HIGHEST_MEDIAN_VOTING)
 					if(!(usr.ckey in voted))
 						voted += usr.ckey
 						voted[usr.ckey] = list()
@@ -478,26 +458,9 @@ SUBSYSTEM_DEF(vote)
 						continue
 					choices |= M
 			if("transfer") // austation begin -- Crew autotranfer vote
-				choices.Add("Initiate Crew Transfer","Continue Playing") // austation end
+				choices.Add(VOTE_TRANSFER,VOTE_CONTINUE) // austation end
 			if("roundtype") //CIT CHANGE - adds the roundstart secret/extended vote
-				choices.Add("secret", "extended")
-			if("mode tiers")
-				var/list/modes_to_add = config.votable_modes
-				var/list/probabilities = CONFIG_GET(keyed_list/probability)
-				for(var/tag in modes_to_add)
-					if(probabilities[tag] <= 0)
-						modes_to_add -= tag
-				modes_to_add -= "traitor" // makes it so that traitor is always available
-				choices.Add(modes_to_add)
-			if("dynamic")
-				GLOB.master_mode = "dynamic"
-				var/list/probabilities = CONFIG_GET(keyed_list/storyteller_weight)
-				for(var/T in config.storyteller_cache)
-					var/datum/dynamic_storyteller/S = T
-					var/probability = ((initial(S.config_tag) in probabilities) ? probabilities[initial(S.config_tag)] : initial(S.weight))
-					if(probability > 0)
-						choices.Add(initial(S.name))
-						choice_descs.Add(initial(S.desc))
+				choices.Add("dynamic", "extended")
 			if("custom")
 				question = stripped_input(usr,"What is the vote for?")
 				if(!question)
@@ -584,7 +547,7 @@ SUBSYSTEM_DEF(vote)
 				. += "<h3>Vote any number of choices.</h3>"
 			if(SCHULZE_VOTING,INSTANT_RUNOFF_VOTING)
 				. += "<h3>Vote by order of preference. Revoting will demote to the bottom. 1 is your favorite, and higher numbers are worse.</h3>"
-			if(SCORE_VOTING,MAJORITY_JUDGEMENT_VOTING)
+			if(SCORE_VOTING,HIGHEST_MEDIAN_VOTING)
 				. += "<h3>Grade the candidates by how much you like them.</h3>"
 				. += "<h3>No-votes have no power--your opinion is only heard if you vote!</h3>"
 		. += "Time Left: [DisplayTimeText(end_time-world.time)]<hr><ul>"
@@ -621,7 +584,7 @@ SUBSYSTEM_DEF(vote)
 					. += "(Saved!)"
 				. += "(<a href='?src=[REF(src)];vote=load'>Load vote from save</a>)"
 				. += "(<a href='?src=[REF(src)];vote=reset'>Reset votes</a>)"
-			if(SCORE_VOTING,MAJORITY_JUDGEMENT_VOTING)
+			if(SCORE_VOTING,HIGHEST_MEDIAN_VOTING)
 				var/list/myvote = voted[C.ckey]
 				for(var/i=1,i<=choices.len,i++)
 					. += "<li><b>[choices[i]]</b>"
@@ -724,7 +687,7 @@ SUBSYSTEM_DEF(vote)
 			voted[usr.ckey] = SSpersistence.saved_votes[usr.ckey][mode]
 			if(islist(voted[usr.ckey]))
 				var/malformed = FALSE
-				if(vote_system == SCORE_VOTING || vote_system == MAJORITY_JUDGEMENT_VOTING)
+				if(vote_system == SCORE_VOTING || vote_system == HIGHEST_MEDIAN_VOTING)
 					for(var/thing in voted[usr.ckey])
 						if(!(thing in choices))
 							malformed = TRUE
@@ -738,7 +701,7 @@ SUBSYSTEM_DEF(vote)
 				to_chat(usr,"Your saved vote was malformed! Start over!")
 				voted -= usr.ckey
 		else
-			if(vote_system == SCORE_VOTING || vote_system == MAJORITY_JUDGEMENT_VOTING)
+			if(vote_system == SCORE_VOTING || vote_system == HIGHEST_MEDIAN_VOTING)
 				submit_vote(round(text2num(href_list["vote"])),round(text2num(href_list["score"])))
 			else
 				submit_vote(round(text2num(href_list["vote"])))

@@ -37,11 +37,27 @@
 	return attack_hand(user)
 
 /obj/structure/bed/attackby(obj/item/W, mob/user, params)
-	if(istype(W, /obj/item/wrench) && !(flags_1&NODECONSTRUCT_1))
+	if(W.tool_behaviour == TOOL_WRENCH && !(flags_1&NODECONSTRUCT_1))
 		W.play_tool_sound(src)
 		deconstruct(TRUE)
+	else if(istype(W, /obj/item/bedsheet))
+		if(user.transferItemToLoc(W, drop_location()))
+			to_chat(user, "<span class='notice'>You make \the [src] with [W].</span>")
+			W.pixel_x = 0
+			W.pixel_y = 0
+	else if(istype(W, /obj/item/disk/nuclear))
+		if(user.transferItemToLoc(W, drop_location()))
+			to_chat(user, "<span class='notice'>You tuck little disky into bed. Good night disky.</span>")
+			W.pixel_x = 6 //make sure they reach the pillow
+			W.pixel_y = -6
 	else
 		return ..()
+
+/obj/structure/bed/post_buckle_mob(mob/living/target)
+	target.pixel_y = target.get_standard_pixel_y_offset(TRUE)
+
+/obj/structure/bed/double/post_unbuckle_mob(mob/living/target)
+	target.pixel_y = target.get_standard_pixel_y_offset(FALSE)
 
 /*
  * Roller beds
@@ -204,3 +220,24 @@
 	name = "resting contraption"
 	desc = "This looks similar to contraptions from Earth. Could aliens be stealing our technology?"
 	icon_state = "abed"
+
+//Double Beds, for luxurious sleeping, i.e. the captain and maybe heads- Do use this for ERP
+/obj/structure/bed/double
+	name = "double bed"
+	desc = "A luxurious double bed, for those too important for small dreams."
+	icon_state = "bed_double"
+	buildstackamount = 4
+	max_buckled_mobs = 2
+	///The mob who buckled to this bed second, to avoid other mobs getting pixel-shifted before he unbuckles.
+	var/mob/living/goldilocks
+
+/obj/structure/bed/double/post_buckle_mob(mob/living/target)
+	target.pixel_y = target.get_standard_pixel_y_offset(TRUE)
+	if(buckled_mobs.len > 1 && !goldilocks) //Push the second buckled mob a bit higher from the normal lying position
+		target.pixel_y = target.get_standard_pixel_y_offset(FALSE) + 6
+		goldilocks = target
+
+/obj/structure/bed/double/post_unbuckle_mob(mob/living/target)
+	target.pixel_y = target.get_standard_pixel_y_offset(FALSE)
+	if(target == goldilocks)
+		goldilocks = null

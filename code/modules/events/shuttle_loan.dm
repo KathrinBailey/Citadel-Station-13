@@ -45,7 +45,7 @@
 		if(ANTIDOTE_NEEDED)
 			message = "Cargo: Your station has been chosen for an epidemiological research project. Send us your cargo shuttle to receive your research samples."
 			title = "CentCom Research Initiatives"
-		if (PIZZA_DELIVERY)
+		if(PIZZA_DELIVERY)
 			message = "Cargo: It looks like a neighbouring station accidentally delivered their pizza to you instead."
 			title = "CentCom Spacepizza Division"
 		if(ITS_HIP_TO)
@@ -57,7 +57,7 @@
 			title = "CentCom Security Division"
 			bonus_points = 45000 //If you mess up, people die and the shuttle gets turned into swiss cheese
 		if(DELTA_CRATES)
-			message = "Cargo: We have discovered a warehouse of DELTA locked crates, we cant store any more of them at CC can you take them for us?."
+			message = "Cargo: We have discovered a warehouse of DELTA locked crates. We can't store any more of them at CC, can you take them for us?"
 			title = "CentCom Security Division"
 			bonus_points = 25000 //If you mess up, people die and the shuttle gets turned into swiss cheese
 	if(prob(50))
@@ -271,7 +271,7 @@
 	name = "Objectives of a Bee Liberation Front Operative"
 	info = "<b>Objective #1</b>. Liberate all bees on the NT transport vessel 2416/B. <b>Success!</b>  <br><b>Objective #2</b>. Escape alive. <b>Failed.</b>"
 
-/obj/machinery/syndicatebomb/shuttle_loan/Initialize()
+/obj/machinery/syndicatebomb/shuttle_loan/Initialize(mapload)
 	. = ..()
 	setAnchored(TRUE)
 	timer_set = rand(480, 600) //once the supply shuttle docks (after 5 minutes travel time), players have between 3-5 minutes to defuse the bomb

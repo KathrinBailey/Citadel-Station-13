@@ -19,9 +19,11 @@
 	var/ignore_holy_water = FALSE
 
 /datum/antagonist/cult/neutered
+	name = "Neutered Cultist"
 	neutered = TRUE
 
 /datum/antagonist/cult/neutered/traitor
+	name = "Traitor Cultist"
 	ignore_eligibility_checks = TRUE
 	ignore_holy_water = TRUE
 	show_in_roundend = FALSE
@@ -47,7 +49,10 @@
 	cult_team = new_team
 
 /datum/antagonist/cult/proc/add_objectives()
-	objectives |= cult_team?.objectives
+//ambition start
+	if(cult_team)
+		objectives |= cult_team.objectives
+//ambition end
 
 /datum/antagonist/cult/Destroy()
 	QDEL_NULL(communion)
@@ -93,9 +98,9 @@
 
 /datum/antagonist/cult/proc/cult_give_item(obj/item/item_path, mob/living/carbon/human/mob)
 	var/list/slots = list(
-		"backpack" = SLOT_IN_BACKPACK,
-		"left pocket" = SLOT_L_STORE,
-		"right pocket" = SLOT_R_STORE
+		"backpack" = ITEM_SLOT_BACKPACK,
+		"left pocket" = ITEM_SLOT_LPOCKET,
+		"right pocket" = ITEM_SLOT_RPOCKET
 	)
 
 	var/T = new item_path(mob)
@@ -122,7 +127,7 @@
 	communion.Grant(current)
 	if(ishuman(current))
 		magic.Grant(current)
-	current.throw_alert("bloodsense", /obj/screen/alert/bloodsense)
+	current.throw_alert("bloodsense", /atom/movable/screen/alert/bloodsense)
 	if(cult_team?.cult_risen)
 		cult_team.rise(current)
 		if(cult_team.cult_ascendent)
@@ -330,7 +335,7 @@
 		var/mob/living/carbon/human/H = cultist
 		new /obj/effect/temp_visual/cult/sparks(get_turf(H), H.dir)
 		var/istate = pick("halo1","halo2","halo3","halo4","halo5","halo6")
-		H.add_overlay(mutable_appearance('icons/effects/32x64.dmi', istate, -BODY_FRONT_LAYER))
+		H.add_overlay(mutable_appearance('icons/effects/32x64.dmi', istate, -ANTAG_LAYER))
 
 /datum/team/cult/proc/setup_objectives()
 	//SAC OBJECTIVE , todo: move this to objective internals
@@ -417,7 +422,7 @@
 	var/sanity = 0
 	while(summon_spots.len < SUMMON_POSSIBILITIES && sanity < 100)
 		var/area/summon = pick(GLOB.sortedAreas - summon_spots)
-		if(summon && is_station_level(summon.z) && summon.valid_territory)
+		if(summon && is_station_level(summon.z) && (summon.area_flags & VALID_TERRITORY))
 			summon_spots += summon
 		sanity++
 	update_explanation_text()

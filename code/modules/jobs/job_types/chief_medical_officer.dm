@@ -3,7 +3,7 @@
 	flag = CMO_JF
 	department_head = list("Captain")
 	department_flag = MEDSCI
-//	auto_deadmin_role_flags = DEADMIN_POSITION_HEAD
+	auto_deadmin_role_flags = DEADMIN_POSITION_HEAD
 	head_announce = list(RADIO_CHANNEL_MEDICAL)
 	faction = "Station"
 	total_positions = 1
@@ -15,6 +15,7 @@
 	exp_requirements = 180
 	exp_type = EXP_TYPE_CREW
 	exp_type_department = EXP_TYPE_MEDICAL
+	considered_combat_role = TRUE
 
 	outfit = /datum/outfit/job/cmo
 	plasma_outfit = /datum/outfit/plasmaman/cmo

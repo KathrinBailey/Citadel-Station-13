@@ -85,7 +85,7 @@
 	if(force && damtype != STAMINA && HAS_TRAIT(user, TRAIT_PACIFISM))
 		to_chat(user, "<span class='warning'>You don't want to harm other living beings!</span>")
 		return
-	
+
 	if(!UseStaminaBufferStandard(user, STAM_COST_ATTACK_MOB_MULT, null, TRUE))
 		return DISCARD_LAST_ACTION
 
@@ -94,8 +94,10 @@
 	else if(hitsound)
 		playsound(loc, hitsound, get_clamped_volume(), 1, -1)
 
-	M.lastattacker = user.real_name
-	M.lastattackerckey = user.ckey
+	M.set_last_attacker(user)
+
+	if(force && M == user && user.client)
+		user.client.give_award(/datum/award/achievement/misc/selfouch, user)
 
 	user.do_attack_animation(M)
 	M.attacked_by(src, user, attackchain_flags, damage_multiplier)
@@ -124,6 +126,8 @@
 		return DISCARD_LAST_ACTION
 	user.do_attack_animation(O)
 	O.attacked_by(src, user)
+	if(force >= 20)
+		shake_camera(user, ((force - 15) * 0.01 + 1), ((force - 15) * 0.01))
 
 /atom/movable/proc/attacked_by()
 	return
@@ -255,10 +259,10 @@
 	if(!isnull(stagger_force))
 		return stagger_force
 	/// totally not an untested, arbitrary equation.
-	return clamp((1.5 + (w_class/5)) * ((force_override || force) / 1.5), 0, 10 SECONDS)
+	return clamp((1.5 + (w_class/5)) * ((force_override || force) / 1.5), 0, 10 SECONDS) * CONFIG_GET(number/melee_stagger_factor)
 
 /obj/item/proc/do_stagger_action(mob/living/target, mob/living/user, force_override)
-	if(!CHECK_BITFIELD(target.status_flags, CANSTAGGER))
+	if(!(target.status_flags & CANSTAGGER))
 		return FALSE
 	if(target.combat_flags & COMBAT_FLAG_SPRINT_ACTIVE)
 		target.do_staggered_animation()

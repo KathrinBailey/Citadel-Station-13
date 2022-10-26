@@ -15,7 +15,7 @@
 	var/start_lit = FALSE
 	var/heats_space = TRUE
 
-/obj/item/candle/Initialize()
+/obj/item/candle/Initialize(mapload)
 	. = ..()
 	if(start_lit)
 		light()
@@ -81,5 +81,9 @@
 
 /obj/item/candle/infinite/hugbox
 	heats_space = FALSE
+
+/obj/item/candle/DoRevenantThrowEffects(atom/target)
+	if(!infinite)
+		put_out_candle()
 
 #undef CANDLE_LUMINOSITY

@@ -44,11 +44,12 @@
 			movement_range = 0
 
 /obj/effect/accelerated_particle/Crossed(atom/A)
+	. = ..()
 	if(isliving(A))
 		toxmob(A)
 
 
-/obj/effect/accelerated_particle/ex_act(severity, target)
+/obj/effect/accelerated_particle/ex_act(severity, target, origin)
 	qdel(src)
 
 /obj/effect/accelerated_particle/singularity_pull()

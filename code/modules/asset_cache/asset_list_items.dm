@@ -1,23 +1,17 @@
 //DEFINITIONS FOR ASSET DATUMS START HERE.
 
-/datum/asset/simple/tgui_common
-	keep_local_name = TRUE
-	assets = list(
-		"tgui-common.chunk.js" = 'tgui/public/tgui-common.chunk.js',
-	)
-
 /datum/asset/simple/tgui
 	keep_local_name = TRUE
 	assets = list(
-		"tgui.bundle.js" = 'tgui/public/tgui.bundle.js',
-		"tgui.bundle.css" = 'tgui/public/tgui.bundle.css',
+		"tgui.bundle.js" = file("tgui/public/tgui.bundle.js"),
+		"tgui.bundle.css" = file("tgui/public/tgui.bundle.css"),
 	)
 
 /datum/asset/simple/tgui_panel
 	keep_local_name = TRUE
 	assets = list(
-		"tgui-panel.bundle.js" = 'tgui/public/tgui-panel.bundle.js',
-		"tgui-panel.bundle.css" = 'tgui/public/tgui-panel.bundle.css',
+		"tgui-panel.bundle.js" = file("tgui/public/tgui-panel.bundle.js"),
+		"tgui-panel.bundle.css" = file("tgui/public/tgui-panel.bundle.css"),
 	)
 
 /datum/asset/simple/headers
@@ -48,14 +42,20 @@
 		"smmon_4.gif" = 'icons/program_icons/smmon_4.gif',
 		"smmon_5.gif" = 'icons/program_icons/smmon_5.gif',
 		"smmon_6.gif" = 'icons/program_icons/smmon_6.gif',
-		"borg_mon.gif" = 'icons/program_icons/borg_mon.gif'
+		"borg_mon.gif" = 'icons/program_icons/borg_mon.gif',
+		"robotact.gif" = 'icons/program_icons/robotact.gif'
 	)
 
 /datum/asset/simple/radar_assets
 	assets = list(
-		"ntosradarbackground.png" = 'icons/UI_Icons/tgui/ntosradar_background.png',
-		"ntosradarpointer.png" = 'icons/UI_Icons/tgui/ntosradar_pointer.png',
-		"ntosradarpointerS.png" = 'icons/UI_Icons/tgui/ntosradar_pointer_S.png'
+		"ntosradarbackground.png" = 'icons/ui_icons/tgui/ntosradar_background.png',
+		"ntosradarpointer.png" = 'icons/ui_icons/tgui/ntosradar_pointer.png',
+		"ntosradarpointerS.png" = 'icons/ui_icons/tgui/ntosradar_pointer_S.png'
+	)
+
+/datum/asset/simple/circuit_assets
+	assets = list(
+		"grid_background.png" = 'icons/ui_icons/tgui/grid_background.png'
 	)
 
 /datum/asset/spritesheet/simple/pda
@@ -90,6 +90,7 @@
 		"status" = 'icons/pda_icons/pda_status.png',
 		"dronephone" = 'icons/pda_icons/pda_dronephone.png',
 		"emoji" = 'icons/pda_icons/pda_emoji.png'
+		// "droneblacklist" = 'icons/pda_icons/pda_droneblacklist.png',
 	)
 
 /datum/asset/spritesheet/simple/paper
@@ -115,7 +116,7 @@
 
 /datum/asset/simple/irv
 	assets = list(
-		"jquery-ui.custom-core-widgit-mouse-sortable-min.js" = 'html/IRV/jquery-ui.custom-core-widgit-mouse-sortable-min.js',
+		"jquery-ui.custom-core-widgit-mouse-sortable-min.js" = 'html/jquery/jquery-ui.custom-core-widgit-mouse-sortable.min.js',
 	)
 
 /datum/asset/group/irv
@@ -124,39 +125,13 @@
 		/datum/asset/simple/irv
 	)
 
-/datum/asset/simple/namespaced/changelog
-	assets = list(
-		"88x31.png" = 'html/88x31.png',
-		"bug-minus.png" = 'html/bug-minus.png',
-		"cross-circle.png" = 'html/cross-circle.png',
-		"hard-hat-exclamation.png" = 'html/hard-hat-exclamation.png',
-		"image-minus.png" = 'html/image-minus.png',
-		"image-plus.png" = 'html/image-plus.png',
-		"music-minus.png" = 'html/music-minus.png',
-		"music-plus.png" = 'html/music-plus.png',
-		"tick-circle.png" = 'html/tick-circle.png',
-		"wrench-screwdriver.png" = 'html/wrench-screwdriver.png',
-		"spell-check.png" = 'html/spell-check.png',
-		"burn-exclamation.png" = 'html/burn-exclamation.png',
-		"chevron.png" = 'html/chevron.png',
-		"chevron-expand.png" = 'html/chevron-expand.png',
-		"scales.png" = 'html/scales.png',
-		"coding.png" = 'html/coding.png',
-		"ban.png" = 'html/ban.png',
-		"chrome-wrench.png" = 'html/chrome-wrench.png',
-		"changelog.css" = 'html/changelog.css'
-	)
-	parents = list("changelog.html" = 'html/changelog.html')
-
-
 /datum/asset/simple/jquery
 	legacy = TRUE
 	assets = list(
-		"jquery.min.js" = 'html/jquery.min.js',
+		"jquery.min.js" = 'html/jquery/jquery.min.js',
 	)
 
 /datum/asset/simple/namespaced/fontawesome
-	legacy = TRUE
 	assets = list(
 		"fa-regular-400.eot"  = 'html/font-awesome/webfonts/fa-regular-400.eot',
 		"fa-regular-400.woff" = 'html/font-awesome/webfonts/fa-regular-400.woff',
@@ -166,13 +141,21 @@
 	)
 	parents = list("font-awesome.css" = 'html/font-awesome/css/all.min.css')
 
+/datum/asset/simple/namespaced/tgfont
+	assets = list(
+		"tgfont.eot" = file("tgui/packages/tgfont/dist/tgfont.eot"),
+		"tgfont.woff2" = file("tgui/packages/tgfont/dist/tgfont.woff2"),
+	)
+	parents = list(
+		"tgfont.css" = file("tgui/packages/tgfont/dist/tgfont.css"),
+	)
+
 /datum/asset/spritesheet/chat
 	name = "chat"
 
 /datum/asset/spritesheet/chat/register()
 	InsertAll("emoji", 'icons/emoji.dmi')
 	InsertAll("emoji", 'icons/emoji_32.dmi')
-
 	// pre-loading all lanugage icons also helps to avoid meta
 	InsertAll("language", 'icons/misc/language.dmi')
 	// catch languages which are pulling icons from another file
@@ -190,7 +173,7 @@
 	)
 
 /datum/asset/simple/namespaced/common
-	assets = list("padlock.png"	= 'html/padlock.png')
+	assets = list("padlock.png" = 'html/padlock.png')
 	parents = list("common.css" = 'html/browser/common.css')
 
 /datum/asset/simple/permissions
@@ -215,104 +198,103 @@
 
 /datum/asset/simple/arcade
 	assets = list(
-		"boss1.gif" = 'icons/UI_Icons/Arcade/boss1.gif',
-		"boss2.gif" = 'icons/UI_Icons/Arcade/boss2.gif',
-		"boss3.gif" = 'icons/UI_Icons/Arcade/boss3.gif',
-		"boss4.gif" = 'icons/UI_Icons/Arcade/boss4.gif',
-		"boss5.gif" = 'icons/UI_Icons/Arcade/boss5.gif',
-		"boss6.gif" = 'icons/UI_Icons/Arcade/boss6.gif',
+		"boss1.gif" = 'icons/ui_icons/arcade/boss1.gif',
+		"boss2.gif" = 'icons/ui_icons/arcade/boss2.gif',
+		"boss3.gif" = 'icons/ui_icons/arcade/boss3.gif',
+		"boss4.gif" = 'icons/ui_icons/arcade/boss4.gif',
+		"boss5.gif" = 'icons/ui_icons/arcade/boss5.gif',
+		"boss6.gif" = 'icons/ui_icons/arcade/boss6.gif',
 	)
-/*
+
 /datum/asset/spritesheet/simple/achievements
 	name ="achievements"
 	assets = list(
-		"default" = 'icons/UI_Icons/Achievements/default.png',
-		"basemisc" = 'icons/UI_Icons/Achievements/basemisc.png',
-		"baseboss" = 'icons/UI_Icons/Achievements/baseboss.png',
-		"baseskill" = 'icons/UI_Icons/Achievements/baseskill.png',
-		"bbgum" = 'icons/UI_Icons/Achievements/Boss/bbgum.png',
-		"colossus" = 'icons/UI_Icons/Achievements/Boss/colossus.png',
-		"hierophant" = 'icons/UI_Icons/Achievements/Boss/hierophant.png',
-		"legion" = 'icons/UI_Icons/Achievements/Boss/legion.png',
-		"miner" = 'icons/UI_Icons/Achievements/Boss/miner.png',
-		"swarmer" = 'icons/UI_Icons/Achievements/Boss/swarmer.png',
-		"tendril" = 'icons/UI_Icons/Achievements/Boss/tendril.png',
-		"featofstrength" = 'icons/UI_Icons/Achievements/Misc/featofstrength.png',
-		"helbital" = 'icons/UI_Icons/Achievements/Misc/helbital.png',
-		"jackpot" = 'icons/UI_Icons/Achievements/Misc/jackpot.png',
-		"meteors" = 'icons/UI_Icons/Achievements/Misc/meteors.png',
-		"timewaste" = 'icons/UI_Icons/Achievements/Misc/timewaste.png',
-		"upgrade" = 'icons/UI_Icons/Achievements/Misc/upgrade.png',
-		"clownking" = 'icons/UI_Icons/Achievements/Misc/clownking.png',
-		"clownthanks" = 'icons/UI_Icons/Achievements/Misc/clownthanks.png',
-		"rule8" = 'icons/UI_Icons/Achievements/Misc/rule8.png',
-		"snail" = 'icons/UI_Icons/Achievements/Misc/snail.png',
-		"ascension" = 'icons/UI_Icons/Achievements/Misc/ascension.png',
-		"mining" = 'icons/UI_Icons/Achievements/Skills/mining.png',
-		"assistant" = 'icons/UI_Icons/Achievements/Mafia/assistant.png',
-		"changeling" = 'icons/UI_Icons/Achievements/Mafia/changeling.png',
-		"chaplain" = 'icons/UI_Icons/Achievements/Mafia/chaplain.png',
-		"clown" = 'icons/UI_Icons/Achievements/Mafia/clown.png',
-		"detective" = 'icons/UI_Icons/Achievements/Mafia/detective.png',
-		"fugitive" = 'icons/UI_Icons/Achievements/Mafia/fugitive.png',
-		"hated" = 'icons/UI_Icons/Achievements/Mafia/hated.png',
-		"hop" = 'icons/UI_Icons/Achievements/Mafia/hop.png',
-		"lawyer" = 'icons/UI_Icons/Achievements/Mafia/lawyer.png',
-		"md" = 'icons/UI_Icons/Achievements/Mafia/md.png',
-		"nightmare" = 'icons/UI_Icons/Achievements/Mafia/nightmare.png',
-		"obsessed" = 'icons/UI_Icons/Achievements/Mafia/obsessed.png',
-		"psychologist" = 'icons/UI_Icons/Achievements/Mafia/psychologist.png',
-		"thoughtfeeder" = 'icons/UI_Icons/Achievements/Mafia/thoughtfeeder.png',
-		"traitor" = 'icons/UI_Icons/Achievements/Mafia/traitor.png',
-		"basemafia" ='icons/UI_Icons/Achievements/basemafia.png',
-		"frenching" = 'icons/UI_Icons/Achievements/Misc/frenchingthebubble.png'
-	)
-*/
-
-/datum/asset/spritesheet/simple/minesweeper
-	name = "minesweeper"
-	assets = list(
-		"1" = 'icons/UI_Icons/minesweeper_tiles/one.png',
-		"2" = 'icons/UI_Icons/minesweeper_tiles/two.png',
-		"3" = 'icons/UI_Icons/minesweeper_tiles/three.png',
-		"4" = 'icons/UI_Icons/minesweeper_tiles/four.png',
-		"5" = 'icons/UI_Icons/minesweeper_tiles/five.png',
-		"6" = 'icons/UI_Icons/minesweeper_tiles/six.png',
-		"7" = 'icons/UI_Icons/minesweeper_tiles/seven.png',
-		"8" = 'icons/UI_Icons/minesweeper_tiles/eight.png',
-		"empty" = 'icons/UI_Icons/minesweeper_tiles/empty.png',
-		"flag" = 'icons/UI_Icons/minesweeper_tiles/flag.png',
-		"hidden" = 'icons/UI_Icons/minesweeper_tiles/hidden.png',
-		"mine" = 'icons/UI_Icons/minesweeper_tiles/mine.png',
-		"minehit" = 'icons/UI_Icons/minesweeper_tiles/minehit.png'
+		"default" = 'icons/ui_icons/achievements/default.png',
+		"basemisc" = 'icons/ui_icons/achievements/basemisc.png',
+		"baseboss" = 'icons/ui_icons/achievements/baseboss.png',
+		"baseskill" = 'icons/ui_icons/achievements/baseskill.png',
+		"bbgum" = 'icons/ui_icons/achievements/Boss/bbgum.png',
+		"colossus" = 'icons/ui_icons/achievements/Boss/colossus.png',
+		"hierophant" = 'icons/ui_icons/achievements/Boss/hierophant.png',
+		"drake" = 'icons/ui_icons/achievements/Boss/drake.png',
+		"legion" = 'icons/ui_icons/achievements/Boss/legion.png',
+		"miner" = 'icons/ui_icons/achievements/Boss/miner.png',
+		"swarmer" = 'icons/ui_icons/achievements/Boss/swarmer.png',
+		"tendril" = 'icons/ui_icons/achievements/Boss/tendril.png',
+		"featofstrength" = 'icons/ui_icons/achievements/Misc/featofstrength.png',
+		"helbital" = 'icons/ui_icons/achievements/Misc/helbital.png',
+		"jackpot" = 'icons/ui_icons/achievements/Misc/jackpot.png',
+		"meteors" = 'icons/ui_icons/achievements/Misc/meteors.png',
+		"timewaste" = 'icons/ui_icons/achievements/Misc/timewaste.png',
+		"upgrade" = 'icons/ui_icons/achievements/Misc/upgrade.png',
+		"clownking" = 'icons/ui_icons/achievements/Misc/clownking.png',
+		"clownthanks" = 'icons/ui_icons/achievements/Misc/clownthanks.png',
+		"rule8" = 'icons/ui_icons/achievements/Misc/rule8.png',
+		"longshift" = 'icons/ui_icons/achievements/Misc/longshift.png',
+		"snail" = 'icons/ui_icons/achievements/Misc/snail.png',
+		"ascension" = 'icons/ui_icons/achievements/Misc/ascension.png',
+		"ashascend" = 'icons/ui_icons/achievements/Misc/ashascend.png',
+		"fleshascend" = 'icons/ui_icons/achievements/Misc/fleshascend.png',
+		"rustascend" = 'icons/ui_icons/achievements/Misc/rustascend.png',
+		"voidascend" = 'icons/ui_icons/achievements/Misc/voidascend.png',
+		"toolbox_soul" = 'icons/ui_icons/achievements/Misc/toolbox_soul.png',
+		"chem_tut" = 'icons/ui_icons/achievements/Misc/chem_tut.png',
+		"mining" = 'icons/ui_icons/achievements/Skills/mining.png',
+		"mafia" = 'icons/ui_icons/achievements/Mafia/mafia.png',
+		"town" = 'icons/ui_icons/achievements/Mafia/town.png',
+		"neutral" = 'icons/ui_icons/achievements/Mafia/neutral.png',
+		"hated" = 'icons/ui_icons/achievements/Mafia/hated.png',
+		"basemafia" ='icons/ui_icons/achievements/basemafia.png',
+		"frenching" = 'icons/ui_icons/achievements/Misc/frenchingthebubble.png'
 	)
 
 /datum/asset/spritesheet/simple/pills
-	name ="pills"
+	name = "pills"
 	assets = list(
-		"pill1" = 'icons/UI_Icons/Pills/pill1.png',
-		"pill2" = 'icons/UI_Icons/Pills/pill2.png',
-		"pill3" = 'icons/UI_Icons/Pills/pill3.png',
-		"pill4" = 'icons/UI_Icons/Pills/pill4.png',
-		"pill5" = 'icons/UI_Icons/Pills/pill5.png',
-		"pill6" = 'icons/UI_Icons/Pills/pill6.png',
-		"pill7" = 'icons/UI_Icons/Pills/pill7.png',
-		"pill8" = 'icons/UI_Icons/Pills/pill8.png',
-		"pill9" = 'icons/UI_Icons/Pills/pill9.png',
-		"pill10" = 'icons/UI_Icons/Pills/pill10.png',
-		"pill11" = 'icons/UI_Icons/Pills/pill11.png',
-		"pill12" = 'icons/UI_Icons/Pills/pill12.png',
-		"pill13" = 'icons/UI_Icons/Pills/pill13.png',
-		"pill14" = 'icons/UI_Icons/Pills/pill14.png',
-		"pill15" = 'icons/UI_Icons/Pills/pill15.png',
-		"pill16" = 'icons/UI_Icons/Pills/pill16.png',
-		"pill17" = 'icons/UI_Icons/Pills/pill17.png',
-		"pill18" = 'icons/UI_Icons/Pills/pill18.png',
-		"pill19" = 'icons/UI_Icons/Pills/pill19.png',
-		"pill20" = 'icons/UI_Icons/Pills/pill20.png',
-		"pill21" = 'icons/UI_Icons/Pills/pill21.png',
-		"pill22" = 'icons/UI_Icons/Pills/pill22.png',
+		"pill1" = 'icons/ui_icons/pills/pill1.png',
+		"pill2" = 'icons/ui_icons/pills/pill2.png',
+		"pill3" = 'icons/ui_icons/pills/pill3.png',
+		"pill4" = 'icons/ui_icons/pills/pill4.png',
+		"pill5" = 'icons/ui_icons/pills/pill5.png',
+		"pill6" = 'icons/ui_icons/pills/pill6.png',
+		"pill7" = 'icons/ui_icons/pills/pill7.png',
+		"pill8" = 'icons/ui_icons/pills/pill8.png',
+		"pill9" = 'icons/ui_icons/pills/pill9.png',
+		"pill10" = 'icons/ui_icons/pills/pill10.png',
+		"pill11" = 'icons/ui_icons/pills/pill11.png',
+		"pill12" = 'icons/ui_icons/pills/pill12.png',
+		"pill13" = 'icons/ui_icons/pills/pill13.png',
+		"pill14" = 'icons/ui_icons/pills/pill14.png',
+		"pill15" = 'icons/ui_icons/pills/pill15.png',
+		"pill16" = 'icons/ui_icons/pills/pill16.png',
+		"pill17" = 'icons/ui_icons/pills/pill17.png',
+		"pill18" = 'icons/ui_icons/pills/pill18.png',
+		"pill19" = 'icons/ui_icons/pills/pill19.png',
+		"pill20" = 'icons/ui_icons/pills/pill20.png',
+		"pill21" = 'icons/ui_icons/pills/pill21.png',
+		"pill22" = 'icons/ui_icons/pills/pill22.png',
 	)
+
+// /datum/asset/spritesheet/simple/condiments
+// 	name = "condiments"
+// 	assets = list(
+// 		CONDIMASTER_STYLE_FALLBACK = 'icons/ui_icons/condiments/emptycondiment.png',
+// 		"enzyme" = 'icons/ui_icons/condiments/enzyme.png',
+// 		"flour" = 'icons/ui_icons/condiments/flour.png',
+// 		"mayonnaise" = 'icons/ui_icons/condiments/mayonnaise.png',
+// 		"milk" = 'icons/ui_icons/condiments/milk.png',
+// 		"blackpepper" = 'icons/ui_icons/condiments/peppermillsmall.png',
+// 		"rice" = 'icons/ui_icons/condiments/rice.png',
+// 		"sodiumchloride" = 'icons/ui_icons/condiments/saltshakersmall.png',
+// 		"soymilk" = 'icons/ui_icons/condiments/soymilk.png',
+// 		"soysauce" = 'icons/ui_icons/condiments/soysauce.png',
+// 		"sugar" = 'icons/ui_icons/condiments/sugar.png',
+// 		"ketchup" = 'icons/ui_icons/condiments/ketchup.png',
+// 		"capsaicin" = 'icons/ui_icons/condiments/hotsauce.png',
+// 		"frostoil" = 'icons/ui_icons/condiments/coldsauce.png',
+// 		"bbqsauce" = 'icons/ui_icons/condiments/bbqsauce.png',
+// 		"cornoil" = 'icons/ui_icons/condiments/oliveoil.png',
+// 	)
 
 //this exists purely to avoid meta by pre-loading all language icons.
 /datum/asset/language/register()
@@ -326,6 +308,14 @@
 
 /datum/asset/spritesheet/pipes/register()
 	for (var/each in list('icons/obj/atmospherics/pipes/pipe_item.dmi', 'icons/obj/atmospherics/pipes/disposal.dmi', 'icons/obj/atmospherics/pipes/transit_tube.dmi', 'icons/obj/plumbing/fluid_ducts.dmi'))
+		InsertAll("", each, GLOB.alldirs)
+	..()
+
+/datum/asset/spritesheet/decals
+	name = "decals"
+
+/datum/asset/spritesheet/decals/register()
+	for(var/each in list('icons/turf/decals.dmi'))
 		InsertAll("", each, GLOB.alldirs)
 	..()
 
@@ -395,9 +385,15 @@
 				if (machine)
 					item = machine
 
+			// Check for GAGS support where necessary
+			// var/greyscale_config = initial(item.greyscale_config)
+			// var/greyscale_colors = initial(item.greyscale_colors)
+			// if (greyscale_config && greyscale_colors)
+			// 	icon_file = SSgreyscale.GetColoredIconByType(greyscale_config, greyscale_colors)
+			// else
 			icon_file = initial(item.icon)
-			icon_state = initial(item.icon_state)
 
+			icon_state = initial(item.icon_state)
 			if(!(icon_state in icon_states(icon_file)))
 				warning("design [D] with icon '[icon_file]' missing state '[icon_state]'")
 				continue
@@ -426,7 +422,11 @@
 		if (!ispath(item, /atom))
 			continue
 
-		var/icon_file = initial(item.icon)
+		var/icon_file
+		// if (initial(item.greyscale_colors) && initial(item.greyscale_config))
+		// 	icon_file = SSgreyscale.GetColoredIconByType(initial(item.greyscale_config), initial(item.greyscale_colors))
+		// else
+		icon_file = initial(item.icon)
 		var/icon_state = initial(item.icon_state)
 		var/icon/I
 
@@ -460,7 +460,7 @@
 
 /datum/asset/simple/orbit
 	assets = list(
-		"ghost.png"	= 'html/ghost.png'
+		"ghost.png" = 'html/ghost.png'
 	)
 
 /datum/asset/simple/vv
@@ -484,3 +484,114 @@
 /datum/asset/spritesheet/mafia/register()
 	InsertAll("", 'icons/obj/mafia.dmi')
 	..()
+
+/datum/asset/simple/portraits
+	var/tab = "use subtypes of this please"
+	assets = list()
+
+/datum/asset/simple/portraits/New()
+	if(!SSpersistence.paintings || !SSpersistence.paintings[tab] || !length(SSpersistence.paintings[tab]))
+		return
+	for(var/p in SSpersistence.paintings[tab])
+		var/list/portrait = p
+		var/png = "data/paintings/[tab]/[portrait["md5"]].png"
+		if(fexists(png))
+			var/asset_name = "[tab]_[portrait["md5"]]"
+			assets[asset_name] = png
+	..() //this is where it registers all these assets we added to the list
+
+/datum/asset/simple/portraits/library
+	tab = "library"
+
+/datum/asset/simple/portraits/library_secure
+	tab = "library_secure"
+
+/datum/asset/simple/portraits/library_private
+	tab = "library_private"
+
+/datum/asset/simple/safe
+	assets = list(
+		"safe_dial.png" = 'html/safe_dial.png'
+	)
+
+// /datum/asset/spritesheet/fish
+// 	name = "fish"
+
+// /datum/asset/spritesheet/fish/register()
+// 	for (var/path in subtypesof(/datum/aquarium_behaviour/fish))
+// 		var/datum/aquarium_behaviour/fish/fish_type = path
+// 		var/fish_icon = initial(fish_type.icon)
+// 		var/fish_icon_state = initial(fish_type.icon_state)
+// 		var/id = sanitize_css_class_name("[fish_icon][fish_icon_state]")
+// 		if(sprites[id]) //no dupes
+// 			continue
+// 		Insert(id, fish_icon, fish_icon_state)
+// 	..()
+
+/datum/asset/simple/adventure
+	assets = list(
+		"default" = 'icons/ui_icons/adventure/default.png',
+		"grue" = 'icons/ui_icons/adventure/grue.png',
+		"signal_lost" ='icons/ui_icons/adventure/signal_lost.png',
+		"trade" = 'icons/ui_icons/adventure/trade.png',
+	)
+
+/datum/asset/simple/inventory
+	assets = list(
+		"inventory-glasses.png" = 'icons/ui_icons/inventory/glasses.png',
+		"inventory-head.png" = 'icons/ui_icons/inventory/head.png',
+		"inventory-neck.png" = 'icons/ui_icons/inventory/neck.png',
+		"inventory-mask.png" = 'icons/ui_icons/inventory/mask.png',
+		"inventory-ears.png" = 'icons/ui_icons/inventory/ears.png',
+		"inventory-uniform.png" = 'icons/ui_icons/inventory/uniform.png',
+		"inventory-suit.png" = 'icons/ui_icons/inventory/suit.png',
+		"inventory-gloves.png" = 'icons/ui_icons/inventory/gloves.png',
+		"inventory-hand_l.png" = 'icons/ui_icons/inventory/hand_l.png',
+		"inventory-hand_r.png" = 'icons/ui_icons/inventory/hand_r.png',
+		"inventory-shoes.png" = 'icons/ui_icons/inventory/shoes.png',
+		"inventory-suit_storage.png" = 'icons/ui_icons/inventory/suit_storage.png',
+		"inventory-id.png" = 'icons/ui_icons/inventory/id.png',
+		"inventory-belt.png" = 'icons/ui_icons/inventory/belt.png',
+		"inventory-back.png" = 'icons/ui_icons/inventory/back.png',
+		"inventory-pocket.png" = 'icons/ui_icons/inventory/pocket.png',
+		"inventory-collar.png" = 'icons/ui_icons/inventory/collar.png',
+	)
+
+/// Removes all non-alphanumerics from the text, keep in mind this can lead to id conflicts
+/proc/sanitize_css_class_name(name)
+	var/static/regex/regex = new(@"[^a-zA-Z0-9]","g")
+	return replacetext(name, regex, "")
+
+/datum/asset/simple/tutorial_advisors
+	assets = list(
+		"chem_help_advisor.gif" = 'icons/ui_icons/advisors/chem_help_advisor.gif',
+	)
+
+// /datum/asset/spritesheet/moods
+// 	name = "moods"
+// 	var/iconinserted = 1
+
+// /datum/asset/spritesheet/moods/register()
+// 	for(var/i in 1 to 9)
+// 		var/target_to_insert = "mood"+"[iconinserted]"
+// 		Insert(target_to_insert, 'icons/hud/screen_gen.dmi', target_to_insert)
+// 		iconinserted++
+// 	..()
+
+// /datum/asset/spritesheet/moods/ModifyInserted(icon/pre_asset)
+// 	var/blended_color
+// 	switch(iconinserted)
+// 		if(1)
+// 			blended_color = "#f15d36"
+// 		if(2 to 3)
+// 			blended_color = "#f38943"
+// 		if(4)
+// 			blended_color = "#dfa65b"
+// 		if(5)
+// 			blended_color = "#4b96c4"
+// 		if(6)
+// 			blended_color = "#86d656"
+// 		else
+// 			blended_color = "#2eeb9a"
+// 	pre_asset.Blend(blended_color, ICON_MULTIPLY)
+// 	return pre_asset

@@ -91,6 +91,12 @@
 	icon_state = "tan_suit"
 	item_state = "tan_suit"
 
+/obj/item/clothing/under/suit/charismatic_suit
+	name = "charismatic suit"
+	desc = "Luck is for losers, baby."
+	icon_state = "charismatic_suit"
+	item_state = "charismatic_suit"
+
 /obj/item/clothing/under/suit/white
 	name = "white suit"
 	desc = "A white suit and jacket with a blue shirt. You wanna play rough? OKAY!"
@@ -104,6 +110,25 @@
 	item_state = "telegram"
 	body_parts_covered = CHEST|GROIN
 	can_adjust = FALSE
+
+
+/obj/item/clothing/under/suit/beige
+	name = "beige suit"
+	desc = "An excellent light colored suit, experts in the field stress that it should not to be confused with the inferior tan suit."
+	icon_state = "beige_suit"
+	item_state = "beige_suit"
+	mutantrace_variation = STYLE_DIGITIGRADE|STYLE_NO_ANTHRO_ICON
+
+/obj/item/clothing/under/suit/henchmen
+	name = "henchmen jumpsuit"
+	desc = "A very gaudy jumpsuit for a proper Henchman. Guild regulations, you understand."
+	icon = 'icons/obj/clothing/uniforms.dmi'
+	mob_overlay_icon = 'icons/mob/clothing/uniform.dmi'
+	icon_state = "henchmen"
+	item_state = "henchmen"
+	body_parts_covered = CHEST|GROIN|LEGS|FEET|ARMS|HANDS|HEAD
+	flags_inv = HIDEGLOVES|HIDESHOES|HIDEEARS|HIDEEYES|HIDEHAIR|HIDETAUR
+	mutantrace_variation = STYLE_DIGITIGRADE|STYLE_NO_ANTHRO_ICON
 
 /obj/item/clothing/under/suit/polychromic	//enables all three overlays to reduce copypasta and defines basic stuff
 	name = "polychromic suit"
@@ -131,4 +156,28 @@
 	name = "grey turtleneck"
 	icon_state = "greyturtle"
 	item_state = "greyturtle"
+	can_adjust = FALSE
+
+/obj/item/clothing/under/suit/turtle/purple
+	name = "purple turtleneck"
+	icon_state = "turtle_sci"
+	item_state = "turtle_sci"
+	can_adjust = FALSE
+
+/obj/item/clothing/under/suit/turtle/orange
+	name = "orange turtleneck"
+	icon_state = "turtle_eng"
+	item_state = "turtle_eng"
+	can_adjust = FALSE
+
+/obj/item/clothing/under/suit/turtle/red
+	name = "red turtleneck"
+	icon_state = "turtle_sec"
+	item_state = "turtle_sec"
+	can_adjust = FALSE
+
+/obj/item/clothing/under/suit/turtle/blue
+	name = "blue turtleneck"
+	icon_state = "turtle_med"
+	item_state = "turtle_med"
 	can_adjust = FALSE

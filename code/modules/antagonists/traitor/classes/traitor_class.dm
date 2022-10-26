@@ -7,9 +7,12 @@ GLOBAL_LIST_EMPTY(traitor_classes)
 	var/chaos = 0
 	var/threat = 0
 	var/TC = 20
-	/// Minimum players for this to randomly roll via get_random_traitor_class().
+	var/processing = FALSE
+	/// Minimum players for this to randomly roll via get_random_traitor_kind().
 	var/min_players = 0
 	var/list/uplink_filters
+	/// Specific tgui theme for the player's antag info panel.
+	var/tgui_theme = "syndicate"
 
 /datum/traitor_class/New()
 	..()
@@ -43,4 +46,6 @@ GLOBAL_LIST_EMPTY(traitor_classes)
 
 /datum/traitor_class/proc/clean_up_traitor(datum/antagonist/traitor/T)
 	// Any effects that need to be cleaned up if traitor class is being swapped.
-	
+
+/datum/traitor_class/proc/on_process(datum/antagonist/traitor/T)
+	// only for processing traitor classes; runs once an SSprocessing tick

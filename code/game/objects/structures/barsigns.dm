@@ -6,12 +6,12 @@
 	req_access = list(ACCESS_BAR)
 	max_integrity = 500
 	integrity_failure = 0.5
-	armor = list("melee" = 20, "bullet" = 20, "laser" = 20, "energy" = 100, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 50, "acid" = 50)
+	armor = list(MELEE = 20, BULLET = 20, LASER = 20, ENERGY = 100, BOMB = 0, BIO = 0, RAD = 0, FIRE = 50, ACID = 50)
 	buildable_sign = 0
 	var/list/barsigns=list()
 	var/panel_open = FALSE
 
-/obj/structure/sign/barsign/Initialize()
+/obj/structure/sign/barsign/Initialize(mapload)
 	. = ..()
 
 //filling the barsigns list
@@ -62,7 +62,7 @@
 	pick_sign(user)
 
 /obj/structure/sign/barsign/attackby(obj/item/I, mob/user)
-	if(istype(I, /obj/item/screwdriver))
+	if(I.tool_behaviour == TOOL_SCREWDRIVER)
 		if(!allowed(user))
 			to_chat(user, "<span class='info'>Access denied.</span>")
 			return
@@ -270,6 +270,11 @@
 	name = "The Lightbulb"
 	icon = "the_lightbulb"
 	desc = "A cafe popular among moths and moffs. Once shut down for a week after the bartender used mothballs to protect her spare uniforms."
+
+/datum/barsign/goose
+	name = "The Loose Goose"
+	icon = "goose"
+	desc = "Drink till you puke and/or break the laws of reality!"
 
 /datum/barsign/cybersylph
 	name = "Cyber Sylph's"

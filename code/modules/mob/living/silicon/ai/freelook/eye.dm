@@ -18,7 +18,7 @@
 	var/ai_detector_visible = TRUE
 	var/ai_detector_color = COLOR_RED
 
-/mob/camera/aiEye/Initialize()
+/mob/camera/aiEye/Initialize(mapload)
 	. = ..()
 	GLOB.aiEyes += src
 	update_ai_detect_hud()
@@ -84,7 +84,6 @@
 		if(ai.client && !ai.multicam_on)
 			ai.client.eye = src
 		update_ai_detect_hud()
-		update_parallax_contents()
 		//Holopad
 		if(istype(ai.current, /obj/machinery/holopad))
 			var/obj/machinery/holopad/H = ai.current
@@ -93,6 +92,27 @@
 			ai.light_cameras()
 		if(ai.master_multicam)
 			ai.master_multicam.refresh_view()
+		if(ai.controlled_display)
+			ai.stop_controlling_display()
+
+//it uses setLoc not forceMove, talks to the sillycone and not the camera mob
+/mob/camera/aiEye/zMove(dir, feedback = FALSE)
+	if(dir != UP && dir != DOWN)
+		return FALSE
+	var/turf/target = get_step_multiz(src, dir)
+	if(!target)
+		if(feedback)
+			to_chat(ai, "<span class='warning'>There's nowhere to go in that direction!</span>")
+		return FALSE
+	if(!canZMove(dir, target))
+		if(feedback)
+			to_chat(ai, "<span class='warning'>You couldn't move there!</span>")
+		return FALSE
+	setLoc(target, TRUE)
+	return TRUE
+
+/mob/camera/aiEye/canZMove(direction, turf/target) //cameras do not respect these FLOORS you speak so much of
+	return TRUE
 
 /mob/camera/aiEye/Move()
 	return 0
@@ -150,6 +170,9 @@
 	if(!user.tracking)
 		user.cameraFollow = null
 
+	if(user.controlled_display)
+		user.stop_controlling_display()
+
 // Return to the Core.
 /mob/living/silicon/ai/proc/view_core()
 	if(istype(current,/obj/machinery/holopad))
@@ -204,3 +227,7 @@
 	alpha = 100
 	layer = ABOVE_ALL_MOB_LAYER
 	plane = GAME_PLANE
+
+/mob/camera/aiEye/emote(act, m_type=1, message = null, intentional = FALSE, forced = FALSE)
+	if(ai?.current)
+		..()

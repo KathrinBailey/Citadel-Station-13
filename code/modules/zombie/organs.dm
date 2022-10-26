@@ -13,7 +13,7 @@
 	var/revive_time_max = 700
 	var/timer_id
 
-/obj/item/organ/zombie_infection/Initialize()
+/obj/item/organ/zombie_infection/Initialize(mapload)
 	. = ..()
 	if(iscarbon(loc))
 		Insert(loc)
@@ -45,7 +45,7 @@
 	if(!owner)
 		return
 	if(!(src in owner.internal_organs))
-		Remove(owner)
+		INVOKE_ASYNC(src,.proc/Remove,owner)
 	if(owner.mob_biotypes & MOB_MINERAL)//does not process in inorganic things
 		return
 	if (causes_damage && !iszombie(owner) && owner.stat != DEAD)

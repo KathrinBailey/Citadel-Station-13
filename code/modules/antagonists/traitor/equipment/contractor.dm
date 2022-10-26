@@ -43,7 +43,7 @@
 	var/list/to_generate = list(
 		CONTRACT_PAYOUT_LARGE,
 		CONTRACT_PAYOUT_MEDIUM,
-		CONTRACT_PAYOUT_SMALL,
+		CONTRACT_PAYOUT_MEDIUM,
 		CONTRACT_PAYOUT_SMALL,
 		CONTRACT_PAYOUT_SMALL,
 		CONTRACT_PAYOUT_SMALL
@@ -244,6 +244,7 @@
 	name = "contractor pinpointer"
 	desc = "A handheld tracking device that locks onto certain signals. Ignores suit sensors, but is much less accurate."
 	icon_state = "pinpointer_syndicate"
+	item_state = "pinpointer_black"
 	minimum_range = 25
 	has_owner = TRUE
 	ignore_suit_sensor_level = TRUE

@@ -3,7 +3,7 @@
 	desc = "A rechargeable, detachable battery that serves as a magazine for laser rifles."
 	icon_state = "oldrifle-20"
 	ammo_type = /obj/item/ammo_casing/caseless/laser
-	caliber = "laser"
+	caliber = LASER
 	max_ammo = 20
 
 /obj/item/ammo_box/magazine/recharge/update_icon()
@@ -54,7 +54,7 @@
 	desc = "A miniature battery for an energy weapon."
 	icon = 'icons/obj/ammo.dmi'
 	icon_state = "mws_batt"
-	slot_flags = SLOT_BELT | SLOT_EARS
+	slot_flags = ITEM_SLOT_BELT | ITEM_SLOT_EARS
 	throwforce = 1
 
 	caliber = "mws"
@@ -67,7 +67,7 @@
 	var/e_cost = 100
 	projectile_type = /obj/item/projectile/beam
 
-/obj/item/ammo_casing/mws_batt/Initialize()
+/obj/item/ammo_casing/mws_batt/Initialize(mapload)
 	. = ..()
 	pixel_x = rand(-10, 10)
 	pixel_y = rand(-10, 10)
@@ -94,14 +94,15 @@
 /obj/item/ammo_casing/mws_batt/lethal
 	name = "'MWS' microbattery - LETHAL"
 	type_color = "#bf3d3d"
-	type_name = "<span class='lethal'>LETHAL</span>"
+	type_name = "<span class='lethal'>LASE</span>"
 	projectile_type = /obj/item/projectile/beam
 
 /obj/item/ammo_casing/mws_batt/stun
-	name = "'MWS' microbattery - STUN"
+	name = "'MWS' microbattery - DISABLER"
 	type_color = "#0f81bc"
-	type_name = "<span class='stun'>STUN</span>"
+	type_name = "<span class='stun'>DISABLE</span>"
 	projectile_type = /obj/item/projectile/beam/disabler
+	e_cost = 60  //gives it 10 disabler shots in line with literally all other eguns.
 
 /obj/item/ammo_casing/mws_batt/xray
 	name = "'MWS' microbattery - XRAY"
@@ -114,3 +115,9 @@
 	type_color = "#d084d6"
 	type_name = "<span class='ion'>ION</span>"
 	projectile_type = /obj/item/projectile/ion
+
+/obj/item/ammo_casing/mws_batt/taser
+	name = "'MWS' microbattery - TASER"
+	type_color = "#e5ff00"
+	type_name = "<span class='stun'>TASE</span>"
+	projectile_type = /obj/item/projectile/energy/electrode/security

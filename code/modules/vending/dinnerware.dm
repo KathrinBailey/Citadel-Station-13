@@ -7,7 +7,9 @@
 					/obj/item/storage/bag/tray = 8,
 					/obj/item/kitchen/fork = 6,
 					/obj/item/kitchen/knife = 6,
+					/obj/item/kitchen/efink = 2,
 					/obj/item/kitchen/rollingpin = 4,
+					/obj/item/kitchen/unrollingpin = 4,
 					/obj/item/reagent_containers/food/drinks/drinkingglass = 8,
 					/obj/item/clothing/suit/apron/chef = 2,
 					/obj/item/storage/box/cups = 2,
@@ -20,13 +22,11 @@
 					/obj/item/reagent_containers/food/condiment/saltshaker = 5,
 					/obj/item/reagent_containers/food/condiment/peppermill = 5)
 	contraband = list(
-					/obj/item/reagent_containers/food/snacks/cube/monkey= 1,
 					/obj/item/kitchen/knife/butcher = 2,
 					/obj/item/reagent_containers/syringe = 3)
 	premium = list(
-					/obj/item/reagent_containers/food/condiment/enzyme = 1,
-					/obj/item/reagent_containers/glass/bottle/cryoxadone = 2) // Bartender can literally make this with upgraded parts, or it gets stolen from medical.
-	armor = list("melee" = 100, "bullet" = 100, "laser" = 100, "energy" = 100, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 50)
+					/obj/item/reagent_containers/food/condiment/enzyme = 1)
+	armor = list(MELEE = 100, BULLET = 100, LASER = 100, ENERGY = 100, BOMB = 0, BIO = 0, RAD = 0, FIRE = 100, ACID = 50)
 	refill_canister = /obj/item/vending_refill/dinnerware
 	resistance_flags = FIRE_PROOF
 	default_price = PRICE_REALLY_CHEAP

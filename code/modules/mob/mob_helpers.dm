@@ -144,6 +144,7 @@
 				newletter = "nglu"
 			if(5)
 				newletter = "glor"
+			else
 		. += newletter
 	return sanitize(.)
 
@@ -228,22 +229,38 @@ It's fairly easy to fix if dealing with single letters but not so much with comp
 	return copytext_char(sanitize(.),1,MAX_MESSAGE_LEN)
 
 /proc/shake_camera(mob/M, duration, strength=1)
-	if(!M || !M.client || duration < 1)
+	set waitfor = FALSE
+	if(!M || !M.client || duration <= 0)
 		return
 	var/client/C = M.client
+	if (C.prefs.screenshake==0)
+		return
 	var/oldx = C.pixel_x
 	var/oldy = C.pixel_y
-	var/max = strength*world.icon_size
-	var/min = -(strength*world.icon_size)
+	var/clientscreenshake = (C.prefs.screenshake * 0.01)
+	var/max = (strength*clientscreenshake) * world.icon_size
+	var/min = -((strength*clientscreenshake) * world.icon_size)
+	var/roundedduration = -round(-duration) // round() with only one arg will always round down. so uh. this is Something all right
 
-	for(var/i in 0 to duration-1)
+	for(var/i in 0 to roundedduration-1)
+		duration--
 		if (i == 0)
-			animate(C, pixel_x=rand(min,max), pixel_y=rand(min,max), time=1)
+			animate(C, pixel_x=(rand(min,max)*duration), pixel_y=(rand(min,max)*duration), time=1)
 		else
 			animate(pixel_x=rand(min,max), pixel_y=rand(min,max), time=1)
 	animate(pixel_x=oldx, pixel_y=oldy, time=1)
 
-
+/proc/directional_recoil(mob/M, strength=1, angle = 0)
+	if(!M || !M.client)
+		return
+	var/client/C = M.client
+	var/client_screenshake = (C.prefs.recoil_screenshake * 0.01)
+	strength *= client_screenshake
+	var/recoil_x = -sin(angle)*4*strength + rand(-strength, strength)
+	var/recoil_y = -cos(angle)*4*strength + rand(-strength, strength)
+	animate(C, pixel_x=recoil_x, pixel_y=recoil_y, time=1, easing=SINE_EASING|EASE_OUT, flags=ANIMATION_PARALLEL|ANIMATION_RELATIVE)
+	animate(pixel_x=0, pixel_y=0, time=3, easing=SINE_EASING|EASE_IN) // according to bhjin this works on more recent byond versions
+	// if you havent updated uuh sucks to be you then
 
 /proc/findname(msg)
 	if(!istext(msg))
@@ -362,7 +379,7 @@ It's fairly easy to fix if dealing with single letters but not so much with comp
 			if(flashwindow)
 				window_flash(O.client)
 			if(source)
-				var/obj/screen/alert/notify_action/A = O.throw_alert("[REF(source)]_notify_action", /obj/screen/alert/notify_action)
+				var/atom/movable/screen/alert/notify_action/A = O.throw_alert("[REF(source)]_notify_action", /atom/movable/screen/alert/notify_action)
 				if(A)
 					if(O.client.prefs && O.client.prefs.UI_style)
 						A.icon = ui_style2icon(O.client.prefs.UI_style)
@@ -408,7 +425,7 @@ It's fairly easy to fix if dealing with single letters but not so much with comp
 		return
 	return TRUE
 
-/atom/proc/hasSiliconAccessInArea(mob/user, flags = PRIVILEDGES_SILICON)
+/atom/proc/hasSiliconAccessInArea(mob/user, flags = PRIVILEGES_SILICON)
 	return user.silicon_privileges & (flags) || (user.siliconaccesstoggle && (get_area(src) in user.siliconaccessareas))
 
 /mob/proc/toggleSiliconAccessArea(area/area)
@@ -496,7 +513,7 @@ It's fairly easy to fix if dealing with single letters but not so much with comp
 			colored_message = "<font color=[color]>[message]</font>"
 		else
 			colored_message = "<font color='[color]'>[message]</font>"
-	
+
 	//This makes readability a bit better for admins.
 	switch(message_type)
 		if(LOG_WHISPER)
@@ -507,8 +524,8 @@ It's fairly easy to fix if dealing with single letters but not so much with comp
 			colored_message = "(ASAY) [colored_message]"
 		if(LOG_EMOTE)
 			colored_message = "(EMOTE) [colored_message]"
-	
-	var/list/timestamped_message = list("\[[TIME_STAMP("hh:mm:ss", FALSE)]\] [key_name(src)] [loc_name(src)]" = colored_message)
+
+	var/list/timestamped_message = list("\[[TIME_STAMP("hh:mm:ss", FALSE)]\] [key_name(src)] [loc_name(src)] (Event #[LAZYLEN(logging[smessage_type])])" = colored_message)
 
 	logging[smessage_type] += timestamped_message
 

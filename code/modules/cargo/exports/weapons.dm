@@ -16,7 +16,7 @@
 /datum/export/weapon/riot_shield
 	cost = 70
 	unit_name = "flash shield"
-	export_types = list(/obj/item/assembly/flash/shield)
+	export_types = list(/obj/item/shield/riot/flash)
 
 /datum/export/weapon/tele_shield
 	cost = 100
@@ -138,7 +138,7 @@
 	export_types = list(/obj/item/gun/energy/xray)
 
 /datum/export/weapon/ioncarbine
-	cost = 200 
+	cost = 200
 	unit_name = "ion carbine"
 	export_types = list(/obj/item/gun/energy/ionrifle/carbine)
 
@@ -210,11 +210,6 @@
 	cost = 150
 	unit_name = "arrow"
 	export_types = list(/obj/item/ammo_casing/caseless/arrow, /obj/item/ammo_casing/caseless/arrow/bone, /obj/item/ammo_casing/caseless/arrow/ash)
-
-/datum/export/weapon/bow_teaching
-	cost = 500
-	unit_name = "bowyery tablet"
-	export_types = list(/obj/item/book/granter/crafting_recipe/bone_bow)
 
 /datum/export/weapon/quiver
 	cost = 100
@@ -337,7 +332,7 @@
 /datum/export/weapon/l6sawammo
 	cost = 60
 	unit_name = "L6 SAW ammo box"
-	export_types = list(/obj/item/ammo_box/magazine/mm195x129)
+	export_types = list(/obj/item/ammo_box/magazine/mm712x82)
 	include_subtypes = TRUE
 
 /datum/export/weapon/rocket

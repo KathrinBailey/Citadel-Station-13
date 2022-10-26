@@ -6,7 +6,7 @@
 
 /datum/emote/living/carbon/human/cry/run_emote(mob/user, params)
 	. = ..()
-	if(. && isipcperson(user))
+	if(. && isrobotic(user))
 		do_fake_sparks(5,FALSE,user)
 
 /datum/emote/living/carbon/human/dap
@@ -189,6 +189,11 @@
 	key_third_person = "chimes"
 	message = "chimes."
 	sound = 'sound/machines/chime.ogg'
+
+/datum/emote/sound/human/squeak
+	key = "squeak"
+	message = "squeaks."
+	sound = 'sound/effects/mousesqueek.ogg'
 
 //rock paper scissors emote handling
 /mob/living/carbon/human/proc/beginRockPaperScissors(var/chosen_move)

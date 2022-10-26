@@ -30,7 +30,7 @@
 			set_opacity(0) //if we were blocking view, we aren't now because we're fading out
 		stoplag()
 
-/obj/effect/particle_effect/smoke/Initialize()
+/obj/effect/particle_effect/smoke/Initialize(mapload)
 	. = ..()
 	create_reagents(500, NONE, NO_REAGENTS_VALUE)
 	START_PROCESSING(SSobj, src)
@@ -133,13 +133,11 @@
 		M.emote("cough")
 		return 1
 
-/obj/effect/particle_effect/smoke/bad/CanPass(atom/movable/mover, turf/target)
-	if(istype(mover, /obj/item/projectile/beam))
-		var/obj/item/projectile/beam/B = mover
+/obj/effect/particle_effect/smoke/bad/Crossed(atom/movable/AM, oldloc)
+	. = ..()
+	if(istype(AM, /obj/item/projectile/beam))
+		var/obj/item/projectile/beam/B = AM
 		B.damage = (B.damage/2)
-	return 1
-
-
 
 /datum/effect_system/smoke_spread/bad
 	effect_type = /obj/effect/particle_effect/smoke/bad
@@ -170,9 +168,9 @@
 			T.air_update_turf()
 			for(var/obj/effect/hotspot/H in T)
 				qdel(H)
-			if(G.get_moles(/datum/gas/plasma))
-				G.adjust_moles(/datum/gas/nitrogen, G.get_moles(/datum/gas/plasma))
-				G.set_moles(/datum/gas/plasma, 0)
+			if(G.get_moles(GAS_PLASMA))
+				G.adjust_moles(GAS_N2, G.get_moles(GAS_PLASMA))
+				G.set_moles(GAS_PLASMA, 0)
 		if (weldvents)
 			for(var/obj/machinery/atmospherics/components/unary/U in T)
 				if(!isnull(U.welded) && !U.welded) //must be an unwelded vent pump or vent scrubber.
@@ -324,3 +322,9 @@
 
 /obj/effect/particle_effect/smoke/transparent
 	opaque = FALSE
+
+/proc/do_smoke(range=0, location=null, smoke_type=/obj/effect/particle_effect/smoke)
+	var/datum/effect_system/smoke_spread/smoke = new
+	smoke.effect_type = smoke_type
+	smoke.set_up(range, location)
+	smoke.start()

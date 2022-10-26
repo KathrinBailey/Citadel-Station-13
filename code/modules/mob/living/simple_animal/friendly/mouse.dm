@@ -19,7 +19,6 @@
 	response_disarm = "gently pushes aside"
 	response_harm   = "splats"
 	density = FALSE
-	ventcrawler = VENTCRAWLER_ALWAYS
 	pass_flags = PASSTABLE | PASSGRILLE | PASSMOB
 	mob_size = MOB_SIZE_TINY
 	mob_biotypes = MOB_ORGANIC|MOB_BEAST
@@ -27,8 +26,10 @@
 	gold_core_spawnable = FRIENDLY_SPAWN
 	var/chew_probability = 1
 	faction = list("rat")
+	vocal_bark_id = "squeak"
+	vocal_pitch = 1.4
 
-/mob/living/simple_animal/mouse/Initialize()
+/mob/living/simple_animal/mouse/Initialize(mapload)
 	. = ..()
 	AddComponent(/datum/component/squeak, list('sound/effects/mousesqueek.ogg'=1), 100)
 	if(!body_color)
@@ -37,6 +38,7 @@
 	icon_state = "mouse_[body_color]"
 	icon_living = "mouse_[body_color]"
 	icon_dead = "mouse_[body_color]_dead"
+	AddElement(/datum/element/ventcrawling, given_tier = VENTCRAWLER_ALWAYS)
 
 /mob/living/simple_animal/mouse/proc/splat()
 	src.health = 0
@@ -95,6 +97,18 @@
 		qdel(bigcheese)
 		evolve()
 		return
+	for(var/obj/item/trash/garbage in range(1, src))
+		if(is_station_level(z))
+			if(prob(2))
+				qdel(garbage)
+				evolve_plague()
+				return
+	for(var/obj/effect/decal/cleanable/blood/gibs/leftovers in range(1, src))
+		if(is_station_level(z))
+			if(prob(2))
+				qdel(leftovers)
+				evolve_plague()
+				return
 
 /**
   *Checks the mouse cap, if it's above the cap, doesn't spawn a mouse. If below, spawns a mouse and adds it to cheeserats.
@@ -119,6 +133,17 @@
 	if(mind)
 		mind.transfer_to(regalrat)
 	qdel(src)
+
+/mob/living/simple_animal/mouse/proc/evolve_plague()
+	return
+
+/*
+	var/mob/living/simple_animal/hostile/plaguerat = new /mob/living/simple_animal/hostile/plaguerat(loc)
+	visible_message("<span class='warning'>[src] devours the food! He rots into something worse!</span>")
+	if(mind)
+		mind.transfer_to(plaguerat)
+	qdel(src)
+*/
 
 /*
  * Mouse types
@@ -151,7 +176,7 @@ GLOBAL_VAR(tom_existed)
 	response_harm   = "splats"
 	gold_core_spawnable = NO_SPAWN
 
-/mob/living/simple_animal/mouse/brown/Tom/Initialize()
+/mob/living/simple_animal/mouse/brown/Tom/Initialize(mapload)
 	. = ..()
 	GLOB.tom_existed = TRUE
 
@@ -169,3 +194,17 @@ GLOBAL_VAR(tom_existed)
 /obj/item/reagent_containers/food/snacks/deadmouse/on_grind()
 	reagents.clear_reagents()
 
+/mob/living/simple_animal/mouse/proc/miasma(datum/gas_mixture/environment, check_temp = FALSE)
+	if(isturf(src.loc) && isopenturf(src.loc))
+		var/turf/open/ST = src.loc
+		var/miasma_moles = ST.air.get_moles(GAS_MIASMA)
+		if(prob(5) && miasma_moles >= 5)
+			evolve_plague()
+		else if(miasma_moles >= 20)
+			evolve_plague()
+			return
+
+/mob/living/simple_animal/mouse/handle_environment(datum/gas_mixture/environment)
+	. = ..()
+	if(is_station_level(z))
+		miasma()

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
- em {
+em {
   font-style: normal;
   font-weight: bold;
 }
@@ -255,7 +255,7 @@ a.popt {
 /* ADD HERE FOR ITALIC */
 
 
-.italic, .italics, .emote {
+.italic, .italics {
   font-style: italic;
 }
 
@@ -338,7 +338,7 @@ em {
   font-weight: bold;
 }
 
-.say {
+.say, .emote, .infoplain, .oocplain, .warningplain {
 }
 
 .deadsay {
@@ -356,6 +356,9 @@ em {
 .binarysay a:active, .binarysay a:visited {
   color: #88ff88;
 }
+
+/* RADIO COLORS */
+/* IF YOU CHANGE THIS KEEP IT IN SYNC WITH TGUI CONSTANTS */
 
 .radio {
   color: #1ecc43;
@@ -393,6 +396,10 @@ em {
   color: #8f4a4b;
 }
 
+.gangradio {
+  color: #ac2ea1;
+}
+
 .centcomradio {
   color: #2681a5;
 }
@@ -409,16 +416,20 @@ em {
   color: #3434fd;
 }
 
+.greenteamradio {
+  color: #34fd34;
+}
+
+.yellowteamradio {
+  color: #fdfd34;
+}
+
 .yell {
   font-weight: bold;
 }
 
 .alert {
   color: #d82020;
-}
-
-.emote {
-  font-style: italic;
 }
 
 .userdanger {
@@ -434,6 +445,10 @@ em {
 .warning {
   color: #c51e1e;
   font-style: italic;
+}
+
+blockquote.warning {
+  border-color: #c51e1e;
 }
 
 .alertwarning {
@@ -457,6 +472,11 @@ em {
   font-weight: bold;
 }
 
+.minorannounce {
+  font-weight: bold;
+  font-size: 185%;
+}
+
 .greenannounce {
   color: #059223;
   font-weight: bold;
@@ -470,17 +490,35 @@ em {
   color: #9ab0ff;
 }
 
+blockquote.info {
+  border-color: #9ab0ff;
+}
+
 .notice {
   color: #6685f5;
 }
 
+blockquote.notice {
+  border-color: #6685f5;
+}
+
 .tinynotice {
+  color: #6685f5;
+  font-size: 85%;
+}
+
+.tinynoticeital {
   color: #6685f5;
   font-style: italic;
   font-size: 85%;
 }
 
 .smallnotice {
+  color: #6685f5;
+  font-size: 90%;
+}
+
+.smallnoticeital {
   color: #6685f5;
   font-style: italic;
   font-size: 90%;
@@ -519,18 +557,35 @@ em {
   color: #059223;
 }
 
+blockquote.green {
+  border-color: #059223;
+}
+
 .red {
   color: #FF0000;
+}
+
+blockquote.red {
+  border-color: #FF0000;
 }
 
 .blue {
   color: #215cff;
 }
 
+blockquote.blue {
+  border-color: #215cff;
+}
+
 .nicegreen {
   color: #059223;
 }
 
+blockquote.nicegreen {
+  border-color: #059223;
+}
+
+/* hornichems */
 .userlove {
   color: #ff42a6;
   font-style: italic;
@@ -545,40 +600,44 @@ em {
 }
 
 .cult {
-  color: #aa1c1c;
+  color: #973e3b;
+}
+
+blockquote.cult {
+  border-color: #973e3b;
 }
 
 .cultitalic {
-  color: #aa1c1c;
+  color: #973e3b;
   font-style: italic;
 }
 
 .cultbold {
-  color: #aa1c1c;
+  color: #973e3b;
   font-style: italic;
   font-weight: bold;
 }
 
 .cultboldtalic {
-  color: #aa1c1c;
+  color: #973e3b;
   font-weight: bold;
   font-size: 185%;
 }
 
 .cultlarge {
-  color: #aa1c1c;
+  color: #973e3b;
   font-weight: bold;
   font-size: 185%;
 }
 
 .narsie {
-  color: #aa1c1c;
+  color: #973e3b;
   font-weight: bold;
   font-size: 925%;
 }
 
 .narsiesmall {
-  color: #aa1c1c;
+  color: #973e3b;
   font-weight: bold;
   font-size: 370%;
 }
@@ -601,6 +660,10 @@ em {
 
 .purple {
   color: #9956d3;
+}
+
+blockquote.purple {
+  border-color: #9956d3;
 }
 
 .holoparasite {
@@ -655,7 +718,7 @@ em {
 }
 
 .deconversion_message {
-  color: #5000A0;
+  color: #a947ff;
   font-size: 185%;
   font-style: italic;
 }
@@ -664,6 +727,10 @@ em {
 /* from decon_msg: font-size: 185% == font-size 3*/
 .brass {
   color: #BE8700;
+}
+
+blockquote.brass {
+  border-color: #BE8700;
 }
 
 .heavy_brass {
@@ -675,7 +742,7 @@ em {
 .large_brass {
   color: #BE8700;
   font-size: 185%;
- }
+}
 
 .big_brass {
   color: #BE8700;
@@ -838,9 +905,14 @@ em {
   font-family: "Courier New", cursive, sans-serif;
 }
 
+.tape_recorder {
+  color: #FF0000;
+  font-family: "Courier New", cursive, sans-serif;
+}
+
 .command_headset {
   font-weight: bold;
-  font-size: 160%;
+  font-size: 125%;
 }
 
 .small {
@@ -876,7 +948,7 @@ em {
 
 .clown {
   color: #ff70c1;
-  font-size: 160%;
+  font-size: 125%;
   font-family: "Comic Sans MS", cursive, sans-serif;
   font-weight: bold;
 }
@@ -892,6 +964,7 @@ em {
   font-style: italic;
 }
 
+/*jacq */
 .spooky {
   color: #FF9100;
 }
@@ -973,6 +1046,10 @@ em {
 .icon {
   height: 1em;
   width: auto;
+}
+
+.bigicon {
+  font-size: 2.5em;
 }
 
 .memo {

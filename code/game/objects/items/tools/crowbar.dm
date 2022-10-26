@@ -17,7 +17,7 @@
 	attack_verb = list("attacked", "bashed", "battered", "bludgeoned", "whacked")
 	tool_behaviour = TOOL_CROWBAR
 	toolspeed = 1
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 50, "acid" = 30)
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 50, ACID = 30)
 
 	wound_bonus = -10
 	bare_wound_bonus = 5
@@ -40,6 +40,13 @@
 
 /obj/item/crowbar/brass/family
 	toolspeed = 1
+
+/obj/item/crowbar/ashwalker
+	name = "bone crowbar"
+	desc = "A rudimentary crowbar made of bones."
+	icon = 'icons/obj/mining.dmi'
+	icon_state = "crowbar_bone"
+	toolspeed = 0.75
 
 /obj/item/crowbar/bronze
 	name = "bronze plated crowbar"
@@ -67,6 +74,12 @@
 	item_state = "crowbar"
 	toolspeed = 0.5
 
+/obj/item/crowbar/large/heavy
+	name = "heavy crowbar"
+	desc = "It's a big crowbar. It doesn't fit in your pockets, because it's big. It feels oddly heavy.."
+	force = 20
+	icon_state = "crowbar_powergame"
+
 /obj/item/crowbar/cyborg
 	name = "hydraulic crowbar"
 	desc = "A hydraulic prying tool, compact but powerful. Designed to replace crowbar in construction cyborgs."
@@ -88,6 +101,7 @@
 	usesound = 'sound/items/jaws_pry.ogg'
 	force = 15
 	toolspeed = 0.25
+	can_force_powered = TRUE
 
 /obj/item/crowbar/power/suicide_act(mob/user)
 	user.visible_message("<span class='suicide'>[user] is putting [user.p_their()] head in [src], it looks like [user.p_theyre()] trying to commit suicide!</span>")

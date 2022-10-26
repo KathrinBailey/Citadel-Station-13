@@ -1,7 +1,7 @@
 /datum/job/captain
 	title = "Captain"
 	flag = CAPTAIN
-//	auto_deadmin_role_flags = DEADMIN_POSITION_HEAD|DEADMIN_POSITION_SECURITY //:eyes:
+	auto_deadmin_role_flags = DEADMIN_POSITION_HEAD|DEADMIN_POSITION_SECURITY //:eyes:
 	department_head = list("CentCom")
 	department_flag = ENGSEC
 	faction = "Station"
@@ -14,6 +14,7 @@
 	exp_requirements = 180
 	exp_type = EXP_TYPE_COMMAND
 	exp_type_department = EXP_TYPE_COMMAND
+	considered_combat_role = TRUE
 
 
 	outfit = /datum/outfit/job/captain

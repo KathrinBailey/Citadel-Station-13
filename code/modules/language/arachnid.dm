@@ -5,10 +5,11 @@
 	speech_verb = "chitter"
 	ask_verb = "chitter"
 	exclaim_verb = "chitter"
-	key = "r"
+	key = "c"
 	flags = NO_STUTTER | LANGUAGE_HIDE_ICON_IF_NOT_UNDERSTOOD
 
 	icon_state = "arachnid"
+	chooseable_roundstart = TRUE
 
 /datum/language/arachnid/scramble(input)
 	. = prob(65) ? "<i>wiff</i>" : "<i>thump</i>"

@@ -25,6 +25,7 @@
 	icon_aggro = "broodmother"
 	icon_dead = "egg_sac"
 	icon_gib = "syndicate_gib"
+	health_doll_icon = "broodmother"
 	maxHealth = 800
 	health = 800
 	melee_damage_lower = 30
@@ -98,7 +99,7 @@
 		if(CALL_CHILDREN)
 			call_children()
 
-/mob/living/simple_animal/hostile/asteroid/elite/broodmother/BiologicalLife(seconds, times_fired)
+/mob/living/simple_animal/hostile/asteroid/elite/broodmother/BiologicalLife(delta_time, times_fired)
 	if(!(. = ..()))
 		return
 	if(health < maxHealth * 0.5 && rand_tent < world.time)
@@ -221,6 +222,9 @@
 
 /obj/effect/temp_visual/goliath_tentacle/broodmother/patch/Initialize(mapload, new_spawner)
 	. = ..()
+	INVOKE_ASYNC(src, .proc/createpatch)
+
+/obj/effect/temp_visual/goliath_tentacle/broodmother/patch/proc/createpatch()
 	var/tentacle_locs = spiral_range_turfs(1, get_turf(src))
 	for(var/T in tentacle_locs)
 		new /obj/effect/temp_visual/goliath_tentacle/broodmother(T, spawner)

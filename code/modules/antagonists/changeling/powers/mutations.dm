@@ -21,6 +21,7 @@
 	chemical_cost = 1000
 	dna_cost = -1
 
+	var/recharge_slowdown = 0
 	var/silent = FALSE
 	var/weapon_type
 	var/weapon_name_simple
@@ -37,6 +38,8 @@
 		if(!silent)
 			playsound(user, 'sound/effects/blobattack.ogg', 30, 1)
 			user.visible_message("<span class='warning'>With a sickening crunch, [user] reforms [user.p_their()] [weapon_name_simple] into an arm!</span>", "<span class='notice'>We assimilate the [weapon_name_simple] back into our body.</span>", "<span class='italics>You hear organic matter ripping and tearing!</span>")
+		var/datum/antagonist/changeling/changeling = user.mind.has_antag_datum(/datum/antagonist/changeling)
+		changeling.chem_recharge_slowdown -= recharge_slowdown
 		user.update_inv_hands()
 		return 1
 
@@ -57,6 +60,8 @@
 	user.put_in_hands(W)
 	if(!silent)
 		playsound(user, 'sound/effects/blobattack.ogg', 30, 1)
+	var/datum/antagonist/changeling/changeling = user.mind.has_antag_datum(/datum/antagonist/changeling)
+	changeling.chem_recharge_slowdown += recharge_slowdown
 	return W
 
 /obj/effect/proc_holder/changeling/weapon/on_refund(mob/user)
@@ -125,8 +130,8 @@
 	user.dropItemToGround(user.head)
 	user.dropItemToGround(user.wear_suit)
 
-	user.equip_to_slot_if_possible(new suit_type(user), SLOT_WEAR_SUIT, 1, 1, 1)
-	user.equip_to_slot_if_possible(new helmet_type(user), SLOT_HEAD, 1, 1, 1)
+	user.equip_to_slot_if_possible(new suit_type(user), ITEM_SLOT_OCLOTHING, 1, 1, 1)
+	user.equip_to_slot_if_possible(new helmet_type(user), ITEM_SLOT_HEAD, 1, 1, 1)
 
 	var/datum/antagonist/changeling/changeling = user.mind.has_antag_datum(/datum/antagonist/changeling)
 	changeling.chem_recharge_slowdown += recharge_slowdown
@@ -141,10 +146,11 @@
 	name = "Arm Blade"
 	desc = "We reform one of our arms into a deadly blade."
 	helptext = "We may retract our armblade in the same manner as we form it. Cannot be used while in lesser form. This ability is loud, and might cause our blood to react violently to heat."
-	chemical_cost = 10
+	chemical_cost = 5
 	dna_cost = 2
 	loudness = 2
 	req_human = 1
+	recharge_slowdown = 0.6
 	weapon_type = /obj/item/melee/arm_blade
 	weapon_name_simple = "blade"
 	action_icon = 'icons/mob/actions/actions_changeling.dmi'
@@ -296,7 +302,7 @@
 	firing_effect_type = null
 	var/obj/item/gun/magic/tentacle/gun //the item that shot it
 
-/obj/item/ammo_casing/magic/tentacle/Initialize()
+/obj/item/ammo_casing/magic/tentacle/Initialize(mapload)
 	gun = loc
 	. = ..()
 
@@ -315,7 +321,7 @@
 	var/chain
 	var/obj/item/ammo_casing/magic/tentacle/source //the item that shot it
 
-/obj/item/projectile/tentacle/Initialize()
+/obj/item/projectile/tentacle/Initialize(mapload)
 	source = loc
 	. = ..()
 
@@ -460,7 +466,7 @@
 	block_return[BLOCK_RETURN_BLOCK_CAPACITY] = (block_return[BLOCK_RETURN_BLOCK_CAPACITY] || 0) + remaining_uses
 	return ..()
 
-/obj/item/shield/changeling/active_block(mob/living/owner, atom/object, damage, attack_text, attack_type, armour_penetration, mob/attacker, def_zone, final_block_chance, list/block_return)
+/obj/item/shield/changeling/directional_block(mob/living/owner, atom/object, damage, attack_text, attack_type, armour_penetration, mob/attacker, def_zone, final_block_chance, list/block_return)
 	. = ..()
 	if(--remaining_uses < 1)
 		if(ishuman(loc))
@@ -487,7 +493,7 @@
 	helmet_type = /obj/item/clothing/head/helmet/space/changeling
 	suit_name_simple = "flesh shell"
 	helmet_name_simple = "space helmet"
-	recharge_slowdown = 0.5
+	recharge_slowdown = 0.6
 	blood_on_castoff = 1
 
 /obj/item/clothing/suit/space/changeling
@@ -497,10 +503,10 @@
 	item_flags = DROPDEL
 	clothing_flags = STOPSPRESSUREDAMAGE //Not THICKMATERIAL because it's organic tissue, so if somebody tries to inject something into it, it still ends up in your blood. (also balance but muh fluff)
 	allowed = list(/obj/item/flashlight, /obj/item/tank/internals/emergency_oxygen, /obj/item/tank/internals/oxygen)
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 0,"energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 90, "acid" = 90) //No armor at all.
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0,ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 90, ACID = 90) //No armor at all.
 	mutantrace_variation = NONE
 
-/obj/item/clothing/suit/space/changeling/Initialize()
+/obj/item/clothing/suit/space/changeling/Initialize(mapload)
 	. = ..()
 	ADD_TRAIT(src, TRAIT_NODROP, CHANGELING_TRAIT)
 	if(ismob(loc))
@@ -518,10 +524,10 @@
 	desc = "A covering of pressure and temperature-resistant organic tissue with a glass-like chitin front."
 	item_flags = DROPDEL
 	clothing_flags = STOPSPRESSUREDAMAGE
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 0,"energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 90, "acid" = 90)
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0,ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 90, ACID = 90)
 	flags_cover = HEADCOVERSEYES | HEADCOVERSMOUTH
 
-/obj/item/clothing/head/helmet/space/changeling/Initialize()
+/obj/item/clothing/head/helmet/space/changeling/Initialize(mapload)
 	. = ..()
 	ADD_TRAIT(src, TRAIT_NODROP, CHANGELING_TRAIT)
 
@@ -532,11 +538,11 @@
 	name = "Chitinous Armor"
 	desc = "We turn our skin into tough chitin to protect us from damage."
 	helptext = "Upkeep of the armor requires a constant expenditure of chemicals, resulting in a reduced chemical generation. The armor is strong against brute force, but does not provide much protection from lasers. Cannot be used in lesser form. This ability is loud, and might cause our blood to react violently to heat."
-	chemical_cost = 20
+	chemical_cost = 10
 	dna_cost = 1
 	loudness = 2
 	req_human = 1
-	recharge_slowdown = 0.5
+	recharge_slowdown = 0.6
 	action_icon = 'icons/mob/actions/actions_changeling.dmi'
 	action_icon_state = "ling_armor"
 	action_background_icon_state = "bg_ling"
@@ -552,12 +558,12 @@
 	icon_state = "lingarmor"
 	item_flags = DROPDEL
 	body_parts_covered = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
-	armor = list("melee" = 70, "bullet" = 60, "laser" = 30, "energy" = 40, "bomb" = 10, "bio" = 4, "rad" = 0, "fire" = 50, "acid" = 90)
+	armor = list(MELEE = 70, BULLET = 60, LASER = 30, ENERGY = 40, BOMB = 10, BIO = 4, RAD = 0, FIRE = 50, ACID = 90)
 	flags_inv = HIDEJUMPSUIT
 	cold_protection = 0
 	heat_protection = 0
 
-/obj/item/clothing/suit/armor/changeling/Initialize()
+/obj/item/clothing/suit/armor/changeling/Initialize(mapload)
 	. = ..()
 	ADD_TRAIT(src, TRAIT_NODROP, CHANGELING_TRAIT)
 	if(ismob(loc))
@@ -568,10 +574,10 @@
 	desc = "A tough, hard covering of black chitin with transparent chitin in front."
 	icon_state = "lingarmorhelmet"
 	item_flags = DROPDEL
-	armor = list("melee" = 70, "bullet" = 60, "laser" = 30, "energy" = 40, "bomb" = 10, "bio" = 4, "rad" = 0, "fire" = 50, "acid" = 90)
+	armor = list(MELEE = 70, BULLET = 60, LASER = 30, ENERGY = 40, BOMB = 10, BIO = 4, RAD = 0, FIRE = 50, ACID = 90)
 	flags_inv = HIDEEARS|HIDEHAIR|HIDEEYES|HIDEFACIALHAIR|HIDEFACE
 
-/obj/item/clothing/head/helmet/changeling/Initialize()
+/obj/item/clothing/head/helmet/changeling/Initialize(mapload)
 	. = ..()
 	ADD_TRAIT(src, TRAIT_NODROP, CHANGELING_TRAIT)
 
@@ -631,7 +637,7 @@
 
 	user.dropItemToGround(user.gloves)
 
-	user.equip_to_slot_if_possible(new glove_type(user), SLOT_GLOVES, 1, 1, 1)
+	user.equip_to_slot_if_possible(new glove_type(user), ITEM_SLOT_GLOVES, 1, 1, 1)
 	playsound(user, 'sound/effects/blobattack.ogg', 30, 1)
 	var/datum/antagonist/changeling/changeling = user.mind.has_antag_datum(/datum/antagonist/changeling)
 	changeling.chem_recharge_slowdown += recharge_slowdown
@@ -647,9 +653,9 @@
 	cold_protection = HANDS
 	min_cold_protection_temperature = GLOVES_MIN_TEMP_PROTECT
 	max_heat_protection_temperature = GLOVES_MAX_TEMP_PROTECT
-	armor = list("melee" = 20, "bullet" = 20, "laser" = 20, "energy" = 20, "bomb" = 35, "bio" = 35, "rad" = 35, "fire" = 0, "acid" = 0)
+	armor = list(MELEE = 20, BULLET = 20, LASER = 20, ENERGY = 20, BOMB = 35, BIO = 35, RAD = 35, FIRE = 0, ACID = 0)
 
-/obj/item/clothing/gloves/claws/Initialize()
+/obj/item/clothing/gloves/claws/Initialize(mapload)
 	. = ..()
 	ADD_TRAIT(src, TRAIT_NODROP, CHANGELING_TRAIT)
 
@@ -662,16 +668,23 @@
 	name = "Bone Gauntlets"
 	desc = "We turn our hands into solid bone and chitin, sacrificing dexterity for raw strength."
 	helptext = "These grotesque, bone-and-chitin gauntlets are remarkably good at beating victims senseless, and cannot be used in lesser form. This ability is loud, and might cause our blood to react violently to heat."
-	chemical_cost = 10 // same cost as armblade because its a sidegrade (sacrifice utility for punching people violently)
+	chemical_cost = 5 // same cost as armblade because its a sidegrade (sacrifice utility for punching people violently)
 	dna_cost = 2
 	loudness = 2
 	req_human = 1
+	recharge_slowdown = 0.6
 	action_icon = 'icons/mob/actions/actions_changeling.dmi'
 	action_icon_state = "ling_gauntlets"
 	action_background_icon_state = "bg_ling"
 
 	glove_type = /obj/item/clothing/gloves/fingerless/pugilist/cling // just punch his head off dude
 	glove_name_simple = "bone gauntlets"
+
+/obj/effect/proc_holder/changeling/gloves/gauntlets/sting_action(mob/living/user)
+	if(HAS_TRAIT(user, TRAIT_NOPUGILIST))
+		to_chat(user, "<span class='warning'>We would gain nothing by forming our fists into brute-force weapons when we are trained in precision martial arts!</span>")
+		return
+	return ..()
 
 /obj/item/clothing/gloves/fingerless/pugilist/cling // switches between lesser GotNS and Big Punchy Rib Breaky Hands
 	name = "hewn bone gauntlets"
@@ -684,13 +697,13 @@
 	cold_protection = ARMS|HANDS
 	min_cold_protection_temperature = GLOVES_MIN_TEMP_PROTECT
 	max_heat_protection_temperature = GLOVES_MAX_TEMP_PROTECT
-	armor = list("melee" = 20, "bullet" = 20, "laser" = 20, "energy" = 20, "bomb" = 35, "bio" = 35, "rad" = 35, "fire" = 0, "acid" = 0)
+	armor = list(MELEE = 20, BULLET = 20, LASER = 20, ENERGY = 20, BOMB = 35, BIO = 35, RAD = 35, FIRE = 0, ACID = 0)
 	enhancement = 6 // first, do harm. all of it. all of the harm. just fuck em up.
 	wound_enhancement = 6
 	var/fast_enhancement = 6
 	var/fast_wound_enhancement = 6
-	var/slow_enhancement = 20
-	var/slow_wound_enhancement = 20
+	var/slow_enhancement = 12
+	var/slow_wound_enhancement = 15
 	silent = TRUE
 	inherited_trait = TRAIT_CHUNKYFINGERS // how do you expect to shoot anyone with bone covered hands
 	secondary_trait = TRAIT_MAULER // just punch them idiot
@@ -714,13 +727,13 @@
 	to_chat(user, "<span class='notice'>[src] are now formed to allow for [fasthands ? "fast, precise strikes" : "crippling, damaging blows"].</span>")
 	addtimer(CALLBACK(src, .proc/use_buffs, user, TRUE), 0.1) // go fuckin get em
 
-/obj/item/clothing/gloves/fingerless/pugilist/cling/Initialize()
+/obj/item/clothing/gloves/fingerless/pugilist/cling/Initialize(mapload)
 	. = ..()
 	ADD_TRAIT(src, TRAIT_NODROP, CHANGELING_TRAIT)
 
 /obj/item/clothing/gloves/fingerless/pugilist/cling/equipped(mob/user, slot)
 	. = ..()
-	if(current_equipped_slot == SLOT_GLOVES)
+	if(current_equipped_slot == ITEM_SLOT_GLOVES)
 		to_chat(user, "<span class='notice'>With [src] formed around our arms, we are ready to fight.</span>")
 
 /obj/item/clothing/gloves/fingerless/pugilist/cling/dropped(mob/user)

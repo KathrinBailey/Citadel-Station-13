@@ -1,10 +1,14 @@
 /datum/gear/glasses
 	category = LOADOUT_CATEGORY_GLASSES
-	slot = SLOT_GLASSES
+	slot = ITEM_SLOT_EYES
 
 /datum/gear/glasses/blindfold
 	name = "Blindfold"
 	path = /obj/item/clothing/glasses/sunglasses/blindfold
+
+/datum/gear/glasses/fakeblindfold
+	name = "Fake Blindfold"
+	path = /obj/item/clothing/glasses/fakeblindfold
 
 /datum/gear/glasses/cold
 	name = "Cold goggles"

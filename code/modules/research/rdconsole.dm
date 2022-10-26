@@ -87,7 +87,7 @@ Nothing else in the console has ID requirements.
 				linked_imprinter = D
 				D.linked_console = src
 
-/obj/machinery/computer/rdconsole/Initialize()
+/obj/machinery/computer/rdconsole/Initialize(mapload)
 	. = ..()
 	stored_research = SSresearch.science_tech
 	stored_research.consoles_accessing[src] = TRUE
@@ -194,7 +194,9 @@ Nothing else in the console has ID requirements.
 	locked = FALSE
 	return TRUE
 
-/obj/machinery/computer/rdconsole/multitool_act(mob/user, obj/item/multitool/I)
+/obj/machinery/computer/rdconsole/multitool_act(mob/user, obj/item/I)
+	if(!I.tool_behaviour == TOOL_MULTITOOL)
+		return
 	var/lathe = linked_lathe && linked_lathe.multitool_act(user, I)
 	var/print = linked_imprinter && linked_imprinter.multitool_act(user, I)
 	return lathe || print
@@ -1143,7 +1145,7 @@ Nothing else in the console has ID requirements.
 	req_access = null
 	req_access_txt = "29"
 
-/obj/machinery/computer/rdconsole/robotics/Initialize()
+/obj/machinery/computer/rdconsole/robotics/Initialize(mapload)
 	. = ..()
 	if(circuit)
 		circuit.name = "R&D Console - Robotics (Computer Board)"

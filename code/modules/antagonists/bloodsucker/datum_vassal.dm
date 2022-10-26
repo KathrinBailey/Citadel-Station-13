@@ -90,7 +90,7 @@
 /datum/antagonist/vassal/greet()
 	to_chat(owner, "<span class='userdanger'>You are now the mortal servant of [master.owner.current], a bloodsucking vampire!</span>")
 	to_chat(owner, "<span class='boldannounce'>The power of [master.owner.current.p_their()] immortal blood compells you to obey [master.owner.current.p_them()] in all things, even offering your own life to prolong theirs.<br>\
-			You are not required to obey any other Bloodsucker, for only [master.owner.current] is your master. The laws of Nanotransen do not apply to you now; only your vampiric master's word must be obeyed.<span>")
+			You are not required to obey any other Bloodsucker, for only [master.owner.current] is your master. The laws of Nanotrasen do not apply to you now; only your vampiric master's word must be obeyed.<span>")
 	// Effects...
 	owner.current.playsound_local(null, 'sound/magic/mutate.ogg', 100, FALSE, pressure_affected = FALSE)
 	//owner.store_memory("You became the mortal servant of [master.owner.current], a bloodsucking vampire!")
@@ -110,13 +110,13 @@
 
 /datum/status_effect/agent_pinpointer/vassal_edition
 	id = "agent_pinpointer"
-	alert_type = /obj/screen/alert/status_effect/agent_pinpointer/vassal_edition
+	alert_type = /atom/movable/screen/alert/status_effect/agent_pinpointer/vassal_edition
 	minimum_range = VASSAL_SCAN_MIN_DISTANCE
 	tick_interval = VASSAL_SCAN_PING_TIME
 	duration = -1 // runs out fast
 	range_fuzz_factor = 0
 
-/obj/screen/alert/status_effect/agent_pinpointer/vassal_edition
+/atom/movable/screen/alert/status_effect/agent_pinpointer/vassal_edition
 	name = "Blood Bond"
 	desc = "You always know where your master is."
 	//icon = 'icons/obj/device.dmi'

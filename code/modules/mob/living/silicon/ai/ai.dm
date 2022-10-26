@@ -39,7 +39,7 @@
 	var/alarms = list("Motion"=list(), "Fire"=list(), "Atmosphere"=list(), "Power"=list(), "Camera"=list(), "Burglar"=list())
 	var/viewalerts = 0
 	var/icon/holo_icon//Female is assigned when AI is created.
-	var/obj/mecha/controlled_mech //For controlled_mech a mech, to determine whether to relaymove or use the AI eye.
+	var/obj/vehicle/sealed/mecha/controlled_mech //For controlled_mech a mech, to determine whether to relaymove or use the AI eye.
 	var/radio_enabled = TRUE //Determins if a carded AI can speak with its built in radio or not.
 	radiomod = ";" //AIs will, by default, state their laws on the internal radio.
 	var/obj/item/pda/ai/aiPDA
@@ -47,6 +47,7 @@
 	var/mob/living/simple_animal/bot/Bot
 	var/tracking = FALSE //this is 1 if the AI is currently tracking somebody, but the track has not yet been completed.
 	var/datum/effect_system/spark_spread/spark_system//So they can initialize sparks whenever/N
+	var/obj/machinery/status_display/controlled_display
 
 	//MALFUNCTION
 	var/datum/module_picker/malf_picker
@@ -86,11 +87,12 @@
 	var/mob/living/silicon/robot/deployed_shell = null //For shell control
 	var/datum/action/innate/deploy_shell/deploy_action = new
 	var/datum/action/innate/deploy_last_shell/redeploy_action = new
+	var/datum/action/innate/custom_holoform/custom_holoform = new
 	var/chnotify = 0
 
 
 	var/multicam_on = FALSE
-	var/obj/screen/movable/pic_in_pic/ai/master_multicam
+	var/atom/movable/screen/movable/pic_in_pic/ai/master_multicam
 	var/list/multicam_screens = list()
 	var/list/all_eyes = list()
 	var/max_multicams = 6
@@ -152,6 +154,7 @@
 	aicamera = new/obj/item/camera/siliconcam/ai_camera(src)
 
 	deploy_action.Grant(src)
+	custom_holoform.Grant(src)
 
 	if(isturf(loc))
 		add_verb(src, list(/mob/living/silicon/ai/proc/ai_network_change, \
@@ -180,6 +183,7 @@
 	. = ..()
 
 /mob/living/silicon/ai/proc/set_core_display_icon(input, client/C)
+	set waitfor = FALSE
 	if(client && !C)
 		C = client
 	if(!input && !C?.prefs?.preferred_ai_core_display)
@@ -198,7 +202,7 @@
 		if(option == "Random")
 			iconstates[option] = image(icon = src.icon, icon_state = "ai-random")
 			continue
-		iconstates[option] = image(icon = src.icon, icon_state = resolve_ai_icon(option))
+		iconstates[option] = image(icon = src.icon, icon_state = resolve_ai_icon(option, radial_preview = TRUE))
 
 	view_core()
 	var/ai_core_icon = show_radial_menu(src, src , iconstates, radius = 42)
@@ -405,7 +409,7 @@
 		return
 
 	if (href_list["ai_take_control"]) //Mech domination
-		var/obj/mecha/M = locate(href_list["ai_take_control"])
+		var/obj/vehicle/sealed/mecha/M = locate(href_list["ai_take_control"])
 		if(controlled_mech)
 			to_chat(src, "<span class='warning'>You are already loaded into an onboard computer!</span>")
 			return
@@ -657,7 +661,7 @@
 			"goat" = 'icons/mob/animal.dmi',
 			"cat" = 'icons/mob/pets.dmi',
 			"cat2" = 'icons/mob/pets.dmi',
-			"poly" = 'icons/mob/animal.dmi',
+			"polly" = 'icons/mob/animal.dmi',
 			"pug" = 'icons/mob/pets.dmi',
 			"spider" = 'icons/mob/animal.dmi'
 			)
@@ -666,7 +670,7 @@
 			if(input)
 				qdel(holo_icon)
 				switch(input)
-					if("poly")
+					if("polly")
 						holo_icon = getHologramIcon(icon(icon_list[input],"parrot_fly"))
 					if("chicken")
 						holo_icon = getHologramIcon(icon(icon_list[input],"chicken_brown"))
@@ -909,10 +913,10 @@
 
 	if(!istype(apc) || QDELETED(apc) || apc.stat & BROKEN)
 		to_chat(src, "<span class='danger'>Hack aborted. The designated APC no longer exists on the power network.</span>")
-		playsound(get_turf(src), 'sound/machines/buzz-two.ogg', 50, 1)
+		playsound(get_turf(src), 'sound/machines/buzz-two.ogg', 50, TRUE, ignore_walls = FALSE)
 	else if(apc.aidisabled)
 		to_chat(src, "<span class='danger'>Hack aborted. \The [apc] is no longer responding to our systems.</span>")
-		playsound(get_turf(src), 'sound/machines/buzz-sigh.ogg', 50, 1)
+		playsound(get_turf(src), 'sound/machines/buzz-sigh.ogg', 50, TRUE, ignore_walls = FALSE)
 	else
 		malf_picker.processing_time += 10
 
@@ -921,7 +925,7 @@
 		apc.locked = TRUE
 		apc.coverlocked = TRUE
 
-		playsound(get_turf(src), 'sound/machines/ding.ogg', 50, 1)
+		playsound(get_turf(src), 'sound/machines/ding.ogg', 50, TRUE, ignore_walls = FALSE)
 		to_chat(src, "Hack complete. \The [apc] is now under your exclusive control.")
 		apc.update_icon()
 
@@ -1032,3 +1036,22 @@
 			qdel(src)
 		else
 			return
+
+/mob/living/silicon/ai/emote(act, m_type=1, message = null, intentional = FALSE)
+	if(current && eyeobj)
+		return eyeobj.emote(act, m_type, message, intentional, forced = TRUE)
+	return ..()
+
+/mob/living/silicon/ai/zMove(dir, feedback = FALSE)
+	. = eyeobj.zMove(dir, feedback)
+
+/mob/living/silicon/ai/proc/stop_controlling_display()
+	if(!controlled_display)
+		return
+	controlled_display.master = null
+	controlled_display.cut_overlay(controlled_display.ai_vtuber_overlay)
+	controlled_display.ai_vtuber_overlay = null
+	if(current == controlled_display)
+		current = null
+	controlled_display.update_appearance()
+	controlled_display = null

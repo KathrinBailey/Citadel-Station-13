@@ -37,7 +37,7 @@
 	var/list/whatmighthappen = list()
 	whatmighthappen += list("avoided" = 3, "dropthing" = 1, "movetile" = 1, "shortdeaf" = 1, "flopover" = 1, "nutriloss" = 1, "selfflash" = 1, "harmies" = 1)
 	if(corruption >= CORRUPTION_THRESHHOLD_MAJOR)
-		whatmighthappen += list("longdeaf" = 1, "longknockdown" = 1, "shortlimbdisable" = 1, "shortblind" = 1, "shortstun" = 1, "shortmute" = 1, "vomit" = 1, "halluscinate" = 1)
+		whatmighthappen += list("longdeaf" = 1, "longknockdown" = 1, "shortlimbdisable" = 1, "shortblind" = 1, "shortstun" = 1, "shortmute" = 1, "vomit" = 1, "hallucinate" = 1, "jamcoolanthud" = 1)
 	if(corruption >= CORRUPTION_THRESHHOLD_CRITICAL)
 		whatmighthappen += list("receporgandamage" = 1, "longlimbdisable" = 1, "blindmutedeaf" = 1, "longstun" = 1, "sleep" = 1, "inducetrauma" = 1, "amplifycorrupt" = 1, "changetemp" = 1)
 	var/event = pickweight(whatmighthappen)
@@ -80,10 +80,11 @@
 		if("shortlimbdisable")
 			var/disabled_type = pick(list(TRAIT_PARALYSIS_L_ARM, TRAIT_PARALYSIS_R_ARM, TRAIT_PARALYSIS_L_LEG, TRAIT_PARALYSIS_R_LEG))
 			ADD_TRAIT(src, disabled_type, CORRUPTED_SYSTEM)
+			update_disabled_bodyparts()
 			addtimer(CALLBACK(src, .proc/reenable_limb, disabled_type), 5 SECONDS)
 			to_chat(src, "<span class='warning'>Error - Limb control subsystem partially shutdown, rebooting.</span>")
 		if("shortblind")
-			ADD_TRAIT(src, TRAIT_BLIND, CORRUPTED_SYSTEM)
+			become_blind(CORRUPTED_SYSTEM)
 			addtimer(CALLBACK(src, .proc/reenable_vision), 5 SECONDS)
 			to_chat(src, "<span class='warning'>Visual receptor shutdown detected - Initiating reboot.</span>")
 		if("shortstun")
@@ -96,8 +97,10 @@
 		if("vomit")
 			to_chat(src, "<span class='notice'>Ejecting contaminant.</span>")
 			vomit()
-		if("halluscinate")
+		if("hallucinate")
 			hallucination += 20 //Doesn't give a cue
+		if("jamcoolanthud")
+			hud_used.coolant_display.jam(10)
 		if("receporgandamage")
 			adjustOrganLoss(ORGAN_SLOT_EARS, rand(10, 20))
 			adjustOrganLoss(ORGAN_SLOT_EYES, rand(10, 20))
@@ -105,10 +108,11 @@
 		if("longlimbdisable")
 			var/disabled_type = pick(list(TRAIT_PARALYSIS_L_ARM, TRAIT_PARALYSIS_R_ARM, TRAIT_PARALYSIS_L_LEG, TRAIT_PARALYSIS_R_LEG))
 			ADD_TRAIT(src, disabled_type, CORRUPTED_SYSTEM)
+			update_disabled_bodyparts()
 			addtimer(CALLBACK(src, .proc/reenable_limb, disabled_type), 25 SECONDS)
 			to_chat(src, "<span class='warning'>Fatal error in limb control subsystem - rebooting.</span>")
 		if("blindmutedeaf")
-			ADD_TRAIT(src, TRAIT_BLIND, CORRUPTED_SYSTEM)
+			become_blind(CORRUPTED_SYSTEM)
 			addtimer(CALLBACK(src, .proc/reenable_vision), (rand(10, 25)) SECONDS)
 			ADD_TRAIT(src, TRAIT_DEAF, CORRUPTED_SYSTEM)
 			addtimer(CALLBACK(src, .proc/reenable_hearing), (rand(15, 35)) SECONDS)
@@ -140,6 +144,7 @@
 
 /mob/living/carbon/proc/reenable_limb(disabled_limb)
 	REMOVE_TRAIT(src, disabled_limb, CORRUPTED_SYSTEM)
+	update_disabled_bodyparts()
 	to_chat(src, "<span class='notice'>Limb control subsystem successfully rebooted.</span>")
 
 /mob/living/carbon/proc/reenable_hearing()
@@ -147,7 +152,7 @@
 	to_chat(src, "<span class='notice'>Hearing restored.</span>")
 
 /mob/living/carbon/proc/reenable_vision()
-	REMOVE_TRAIT(src, TRAIT_BLIND, CORRUPTED_SYSTEM)
+	cure_blind(CORRUPTED_SYSTEM)
 	to_chat(src, "<span class='notice'>Visual receptors back online.</span>")
 
 /mob/living/carbon/proc/reenable_speech()
@@ -156,7 +161,7 @@
 
 /mob/living/carbon/proc/forcesleep(time = 100)
 	to_chat(src, "<span class='notice'>Preparations complete, powering down.</span>")
-	Sleeping(time, 0)
+	Sleeping(time)
 
 
 #undef CORRUPTION_CHECK_INTERVAL

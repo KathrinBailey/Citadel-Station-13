@@ -8,7 +8,7 @@
 
 	target_mobtypes = list(/mob/living/carbon/human, /mob/living/carbon/monkey)
 	possible_locs = list(BODY_ZONE_CHEST)
-	requires_bodypart_type = BODYPART_ORGANIC
+	requires_bodypart_type = NONE
 	replaced_by = /datum/surgery
 	ignore_clothes = TRUE
 	var/healing_step_type
@@ -21,11 +21,19 @@
 					healing_step_type, //hehe cheeky
 					/datum/surgery_step/close)
 
+/datum/surgery/healing/can_start(mob/user, mob/living/carbon/target, obj/item/tool)
+	for(var/obj/item/bodypart/B in target.bodyparts)
+		if(B.is_organic_limb(FALSE))
+			return ..()
+
+
 /datum/surgery_step/heal
 	name = "repair body"
 	implements = list(TOOL_HEMOSTAT = 100, TOOL_SCREWDRIVER = 65, /obj/item/pen = 55)
 	repeatable = TRUE
 	time = 15
+	success_sound = 'sound/surgery/retractor2.ogg'
+	failure_sound = 'sound/surgery/organ2.ogg'
 	var/brutehealing = 0
 	var/burnhealing = 0
 	var/missinghpbonus = 0 //heals an extra point of damager per X missing damage of type (burn damage for burn healing, brute for brute). Smaller Number = More Healing!
@@ -168,7 +176,6 @@
 
 /***************************COMBO***************************/
 /datum/surgery/healing/combo
-
 
 /datum/surgery/healing/combo
 	name = "Tend Wounds (Mixture, Basic)"

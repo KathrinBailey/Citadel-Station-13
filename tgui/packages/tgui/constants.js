@@ -30,6 +30,11 @@ export const COLORS = {
     burn: '#e67e22',
     brute: '#e74c3c',
   },
+  // reagent / chemistry related colours
+  reagent: {
+    acidicbuffer: "#fbc314",
+    basicbuffer: "#3853a4",
+  },
 };
 
 // Colors defined in CSS
@@ -54,11 +59,12 @@ export const CSS_COLORS = [
   'label',
 ];
 
+/* IF YOU CHANGE THIS KEEP IT IN SYNC WITH CHAT CSS */
 export const RADIO_CHANNELS = [
   {
     name: 'Syndicate',
     freq: 1213,
-    color: '#a52a2a',
+    color: '#8f4a4b',
   },
   {
     name: 'Red Team',
@@ -69,6 +75,16 @@ export const RADIO_CHANNELS = [
     name: 'Blue Team',
     freq: 1217,
     color: '#3434fd',
+  },
+  {
+    name: 'Green Team',
+    freq: 1219,
+    color: '#34fd34',
+  },
+  {
+    name: 'Yellow Team',
+    freq: 1221,
+    color: '#fdfd34',
   },
   {
     name: 'CentCom',
@@ -93,7 +109,7 @@ export const RADIO_CHANNELS = [
   {
     name: 'Command',
     freq: 1353,
-    color: '#5177ff',
+    color: '#fcdf03',
   },
   {
     name: 'Medical',
@@ -166,6 +182,12 @@ const GASES = [
     'color': 'red',
   },
   {
+    'id': 'no',
+    'name': 'Nitric Oxide',
+    'label': 'NO',
+    'color': 'red',
+  },
+  {
     'id': 'no2',
     'name': 'Nitryl',
     'label': 'NO₂',
@@ -206,6 +228,24 @@ const GASES = [
     'name': 'Hydrogen',
     'label': 'H₂',
     'color': 'white',
+  },
+  {
+    'id': 'methane',
+    'name': 'Methane',
+    'label': 'CH₄',
+    'color': 'grey',
+  },
+  {
+    'id': 'methyl_bromide',
+    'name': 'Methyl Bromide',
+    'label': 'CH₃Br',
+    'color': 'brown',
+  },
+  {
+    'id': 'qcd',
+    'name': 'Quark Matter',
+    'label': 'QGP',
+    'color': 'pink',
   },
 ];
 

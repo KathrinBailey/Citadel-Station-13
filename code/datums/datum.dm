@@ -57,9 +57,13 @@
 	*/
 	var/list/cooldowns
 
-#ifdef TESTING
+#ifdef REFERENCE_TRACKING
 	var/running_find_references
 	var/last_find_references = 0
+	#ifdef REFERENCE_TRACKING_DEBUG
+	///Stores info about where refs are found, used for sanity checks and testing
+	var/list/found_refs
+	#endif
 #endif
 
 #ifdef DATUMVAR_DEBUGGING_MODE
@@ -77,21 +81,21 @@
 
 
 /**
-  * Default implementation of clean-up code.
-  *
-  * This should be overridden to remove all references pointing to the object being destroyed, if
-  * you do override it, make sure to call the parent and return it's return value by default
-  *
-  * Return an appropriate [QDEL_HINT][QDEL_HINT_QUEUE] to modify handling of your deletion;
-  * in most cases this is [QDEL_HINT_QUEUE].
-  *
-  * The base case is responsible for doing the following
-  * * Erasing timers pointing to this datum
-  * * Erasing compenents on this datum
-  * * Notifying datums listening to signals from this datum that we are going away
-  *
-  * Returns [QDEL_HINT_QUEUE]
-  */
+ * Default implementation of clean-up code.
+ *
+ * This should be overridden to remove all references pointing to the object being destroyed, if
+ * you do override it, make sure to call the parent and return it's return value by default
+ *
+ * Return an appropriate [QDEL_HINT][QDEL_HINT_QUEUE] to modify handling of your deletion;
+ * in most cases this is [QDEL_HINT_QUEUE].
+ *
+ * The base case is responsible for doing the following
+ * * Erasing timers pointing to this datum
+ * * Erasing compenents on this datum
+ * * Notifying datums listening to signals from this datum that we are going away
+ *
+ * Returns [QDEL_HINT_QUEUE]
+ */
 /datum/proc/Destroy(force=FALSE, ...)
 	SHOULD_CALL_PARENT(TRUE)
 	tag = null
@@ -102,7 +106,7 @@
 	active_timers = null
 	for(var/thing in timers)
 		var/datum/timedevent/timer = thing
-		if (timer.spent)
+		if (timer.spent && !(timer.flags & TIMER_DELETE_ME))
 			continue
 		qdel(timer)
 
@@ -137,8 +141,6 @@
 	for(var/target in signal_procs)
 		UnregisterSignal(target, signal_procs[target])
 	//END: ECS SHIT
-
-	SSsounds.free_datum_channels(src) //?? (not on tg)
 
 	return QDEL_HINT_QUEUE
 
@@ -232,6 +234,7 @@
 		qdel(D)
 	else
 		return returned
+
 
 /**
   * Callback called by a timer to end an associative-list-indexed cooldown.

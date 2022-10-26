@@ -1,5 +1,5 @@
 //Objects that spawn ghosts in as a certain role when they click on it, i.e. away mission bartenders.
-
+#define spawnOverride TRUE
 //Preserved terrarium/seed vault: Spawns in seed vault structures in lavaland. Ghosts become plantpeople and are advised to begin growing plants in the room near them.
 /obj/effect/mob_spawn/human/seed_vault
 	name = "preserved terrarium"
@@ -36,6 +36,44 @@
 
 //Ash walker eggs: Spawns in ash walker dens in lavaland. Ghosts become unbreathing lizards that worship the Necropolis and are advised to retrieve corpses to create more ash walkers.
 
+/obj/structure/ash_walker_eggshell
+	name = "ash walker egg"
+	desc = "A man-sized yellow egg, spawned from some unfathomable creature. A humanoid silhouette lurks within. The egg shell looks resistant to temperature but otherwise rather brittle."
+	icon = 'icons/mob/lavaland/lavaland_monsters.dmi'
+	icon_state = "large_egg"
+	resistance_flags = LAVA_PROOF | FIRE_PROOF | FREEZE_PROOF
+	max_integrity = 80
+	var/obj/effect/mob_spawn/human/ash_walker/egg
+
+/obj/structure/ash_walker_eggshell/play_attack_sound(damage_amount, damage_type = BRUTE, damage_flag = 0) //lifted from xeno eggs
+	switch(damage_type)
+		if(BRUTE)
+			if(damage_amount)
+				playsound(loc, 'sound/effects/attackblob.ogg', 100, TRUE)
+			else
+				playsound(src, 'sound/weapons/tap.ogg', 50, TRUE)
+		if(BURN)
+			if(damage_amount)
+				playsound(loc, 'sound/items/welder.ogg', 100, TRUE)
+
+/obj/structure/ash_walker_eggshell/attack_ghost(mob/user) //Pass on ghost clicks to the mob spawner
+	if(egg)
+		egg.attack_ghost(user)
+	. = ..()
+
+/obj/structure/ash_walker_eggshell/Destroy()
+	if(!egg)
+		return ..()
+	var/mob/living/carbon/human/yolk = new /mob/living/carbon/human/(get_turf(src))
+	yolk.fully_replace_character_name(null,random_unique_lizard_name(gender))
+	yolk.set_species(/datum/species/lizard/ashwalker)
+	yolk.underwear = "Nude"
+	yolk.equipOutfit(/datum/outfit/ashwalker)//this is an authentic mess we're making
+	yolk.update_body()
+	yolk.gib()
+	QDEL_NULL(egg)
+	return ..()
+	
 /obj/effect/mob_spawn/human/ash_walker
 	name = "ash walker egg"
 	desc = "A man-sized yellow egg, spawned from some unfathomable creature. A humanoid silhouette lurks within."
@@ -55,22 +93,29 @@
 	You have seen lights in the distance... they foreshadow the arrival of outsiders to your domain. \
 	Ensure your nest remains protected at all costs."
 	assignedrole = "Ash Walker"
+	var/datum/team/ashwalkers/team
+	var/obj/structure/ash_walker_eggshell/eggshell
+
+/obj/effect/mob_spawn/human/ash_walker/Destroy()
+	eggshell = null
+	return ..()
+
+/obj/effect/mob_spawn/human/ash_walker/allow_spawn(mob/user, silent = FALSE)
+	if(!(user.key in team.players_spawned) || spawnOverride)//one per person unless you get a bonus spawn
+		return TRUE
+	to_chat(user, span_warning("<b>You have exhausted your usefulness to the Necropolis</b>."))
+	return FALSE
 
 /obj/effect/mob_spawn/human/ash_walker/special(mob/living/new_spawn)
 	new_spawn.real_name = random_unique_lizard_name(gender)
 	if(is_mining_level(z))
 		to_chat(new_spawn, "<b>Drag the corpses of men and beasts to your nest. It will absorb them to create more of your kind. Glory to the Necropolis!</b>")
 		to_chat(new_spawn, "<b>You can expand the weather proof area provided by your shelters by using the 'New Area' key near the bottom right of your HUD.</b>")
+		to_chat(new_spawn, "<b>Dragging injured ashwalkers to the tentacle or using the sleep verb next to it youself causes the body to remade whole after a short delay!</b>")
 	else
 		to_chat(new_spawn, "<span class='userdanger'>You have been born outside of your natural home! Whether you decide to return home, or make due with your new home is your own decision.</span>")
 
 //Ash walkers on birth understand how to make bone bows, bone arrows and ashen arrows
-
-	new_spawn.mind.teach_crafting_recipe(/datum/crafting_recipe/bone_arrow)
-	new_spawn.mind.teach_crafting_recipe(/datum/crafting_recipe/bone_bow)
-	new_spawn.mind.teach_crafting_recipe(/datum/crafting_recipe/ashen_arrow)
-	new_spawn.mind.teach_crafting_recipe(/datum/crafting_recipe/quiver)
-	new_spawn.mind.teach_crafting_recipe(/datum/crafting_recipe/bow_tablet)
 
 	if(ishuman(new_spawn))
 		var/mob/living/carbon/human/H = new_spawn
@@ -78,10 +123,18 @@
 		H.undershirt = "Nude"
 		H.socks = "Nude"
 		H.update_body()
+		new_spawn.mind.add_antag_datum(/datum/antagonist/ashwalker, team)
+		team.players_spawned += (new_spawn.key)
+		eggshell.egg = null
+		QDEL_NULL(eggshell)
 
-/obj/effect/mob_spawn/human/ash_walker/Initialize(mapload)
+/obj/effect/mob_spawn/human/ash_walker/Initialize(mapload, datum/team/ashwalkers/ashteam)
 	. = ..()
 	var/area/A = get_area(src)
+	team = ashteam
+	eggshell = new /obj/structure/ash_walker_eggshell(get_turf(loc))
+	eggshell.egg = src
+	src.forceMove(eggshell)
 	if(A)
 		notify_ghosts("An ash walker egg is ready to hatch in \the [A.name].", source = src, action=NOTIFY_ATTACK, flashwindow = FALSE, ignore_key = POLL_IGNORE_ASHWALKER, ignore_dnr_observers = TRUE)
 
@@ -590,7 +643,7 @@
 
 /obj/effect/mob_spawn/human/pirate
 	name = "space pirate sleeper"
-	desc = "A cryo sleeper smelling faintly of rum."
+	desc = "A cryo sleeper smelling faintly of rum. The sleeper looks unstable. <i>Perhaps the pirate within can be killed with the right tools...</i>"
 	job_description = "Space Pirate"
 	random = TRUE
 	icon = 'icons/obj/machines/sleeper.dmi'
@@ -607,6 +660,54 @@
 	flavour_text = "The station refused to pay for your protection, protect the ship, siphon the credits from the station and raid it for even more loot."
 	assignedrole = "Space Pirate"
 	var/rank = "Mate"
+
+/obj/effect/mob_spawn/human/pirate/on_attack_hand(mob/living/user, act_intent = user.a_intent, unarmed_attack_flags)
+	. = ..()
+	if(.)
+		return
+	if(user.mind.has_antag_datum(/datum/antagonist/pirate))
+		to_chat(user, "<span class='notice'>Your shipmate sails within their dreams for now. Perhaps they may wake up eventually.</span>")
+	else
+		to_chat(user, "<span class='notice'>If you want to kill the pirate off, something to pry open the sleeper might be the best way to do it.</span>")
+
+
+/obj/effect/mob_spawn/human/pirate/attackby(obj/item/W, mob/user, params)
+	if(W.tool_behaviour == TOOL_CROWBAR && user.a_intent != INTENT_HARM)
+		if(user.mind.has_antag_datum(/datum/antagonist/pirate))
+			to_chat(user,"<span class='warning'>Why would you want to do that to your shipmate? That'd kill them.</span>")
+			return
+		user.visible_message("<span class='warning'>[user] start to pry open [src]...</span>",
+				"<span class='notice'>You start to pry open [src]...</span>",
+				"<span class='italics'>You hear prying...</span>")
+		W.play_tool_sound(src)
+		if(do_after(user, 100*W.toolspeed, target = src))
+			user.visible_message("<span class='warning'>[user] pries open [src], disrupting the sleep of the pirate within and killing them.</span>",
+				"<span class='notice'>You pry open [src], disrupting the sleep of the pirate within and killing them.</span>",
+				"<span class='italics'>You hear prying, followed by the death rattling of bones.</span>")
+			log_game("[key_name(user)] has successfully pried open [src] and disabled a space pirate spawner.")
+			W.play_tool_sound(src)
+			playsound(src.loc, 'modular_citadel/sound/voice/scream_skeleton.ogg', 50, 1, 4, 1.2)
+			if(rank == "Captain")
+				new /obj/effect/mob_spawn/human/pirate/corpse/captain(get_turf(src))
+			else
+				new /obj/effect/mob_spawn/human/pirate/corpse(get_turf(src))
+			qdel(src)
+	else
+		..()
+
+/obj/effect/mob_spawn/human/pirate/corpse //occurs when someone pries a pirate out of their sleeper.
+	mob_name = "Dead Space Pirate"
+	death = TRUE
+	instant = TRUE
+	random = FALSE
+
+/obj/effect/mob_spawn/human/pirate/corpse/Destroy()
+	return ..()
+
+/obj/effect/mob_spawn/human/pirate/corpse/captain
+	rank = "Captain"
+	mob_name = "Dead Space Pirate Captain"
+	outfit = /datum/outfit/pirate/space/captain
 
 /obj/effect/mob_spawn/human/pirate/special(mob/living/new_spawn)
 	new_spawn.fully_replace_character_name(new_spawn.real_name,generate_pirate_name())
@@ -662,6 +763,72 @@
 		to_chat(M,"<span class='notice'>You're once again longer hearing deadchat.</span>")
 
 
+/datum/action/disguise
+	name = "Disguise"
+	button_icon_state = "ling_transform"
+	icon_icon = 'icons/mob/actions/actions_changeling.dmi'
+	background_icon_state = "bg_mime"
+	var/currently_disguised = FALSE
+	var/static/list/mob_blacklist = typecacheof(list(
+		/mob/living/simple_animal/pet,
+		/mob/living/simple_animal/hostile/retaliate/goose,
+		/mob/living/simple_animal/hostile/poison,
+		/mob/living/simple_animal/hostile/retaliate/goat,
+		/mob/living/simple_animal/cow,
+		/mob/living/simple_animal/chick,
+		/mob/living/simple_animal/chicken,
+		/mob/living/simple_animal/kiwi,
+		/mob/living/simple_animal/babyKiwi,
+		/mob/living/simple_animal/deer,
+		/mob/living/simple_animal/parrot,
+		/mob/living/simple_animal/hostile/lizard,
+		/mob/living/simple_animal/crab,
+		/mob/living/simple_animal/cockroach,
+		/mob/living/simple_animal/butterfly,
+		/mob/living/simple_animal/mouse,
+		/mob/living/simple_animal/sloth,
+		/mob/living/simple_animal/opossum,
+		/mob/living/simple_animal/hostile/bear,
+		/mob/living/simple_animal/hostile/asteroid/polarbear,
+		/mob/living/simple_animal/hostile/asteroid/wolf,
+		/mob/living/carbon/monkey,
+		/mob/living/simple_animal/hostile/gorilla,
+		/mob/living/carbon/alien/larva,
+		/mob/living/simple_animal/hostile/retaliate/frog
+	))
+
+
+/datum/action/disguise/Trigger()
+	var/mob/living/carbon/human/H = owner
+	if(!currently_disguised)
+		var/user_object_type = input(H, "Disguising as OBJECT or MOB?") as null|anything in list("OBJECT", "MOB")
+		if(user_object_type)
+			var/search_term = stripped_input(H, "Enter the search term")
+			if(search_term)
+				var/list_to_search
+				if(user_object_type == "MOB")
+					list_to_search = subtypesof(/mob) - mob_blacklist
+				else
+					list_to_search = subtypesof(/obj)
+				var/list/filtered_results = list()
+				for(var/some_search_item in list_to_search)
+					if(findtext("[some_search_item]", search_term))
+						filtered_results += some_search_item
+				if(!length(filtered_results))
+					to_chat(H, "Nothing matched your search query!")
+				else
+					var/disguise_selection = input("Select item to disguise as") as null|anything in filtered_results
+					if(disguise_selection)
+						var/atom/disguise_item = disguise_selection
+						var/image/I = image(icon = initial(disguise_item.icon), icon_state = initial(disguise_item.icon_state), loc = H)
+						I.override = TRUE
+						I.layer = ABOVE_MOB_LAYER
+						H.add_alt_appearance(/datum/atom_hud/alternate_appearance/basic/everyone, "ghost_cafe_disguise", I)
+						currently_disguised = TRUE
+	else
+		H.remove_alt_appearance("ghost_cafe_disguise")
+		currently_disguised = FALSE
+
 /obj/effect/mob_spawn/human/ghostcafe/special(mob/living/carbon/human/new_spawn)
 	if(new_spawn.client)
 		new_spawn.client.prefs.copy_to(new_spawn)
@@ -676,10 +843,11 @@
 		ADD_TRAIT(new_spawn, TRAIT_SIXTHSENSE, GHOSTROLE_TRAIT)
 		ADD_TRAIT(new_spawn, TRAIT_EXEMPT_HEALTH_EVENTS, GHOSTROLE_TRAIT)
 		ADD_TRAIT(new_spawn, TRAIT_NO_MIDROUND_ANTAG, GHOSTROLE_TRAIT) //The mob can't be made into a random antag, they are still eligible for ghost roles popups.
-		ADD_TRAIT(new_spawn, TRAIT_PACIFISM, GHOSTROLE_TRAIT)
 		to_chat(new_spawn,"<span class='boldwarning'>Ghosting is free!</span>")
 		var/datum/action/toggle_dead_chat_mob/D = new(new_spawn)
 		D.Grant(new_spawn)
+		var/datum/action/disguise/disguise_action = new(new_spawn)
+		disguise_action.Grant(new_spawn)
 
 /datum/outfit/ghostcafe
 	name = "ID, jumpsuit and shoes"
@@ -691,6 +859,13 @@
 
 /datum/outfit/ghostcafe/pre_equip(mob/living/carbon/human/H, visualsOnly = FALSE, client/preference_source)
 	..()
+	if (isplasmaman(H))
+		head = /obj/item/clothing/head/helmet/space/plasmaman
+		uniform = /obj/item/clothing/under/plasmaman
+		l_hand= /obj/item/tank/internals/plasmaman/belt/full
+		mask = /obj/item/clothing/mask/breath
+		return
+
 	var/suited = !preference_source || preference_source.prefs.jumpsuit_style == PREF_SUIT
 	if (CONFIG_GET(flag/grey_assistants))
 		uniform = suited ? /obj/item/clothing/under/color/grey : /obj/item/clothing/under/color/jumpskirt/grey
@@ -699,6 +874,10 @@
 			uniform = suited ? /obj/item/clothing/under/color/rainbow : /obj/item/clothing/under/color/jumpskirt/rainbow
 		else
 			uniform = suited ? /obj/item/clothing/under/color/random : /obj/item/clothing/under/color/jumpskirt/random
+
+/datum/outfit/ghostcafe/post_equip(mob/living/carbon/human/H, visualsOnly = FALSE, client/preference_source)
+	H.internal = H.get_item_for_held_index(1)
+	H.update_internals_hud_icon(1)
 
 /obj/item/storage/box/syndie_kit/chameleon/ghostcafe
 	name = "ghost cafe costuming kit"

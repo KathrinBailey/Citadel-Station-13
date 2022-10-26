@@ -273,8 +273,7 @@ a.popt {
 
 
 .italic,
-.italics,
-.emote {
+.italics {
   font-style: italic;
 }
 
@@ -357,7 +356,7 @@ em {
   font-weight: bold;
 }
 
-.say {
+.say, .emote, .infoplain, .oocplain, .warningplain {
 }
 
 .deadsay {
@@ -415,6 +414,10 @@ em {
   color: #6d3f40;
 }
 
+.gangradio {
+  color: #ac2ea1;
+}
+
 .centcomradio {
   color: #686868;
 }
@@ -431,6 +434,14 @@ em {
   color: #0000ff;
 }
 
+.greenteamradio {
+  color: #00ff00;
+}
+
+.yellowteamradio {
+  color: #d1ba22;
+}
+
 .yell {
   font-weight: bold;
 }
@@ -441,10 +452,6 @@ em {
 
 h1.alert, h2.alert {
   color: #000000;
-}
-
-.emote {
-  font-style: italic;
 }
 
 .userdanger {
@@ -477,6 +484,10 @@ h1.alert, h2.alert {
   font-style: italic;
 }
 
+blockquote.warning {
+  border-color: #ff0000;
+}
+
 .alertwarning {
   color: #FF0000;
   font-weight: bold;
@@ -498,6 +509,11 @@ h1.alert, h2.alert {
   font-weight: bold;
 }
 
+.minorannounce {
+  font-weight: bold;
+  font-size: 185%;
+}
+
 .greenannounce {
   color: #00ff00;
   font-weight: bold;
@@ -510,12 +526,24 @@ h1.alert, h2.alert {
 .info {
   color: #0000CC;
 }
+blockquote.info {
+  border-color: #0000CC;
+}
 
 .notice {
   color: #000099;
 }
 
+blockquote.notice {
+  border-color: #000099;
+}
+
 .tinynotice {
+  color: #000099;
+  font-size: 85%;
+}
+
+.tinynoticeital {
   color: #000099;
   font-style: italic;
   font-size: 85%;
@@ -565,16 +593,31 @@ h1.alert, h2.alert {
   color: #03ff39;
 }
 
+blockquote.green {
+  border-color: #03ff39;
+}
+
 .red {
   color: #FF0000;
+}
+blockquote.red {
+  border-color: #FF0000;
 }
 
 .blue {
   color: #0000FF;
 }
 
+blockquote.blue {
+  border-color: #0000FF;
+}
+
 .nicegreen {
   color: #14a833;
+}
+
+blockquote.nicegreen {
+  border-color: #14a833;
 }
 
 .userlove {
@@ -591,40 +634,44 @@ h1.alert, h2.alert {
 }
 
 .cult {
-  color: #960000;
+  color: #973e3b;
+}
+
+blockquote.cult {
+  border-color: #973e3b;
 }
 
 .cultitalic {
-  color: #960000;
+  color: #973e3b;
   font-style: italic;
 }
 
 .cultbold {
-  color: #960000;
+  color: #973e3b;
   font-style: italic;
   font-weight: bold;
 }
 
 .cultboldtalic {
-  color: #960000;
+  color: #973e3b;
   font-weight: bold;
   font-size: 185%;
 }
 
 .cultlarge {
-  color: #960000;
+  color: #973e3b;
   font-weight: bold;
   font-size: 185%;
 }
 
 .narsie {
-  color: #960000;
+  color: #973e3b;
   font-weight: bold;
   font-size: 925%;
 }
 
 .narsiesmall {
-  color: #960000;
+  color: #973e3b;
   font-weight: bold;
   font-size: 370%;
 }
@@ -647,6 +694,10 @@ h1.alert, h2.alert {
 
 .purple {
   color: #5e2d79;
+}
+
+blockquote.purple {
+  border-color: #5e2d79;
 }
 
 .holoparasite {
@@ -683,6 +734,7 @@ h1.alert, h2.alert {
   font-size: 185%;
 }
 
+/* compatability */
 .umbra {
   color: #5000A0;
 }
@@ -710,6 +762,10 @@ h1.alert, h2.alert {
 /* from decon_msg: font-size: 185% == font-size 3*/
 .brass {
   color: #BE8700;
+}
+
+blockquote.brass {
+  border-color: #BE8700;
 }
 
 .heavy_brass {
@@ -884,9 +940,14 @@ h1.alert, h2.alert {
   font-family: "Courier New", cursive, sans-serif;
 }
 
+.tape_recorder {
+  color: #800000;
+  font-family: "Courier New", cursive, sans-serif;
+}
+
 .command_headset {
   font-weight: bold;
-  font-size: 160%;
+  font-size: 125%; /* 160% default, changed so command can scream less */
 }
 
 .small {
@@ -922,7 +983,7 @@ h1.alert, h2.alert {
 
 .clown {
   color: #FF69Bf;
-  font-size: 160%;
+  font-size: 125%;
   font-family: "Comic Sans MS", cursive, sans-serif;
   font-weight: bold;
 }
@@ -938,7 +999,7 @@ h1.alert, h2.alert {
   font-style: italic;
 }
 
-.spooky {
+.spooky { /* cit specific, used by jacq */
   color: #FF9100;
 }
 
@@ -971,7 +1032,7 @@ h1.alert, h2.alert {
   }
 }
 
-.velvet	{
+.velvet	{ /* cit specific, used by MKU */
   color: #660015;
   font-weight: bold;
   animation: velvet 5000ms infinite;
@@ -1019,6 +1080,10 @@ h1.alert, h2.alert {
 .icon {
   height: 1em;
   width: auto;
+}
+
+.bigicon {
+  font-size: 2.5em;
 }
 
 .memo {

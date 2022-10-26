@@ -47,7 +47,7 @@
 
 /datum/reagent/consumable/limejuice/on_mob_life(mob/living/carbon/M)
 	if(M.getToxLoss() && prob(20))
-		M.adjustToxLoss(-1*REM, 0)
+		M.adjustToxLoss(-1*REAGENTS_EFFECT_MULTIPLIER, 0)
 		. = 1
 	..()
 
@@ -504,6 +504,14 @@
 	glass_desc = "Don't cry, Don't raise your eye, It's only nuclear wasteland."
 	value = REAGENT_VALUE_COMMON
 
+/datum/reagent/consumable/nuka_cola/on_mob_metabolize(mob/living/carbon/M)
+	M.add_movespeed_modifier(/datum/movespeed_modifier/reagent/nuka_cola)
+	return ..()
+
+/datum/reagent/consumable/nuka_cola/on_mob_end_metabolize(mob/living/carbon/M)
+	M.remove_movespeed_modifier(/datum/movespeed_modifier/reagent/nuka_cola)
+	return ..()
+
 /datum/reagent/consumable/nuka_cola/on_mob_life(mob/living/carbon/M)
 	M.Jitter(20)
 	M.set_drugginess(30)
@@ -608,7 +616,7 @@
 	name = "Buzz Fuzz"
 	description = "~A Hive of Flavour!~ NOTICE: Addicting."
 	nutriment_factor = 0
-	addiction_threshold = 26 //A can and a sip
+	addiction_threshold = 31 //A can and a sip
 	color = "#8CFF00" // rgb: 135, 255, 0
 	taste_description = "carbonated honey and pollen"
 	glass_icon_state = "buzz_fuzz"
@@ -625,8 +633,9 @@
 			myseed.adjust_potency(round(chems.get_reagent_amount(src.type) * 0.5))
 
 /datum/reagent/consumable/buzz_fuzz/on_mob_life(mob/living/carbon/M)
-	M.reagents.add_reagent(/datum/reagent/consumable/sugar,1)
-	if(prob(5))
+	if(prob(33))
+		M.reagents.add_reagent(/datum/reagent/consumable/sugar,1)
+	if(prob(1))
 		M.reagents.add_reagent(/datum/reagent/consumable/honey,1)
 	..()
 
@@ -1025,7 +1034,7 @@
 	M.update_transform()
 	..()
 
-/datum/reagent/consumable/pinkmilk
+/datum/reagent/consumable/milk/pinkmilk
 	name = "Strawberry Milk"
 	description = "A drink of a bygone era of milk and artificial sweetener back on a rock."
 	color = "#f76aeb"//rgb(247, 106, 235)
@@ -1036,13 +1045,13 @@
 	glass_desc = "Delicious flavored strawberry syrup mixed with milk."
 	value = REAGENT_VALUE_VERY_COMMON
 
-/datum/reagent/consumable/tea/pinkmilk/on_mob_life(mob/living/carbon/M)
+/datum/reagent/consumable/milk/pinkmilk/on_mob_life(mob/living/carbon/M)
 	if(prob(15))
 		to_chat(M, "<span class = 'notice'>[pick("You cant help to smile.","You feel nostalgia all of sudden.","You remember to relax.")]</span>")
 	..()
 	. = 1
 
-/datum/reagent/consumable/pinktea //Tiny Tim song
+/datum/reagent/consumable/tea/pinktea //Tiny Tim song
 	name = "Strawberry Tea"
 	description = "A timeless classic!"
 	color = "#f76aeb"//rgb(247, 106, 235)

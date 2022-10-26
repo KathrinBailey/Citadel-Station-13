@@ -13,14 +13,15 @@
 	maxbodytemp = INFINITY
 	pass_flags = PASSTABLE | PASSGRILLE | PASSMOB
 	mob_size = MOB_SIZE_TINY
-	response_help  = "pokes"
-	response_disarm = "shoos"
-	response_harm   = "splats"
+	response_help_continuous  = "pokes"
+	response_help_simple = "poke"
+	response_disarm_continuous = "shoos"
+	response_disarm_simple = "shoo"
+	response_harm_continuous = "splats"
+	response_harm_simple = "plat"
 	speak_emote = list("chitters")
 	mouse_opacity = 2
 	density = TRUE
-	ventcrawler = VENTCRAWLER_ALWAYS
-	gold_core_spawnable = FRIENDLY_SPAWN
 	verb_say = "chitters"
 	verb_ask = "chitters inquisitively"
 	verb_exclaim = "chitters loudly"
@@ -29,11 +30,13 @@
 	var/projectile_density = TRUE		//griffons get shot
 	del_on_death = TRUE
 
-/mob/living/simple_animal/banana_spider/Initialize()
+/mob/living/simple_animal/banana_spider/Initialize(mapload)
 	. = ..()
 	var/area/A = get_area(src)
 	if(A)
 		notify_ghosts("A banana spider has been created in \the [A.name].", source = src, action=NOTIFY_ATTACK, flashwindow = FALSE, ignore_dnr_observers = TRUE)
+
+	AddElement(/datum/element/ventcrawling, given_tier = VENTCRAWLER_ALWAYS)
 
 /mob/living/simple_animal/banana_spider/attack_ghost(mob/user)
 	if(key)			//please stop using src. without a good reason.
@@ -84,7 +87,7 @@
 			else
 				visible_message("<span class='notice'>[src] avoids getting crushed.</span>")
 
-/mob/living/simple_animal/banana_spider/ex_act()
+/mob/living/simple_animal/banana_spider/ex_act(severity, target, origin)
 	return
 
 /mob/living/simple_animal/banana_spider/start_pulling()
@@ -102,6 +105,6 @@
 	juice_results = list(/datum/reagent/consumable/banana = 0)
 
 
-/obj/item/reagent_containers/food/snacks/deadbanana_spider/Initialize()
+/obj/item/reagent_containers/food/snacks/deadbanana_spider/Initialize(mapload)
 	. = ..()
 	AddComponent(/datum/component/slippery, 20)

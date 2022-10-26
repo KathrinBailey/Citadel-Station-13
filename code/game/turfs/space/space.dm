@@ -3,31 +3,43 @@
 	icon_state = "0"
 	name = "\proper space"
 	intact = 0
+	dirt_buildup_allowed = FALSE
 
-	temperature = TCMB
-	thermal_conductivity = OPEN_HEAT_TRANSFER_COEFFICIENT
+	initial_temperature = TCMB
+	thermal_conductivity = 0
 	heat_capacity = 700000
+	wave_explosion_multiply = EXPLOSION_DAMPEN_SPACE
+	wave_explosion_block = EXPLOSION_BLOCK_SPACE
 
 	var/destination_z
 	var/destination_x
 	var/destination_y
 
-	var/static/datum/gas_mixture/immutable/space/space_gas = new
+	var/static/datum/gas_mixture/immutable/space/space_gas
 	plane = PLANE_SPACE
 	layer = SPACE_LAYER
 	light_power = 0.25
 	dynamic_lighting = DYNAMIC_LIGHTING_DISABLED
 	bullet_bounce_sound = null
 
+	vis_flags = VIS_INHERIT_ID	//when this be added to vis_contents of something it be associated with something on clicking, important for visualisation of turf in openspace and interraction with openspace that show you turf.
 
 /turf/open/space/basic/New()	//Do not convert to Initialize
 	//This is used to optimize the map loader
 	return
 
-/turf/open/space/Initialize()
+/**
+ * Space Initialize
+ *
+ * Doesn't call parent, see [/atom/proc/Initialize]
+ */
+/turf/open/space/Initialize(mapload)
+	SHOULD_CALL_PARENT(FALSE)
 	icon_state = SPACE_ICON_STATE
+	if(!space_gas)
+		space_gas = new
 	air = space_gas
-	update_air_ref()
+	update_air_ref(0)
 	vis_contents.Cut() //removes inherited overlays
 	visibilityChanged()
 
@@ -35,18 +47,31 @@
 		stack_trace("Warning: [src]([type]) initialized multiple times!")
 	flags_1 |= INITIALIZED_1
 
+	// if (length(smoothing_groups))
+	// 	sortTim(smoothing_groups) //In case it's not properly ordered, let's avoid duplicate entries with the same values.
+	// 	SET_BITFLAG_LIST(smoothing_groups)
+	// if (length(canSmoothWith))
+	// 	sortTim(canSmoothWith)
+	// 	if(canSmoothWith[length(canSmoothWith)] > MAX_S_TURF) //If the last element is higher than the maximum turf-only value, then it must scan turf contents for smoothing targets.
+	// 		smoothing_flags |= SMOOTH_OBJ
+	// 	SET_BITFLAG_LIST(canSmoothWith)
+
 	var/area/A = loc
 	if(!IS_DYNAMIC_LIGHTING(src) && IS_DYNAMIC_LIGHTING(A))
 		add_overlay(/obj/effect/fullbright)
-
-	if(requires_activation)
-		SSair.add_to_active(src)
 
 	if (light_power && light_range)
 		update_light()
 
 	if (opacity)
 		has_opaque_atom = TRUE
+
+	var/turf/T = SSmapping.get_turf_above(src)
+	if(T)
+		T.multiz_turf_new(src, DOWN)
+	T = SSmapping.get_turf_below(src)
+	if(T)
+		T.multiz_turf_new(src, UP)
 
 	ComponentInitialize()
 
@@ -73,6 +98,13 @@
 /turf/open/space/Assimilate_Air()
 	return
 
+//IT SHOULD RETURN NULL YOU MONKEY, WHY IN TARNATION WHAT THE FUCKING FUCK
+/turf/open/space/remove_air(amount)
+	return null
+
+/turf/open/space/remove_air_ratio(amount)
+	return null
+
 /turf/open/space/proc/update_starlight()
 	if(CONFIG_GET(flag/starlight))
 		for(var/t in RANGE_TURFS(1,src)) //RANGE_TURFS is in code\__HELPERS\game.dm
@@ -89,9 +121,8 @@
 /turf/open/space/proc/CanBuildHere()
 	return TRUE
 
-/turf/open/space/handle_slip(mob/living/carbon/C, knockdown_amount, obj/O, lube)
-	if(lube & FLYING_DOESNT_HELP)
-		return ..()
+/turf/open/space/handle_slip()
+	return // no lube bullshit, this is space
 
 /turf/open/space/attackby(obj/item/C, mob/user, params)
 	..()
@@ -106,15 +137,16 @@
 			return
 		if(L)
 			if(R.use(1))
+				qdel(L)
 				to_chat(user, "<span class='notice'>You construct a catwalk.</span>")
-				playsound(src, 'sound/weapons/genhit.ogg', 50, 1)
+				playsound(src, 'sound/weapons/genhit.ogg', 50, TRUE)
 				new/obj/structure/lattice/catwalk(src)
 			else
 				to_chat(user, "<span class='warning'>You need two rods to build a catwalk!</span>")
 			return
 		if(R.use(1))
 			to_chat(user, "<span class='notice'>You construct a lattice.</span>")
-			playsound(src, 'sound/weapons/genhit.ogg', 50, 1)
+			playsound(src, 'sound/weapons/genhit.ogg', 50, TRUE)
 			ReplaceWithLattice()
 		else
 			to_chat(user, "<span class='warning'>You need one rod to build a lattice.</span>")
@@ -125,7 +157,7 @@
 			var/obj/item/stack/tile/plasteel/S = C
 			if(S.use(1))
 				qdel(L)
-				playsound(src, 'sound/weapons/genhit.ogg', 50, 1)
+				playsound(src, 'sound/weapons/genhit.ogg', 50, TRUE)
 				to_chat(user, "<span class='notice'>You build a floor.</span>")
 				PlaceOnTop(/turf/open/floor/plating, flags = CHANGETURF_INHERIT_AIR)
 			else
@@ -163,6 +195,8 @@
 
 		while (pulling != null)
 			var/next_pulling = pulling.pulling
+			if(next_pulling == pulling)
+				break		// no loops
 
 			var/turf/T = get_step(puller.loc, turn(puller.dir, 180))
 			pulling.can_be_z_moved = FALSE
@@ -242,12 +276,14 @@
 	destination_y = dest_y
 	destination_z = dest_z
 
+/turf/open/space/get_yelling_resistance(power)
+	return INFINITY				// no sound through space for crying out loud
 
 /turf/open/space/transparent
 	baseturfs = /turf/open/space/transparent/openspace
 	intact = FALSE //this means wires go on top
 
-/turf/open/space/transparent/Initialize() // handle plane and layer here so that they don't cover other obs/turfs in Dream Maker
+/turf/open/space/transparent/Initialize(mapload) // handle plane and layer here so that they don't cover other obs/turfs in Dream Maker
 	..()
 	plane = OPENSPACE_PLANE
 	layer = OPENSPACE_LAYER
@@ -286,12 +322,7 @@
 
 ///Called when there is no real turf below this turf
 /turf/open/space/transparent/proc/show_bottom_level()
-	var/turf/path = SSmapping.level_trait(z, ZTRAIT_BASETURF) || /turf/open/space
-	if(!ispath(path))
-		path = text2path(path)
-		if(!ispath(path))
-			warning("Z-level [z] has invalid baseturf '[SSmapping.level_trait(z, ZTRAIT_BASETURF)]'")
-			path = /turf/open/space
+	var/turf/path = get_z_base_turf()
 	var/mutable_appearance/underlay_appearance = mutable_appearance(initial(path.icon), initial(path.icon_state), layer = TURF_LAYER, plane = PLANE_SPACE)
 	underlays += underlay_appearance
 	return TRUE
@@ -308,7 +339,7 @@
 /turf/open/space/transparent/openspace/show_bottom_level()
 	return FALSE
 
-/turf/open/space/transparent/openspace/Initialize() // handle plane and layer here so that they don't cover other obs/turfs in Dream Maker
+/turf/open/space/transparent/openspace/Initialize(mapload) // handle plane and layer here so that they don't cover other obs/turfs in Dream Maker
 	. = ..()
 
 	icon_state = "transparent"

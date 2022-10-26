@@ -69,13 +69,18 @@
 #define LINGBLOOD_EXPLOSION_THRESHOLD (LINGBLOOD_DETECTION_THRESHOLD * LINGBLOOD_EXPLOSION_MULT) //Hey, important to note here: the explosion threshold is explicitly more than, rather than more than or equal to. This stops a single loud ability from triggering the explosion threshold.
 
 ///Heretics --
+GLOBAL_LIST_EMPTY(living_heart_cache)	//A list of all living hearts in existance, for us to iterate through.
+
+
 #define IS_HERETIC(mob) (mob.mind?.has_antag_datum(/datum/antagonist/heretic))
+#define IS_HERETIC_MONSTER(mob) (mob.mind?.has_antag_datum(/datum/antagonist/heretic_monster))
 
 #define PATH_SIDE "Side"
 
 #define PATH_ASH "Ash"
 #define PATH_RUST "Rust"
 #define PATH_FLESH "Flesh"
+#define PATH_VOID "Void"
 
 //Overthrow time to update heads obj
 #define OBJECTIVE_UPDATING_TIME 300
@@ -106,3 +111,21 @@
 #define BLOB_SPREAD_COST 4
 #define BLOB_ATTACK_REFUND 2 //blob refunds this much if it attacks and doesn't spread
 #define BLOB_REFLECTOR_COST 15
+
+/// How many telecrystals a normal traitor starts with
+#define TELECRYSTALS_DEFAULT 20
+/// How many telecrystals mapper/admin only "precharged" uplink implant
+#define TELECRYSTALS_PRELOADED_IMPLANT 10
+/// The normal cost of an uplink implant; used for calcuating how many
+/// TC to charge someone if they get a free implant through choice or
+/// because they have nothing else that supports an implant.
+#define UPLINK_IMPLANT_TELECRYSTAL_COST 4
+
+/// The dimensions of the antagonist preview icon. Will be scaled to this size.
+#define ANTAGONIST_PREVIEW_ICON_SIZE 96
+
+//Objectives-Ambitions Panel
+#define REQUEST_NEW_OBJECTIVE "new_objective"
+#define REQUEST_DEL_OBJECTIVE "del_objective"
+#define REQUEST_WIN_OBJECTIVE "win_objective"
+#define REQUEST_LOSE_OBJECTIVE "lose_objective"

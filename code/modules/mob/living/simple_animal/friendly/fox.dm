@@ -20,6 +20,11 @@
 	gold_core_spawnable = FRIENDLY_SPAWN
 	do_footstep = TRUE
 
+	vocal_bark_id = "bullet"
+	vocal_speed = 2
+	vocal_pitch = 1.6
+	vocal_pitch_range = 0.4
+
 /mob/living/simple_animal/pet/fox/ComponentInitialize()
 	. = ..()
 	AddElement(/datum/element/mob_holder, "fox")

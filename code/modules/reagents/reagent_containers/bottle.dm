@@ -8,7 +8,7 @@
 	possible_transfer_amounts = list(5,10,15,25,30)
 	volume = 30
 
-/obj/item/reagent_containers/glass/bottle/Initialize()
+/obj/item/reagent_containers/glass/bottle/Initialize(mapload)
 	. = ..()
 	if(!icon_state)
 		icon_state = "bottle"
@@ -43,6 +43,26 @@
 	name = "epinephrine bottle"
 	desc = "A small bottle. Contains epinephrine - used to stabilize patients."
 	list_reagents = list(/datum/reagent/medicine/epinephrine = 30)
+
+/obj/item/reagent_containers/glass/bottle/bicaridine
+	name = "bicaridine bottle"
+	desc = "A small bottle. Contains bicaridine - used to treat brute damage."
+	list_reagents = list(/datum/reagent/medicine/bicaridine = 30)
+
+/obj/item/reagent_containers/glass/bottle/kelotane
+	name = "kelotane bottle"
+	desc = "A small bottle. Contains kelotane - used to treat burn damage."
+	list_reagents = list(/datum/reagent/medicine/kelotane = 30)
+
+/obj/item/reagent_containers/glass/bottle/antitoxin
+	name = "anti-toxin bottle"
+	desc = "A small bottle. Contains anti-toxin - used to treat minor poisoning."
+	list_reagents = list(/datum/reagent/medicine/antitoxin = 30)
+
+/obj/item/reagent_containers/glass/bottle/dexalin
+	name = "dexalin bottle"
+	desc = "A small bottle. Contains dexalin - used to treat minor suffocation."
+	list_reagents = list(/datum/reagent/medicine/dexalin = 30)
 
 /obj/item/reagent_containers/glass/bottle/toxin
 	name = "toxin bottle"
@@ -139,7 +159,7 @@
 	icon = 'icons/obj/chemical.dmi'
 	var/extra_reagent = null
 
-/obj/item/reagent_containers/glass/bottle/traitor/Initialize()
+/obj/item/reagent_containers/glass/bottle/traitor/Initialize(mapload)
 	. = ..()
 	extra_reagent = pick(/datum/reagent/toxin/polonium, /datum/reagent/toxin/histamine, /datum/reagent/toxin/formaldehyde,
 					/datum/reagent/toxin/venom, /datum/reagent/toxin/fentanyl, /datum/reagent/toxin/cyanide)
@@ -417,6 +437,26 @@
 	name = "bromine bottle"
 	list_reagents = list(/datum/reagent/bromine = 30)
 
+/obj/item/reagent_containers/glass/bottle/crocin
+	name = "Crocin bottle"
+	desc = "A bottle of mild aphrodisiac. Increases libido."
+	list_reagents = list(/datum/reagent/drug/aphrodisiac = 30)
+
+/obj/item/reagent_containers/glass/bottle/hexacrocin
+	name = "Hexacrocin bottle"
+	desc = "A bottle of strong aphrodisiac. Increases libido."
+	list_reagents = list(/datum/reagent/drug/aphrodisiacplus = 30)
+
+/obj/item/reagent_containers/glass/bottle/camphor
+	name = "Camphor bottle"
+	desc = "A bottle of mild anaphrodisiac. Reduces libido."
+	list_reagents = list(/datum/reagent/drug/anaphrodisiac = 30)
+
+/obj/item/reagent_containers/glass/bottle/hexacamphor
+	name = "Hexacamphor bottle"
+	desc = "A bottle of strong anaphrodisiac. Reduces libido."
+	list_reagents = list(/datum/reagent/drug/anaphrodisiacplus = 30)
+
 //Ichors
 /obj/item/reagent_containers/glass/bottle/ichor
 	possible_transfer_amounts = list(1)
@@ -433,3 +473,8 @@
 /obj/item/reagent_containers/glass/bottle/ichor/green
 	name = "green potion"
 	list_reagents = list(/datum/reagent/green_ichor = 1)
+
+/obj/item/reagent_containers/glass/bottle/thermite
+	name = "thermite bottle"
+	list_reagents = list(/datum/reagent/thermite = 30)
+

@@ -34,7 +34,7 @@
 	///Innate spells that are supposed to be added when a beast is created
 	var/list/spells_to_add
 
-/mob/living/simple_animal/hostile/eldritch/Initialize()
+/mob/living/simple_animal/hostile/eldritch/Initialize(mapload)
 	. = ..()
 	add_spells()
 
@@ -63,7 +63,7 @@
 
 	var/list/linked_mobs = list()
 
-/mob/living/simple_animal/hostile/eldritch/raw_prophet/Initialize()
+/mob/living/simple_animal/hostile/eldritch/raw_prophet/Initialize(mapload)
 	. = ..()
 	link_mob(src)
 
@@ -192,6 +192,11 @@
 		back.contract_next_chain_into_single_tile()
 	return
 
+/mob/living/simple_animal/hostile/eldritch/armsy/proc/get_length()
+	. += 1
+	if(back)
+		. += back.get_length()
+
 ///Updates the next mob in the chain to move to our last location, fixed the worm if somehow broken.
 /mob/living/simple_animal/hostile/eldritch/armsy/proc/update_chain_links()
 	gib_trail()
@@ -218,7 +223,7 @@
 		QDEL_NULL(back) // chain destruction baby
 	return ..()
 
-/mob/living/simple_animal/hostile/eldritch/armsy/BiologicalLife(seconds, times_fired)
+/mob/living/simple_animal/hostile/eldritch/armsy/BiologicalLife(delta_time, times_fired)
 	adjustBruteLoss(-2)
 
 /mob/living/simple_animal/hostile/eldritch/armsy/proc/heal()

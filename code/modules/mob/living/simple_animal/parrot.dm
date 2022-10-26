@@ -44,6 +44,10 @@
 	emote_hear = list("squawks.","bawks!")
 	emote_see = list("flutters its wings.")
 
+	vocal_bark_id = "banjoc4"
+	vocal_pitch = 1.4
+	vocal_pitch_range = 0.4
+
 	speak_chance = 1 //1% (1 in 100) chance every tick; So about once per 150 seconds, assuming an average tick is 1.5s
 	turns_per_move = 5
 	butcher_results = list(/obj/item/reagent_containers/food/snacks/cracker/ = 1)
@@ -59,7 +63,6 @@
 	friendly = "grooms"
 	mob_size = MOB_SIZE_SMALL
 	movement_type = FLYING
-	gold_core_spawnable = FRIENDLY_SPAWN
 
 	var/parrot_damage_upper = 10
 	var/parrot_state = PARROT_WANDER //Hunt for a perch when created
@@ -76,8 +79,10 @@
 	var/speech_shuffle_rate = 20
 	var/list/available_channels = list()
 
-	//Headset for Poly to yell at engineers :)
+	//Headset for Polly to yell at engineers :)
 	var/obj/item/radio/headset/ears = null
+	/// spawns with headset
+	var/spawns_with_headset = FALSE
 
 	//The thing the parrot is currently interested in. This gets used for items the parrot wants to pick up, mobs it wants to steal from,
 	//mobs it wants to attack or mobs that have attacked it
@@ -98,15 +103,16 @@
 	var/obj/item/held_item = null
 
 
-/mob/living/simple_animal/parrot/Initialize()
+/mob/living/simple_animal/parrot/Initialize(mapload)
 	. = ..()
-	if(!ears)
-		var/headset = pick(/obj/item/radio/headset/headset_sec, \
-						/obj/item/radio/headset/headset_eng, \
-						/obj/item/radio/headset/headset_med, \
-						/obj/item/radio/headset/headset_sci, \
-						/obj/item/radio/headset/headset_cargo)
-		ears = new headset(src)
+	if(spawns_with_headset)
+		if(!ears)
+			var/headset = pick(/obj/item/radio/headset/headset_sec, \
+							/obj/item/radio/headset/headset_eng, \
+							/obj/item/radio/headset/headset_med, \
+							/obj/item/radio/headset/headset_sci, \
+							/obj/item/radio/headset/headset_cargo)
+			ears = new headset(src)
 
 	parrot_sleep_dur = parrot_sleep_max //In case someone decides to change the max without changing the duration var
 
@@ -117,6 +123,9 @@
 			  /mob/living/simple_animal/parrot/proc/toggle_mode,
 			  /mob/living/simple_animal/parrot/proc/perch_mob_player))
 
+/mob/living/simple_animal/parrot/ComponentInitialize()
+	. = ..()
+	AddElement(/datum/element/strippable, GLOB.strippable_parrot_items)
 
 /mob/living/simple_animal/parrot/examine(mob/user)
 	. = ..()
@@ -176,91 +185,101 @@
 
 	return 0
 
-/*
- * Inventory
- */
-/mob/living/simple_animal/parrot/show_inv(mob/user)
-	user.set_machine(src)
+GLOBAL_LIST_INIT(strippable_parrot_items, create_strippable_list(list(
+	/datum/strippable_item/parrot_headset,
+)))
 
-	var/dat = 	"<div align='center'><b>Inventory of [name]</b></div><p>"
-	dat += "<br><B>Headset:</B> <A href='?src=[REF(src)];[ears ? "remove_inv=ears'>[ears]" : "add_inv=ears'>Nothing"]</A>"
+/datum/strippable_item/parrot_headset
+	key = STRIPPABLE_ITEM_PARROT_HEADSET
 
-	user << browse(dat, "window=mob[REF(src)];size=325x500")
-	onclose(user, "window=mob[REF(src)]")
+/datum/strippable_item/parrot_headset/get_item(atom/source)
+	var/mob/living/simple_animal/parrot/parrot_source = source
+	return istype(parrot_source) ? parrot_source.ears : null
 
+/datum/strippable_item/parrot_headset/try_equip(atom/source, obj/item/equipping, mob/user)
+	. = ..()
+	if (!.)
+		return FALSE
 
-/mob/living/simple_animal/parrot/Topic(href, href_list)
-	if(!(iscarbon(usr) || iscyborg(usr)) || !usr.canUseTopic(src, BE_CLOSE, FALSE, NO_TK))
-		usr << browse(null, "window=mob[REF(src)]")
-		usr.unset_machine()
+	if (!istype(equipping, /obj/item/radio/headset))
+		to_chat(user, "<span class='warning'>[equipping] won't fit!</span>")
+		return FALSE
+
+	return TRUE
+
+// There is no delay for putting a headset on a parrot.
+/datum/strippable_item/parrot_headset/start_equip(atom/source, obj/item/equipping, mob/user)
+	if(get_obscuring(source) == STRIPPABLE_OBSCURING_COMPLETELY)
+		return FALSE
+	return TRUE
+
+/datum/strippable_item/parrot_headset/finish_equip(atom/source, obj/item/equipping, mob/user)
+	if(!..())
+		return FALSE
+	var/obj/item/radio/headset/radio = equipping
+	if (!istype(radio))
+		return FALSE
+
+	var/mob/living/simple_animal/parrot/parrot_source = source
+	if (!istype(parrot_source))
+		return FALSE
+
+	if (!user.transferItemToLoc(radio, source))
+		return FALSE
+
+	parrot_source.ears = radio
+
+	to_chat(user, "<span class='notice'>You fit [radio] onto [source].</span>")
+
+	parrot_source.available_channels.Cut()
+
+	for (var/channel in radio.channels)
+		var/channel_to_add
+
+		switch (channel)
+			if (RADIO_CHANNEL_ENGINEERING)
+				channel_to_add = RADIO_TOKEN_ENGINEERING
+			if (RADIO_CHANNEL_COMMAND)
+				channel_to_add = RADIO_TOKEN_COMMAND
+			if (RADIO_CHANNEL_SECURITY)
+				channel_to_add = RADIO_TOKEN_SECURITY
+			if (RADIO_CHANNEL_SCIENCE)
+				channel_to_add = RADIO_TOKEN_SCIENCE
+			if (RADIO_CHANNEL_MEDICAL)
+				channel_to_add = RADIO_TOKEN_MEDICAL
+			if (RADIO_CHANNEL_SUPPLY)
+				channel_to_add = RADIO_TOKEN_SUPPLY
+			if (RADIO_CHANNEL_SERVICE)
+				channel_to_add = RADIO_TOKEN_SERVICE
+
+		if (channel_to_add)
+			parrot_source.available_channels += channel_to_add
+
+	if (radio.translate_binary)
+		parrot_source.available_channels.Add(MODE_TOKEN_BINARY)
+
+/datum/strippable_item/parrot_headset/start_unequip(atom/source, mob/user)
+	. = ..()
+	if (!.)
+		return FALSE
+
+	var/mob/living/simple_animal/parrot/parrot_source = source
+	if (!istype(parrot_source))
 		return
 
-	//Removing from inventory
-	if(href_list["remove_inv"])
-		var/remove_from = href_list["remove_inv"]
-		switch(remove_from)
-			if("ears")
-				if(!ears)
-					to_chat(usr, "<span class='warning'>There is nothing to remove from its [remove_from]!</span>")
-					return
-				if(!stat)
-					say("[available_channels.len ? "[pick(available_channels)] " : null]BAWWWWWK LEAVE THE HEADSET BAWKKKKK!")
-				ears.forceMove(drop_location())
-				ears = null
-				for(var/possible_phrase in speak)
-					if(copytext_char(possible_phrase, 2, 3) in GLOB.department_radio_keys)
-						possible_phrase = copytext_char(possible_phrase, 3)
+	if (!parrot_source.stat)
+		parrot_source.say("[parrot_source.available_channels.len ? "[pick(parrot_source.available_channels)] " : null]BAWWWWWK LEAVE THE HEADSET BAWKKKKK!")
 
-	//Adding things to inventory
-	else if(href_list["add_inv"])
-		var/add_to = href_list["add_inv"]
-		if(!usr.get_active_held_item())
-			to_chat(usr, "<span class='warning'>You have nothing in your hand to put on its [add_to]!</span>")
-			return
-		switch(add_to)
-			if("ears")
-				if(ears)
-					to_chat(usr, "<span class='warning'>It's already wearing something!</span>")
-					return
-				else
-					var/obj/item/item_to_add = usr.get_active_held_item()
-					if(!item_to_add)
-						return
+	return TRUE
 
-					if( !istype(item_to_add,  /obj/item/radio/headset) )
-						to_chat(usr, "<span class='warning'>This object won't fit!</span>")
-						return
+/datum/strippable_item/parrot_headset/finish_unequip(atom/source, mob/user)
+	..()
+	var/mob/living/simple_animal/parrot/parrot_source = source
+	if (!istype(parrot_source))
+		return
 
-					var/obj/item/radio/headset/headset_to_add = item_to_add
-
-					if(!usr.transferItemToLoc(headset_to_add, src))
-						return
-					ears = headset_to_add
-					to_chat(usr, "<span class='notice'>You fit the headset onto [src].</span>")
-
-					clearlist(available_channels)
-					for(var/ch in headset_to_add.channels)
-						switch(ch)
-							if(RADIO_CHANNEL_ENGINEERING)
-								available_channels.Add(RADIO_TOKEN_ENGINEERING)
-							if(RADIO_CHANNEL_COMMAND)
-								available_channels.Add(RADIO_TOKEN_COMMAND)
-							if(RADIO_CHANNEL_SECURITY)
-								available_channels.Add(RADIO_TOKEN_SECURITY)
-							if(RADIO_CHANNEL_SCIENCE)
-								available_channels.Add(RADIO_TOKEN_SCIENCE)
-							if(RADIO_CHANNEL_MEDICAL)
-								available_channels.Add(RADIO_TOKEN_MEDICAL)
-							if(RADIO_CHANNEL_SUPPLY)
-								available_channels.Add(RADIO_TOKEN_SUPPLY)
-							if(RADIO_CHANNEL_SERVICE)
-								available_channels.Add(RADIO_TOKEN_SERVICE)
-
-					if(headset_to_add.translate_binary)
-						available_channels.Add(MODE_TOKEN_BINARY)
-	else
-		return ..()
-
+	finish_unequip_mob(parrot_source.ears, parrot_source, user)
+	parrot_source.ears = null
 
 /*
  * Attack responces
@@ -325,7 +344,7 @@
 				parrot_state |= PARROT_FLEE
 			icon_state = icon_living
 			drop_held_item(0)
-	else if(istype(O, /obj/item/reagent_containers/food/snacks/cracker)) //Poly wants a cracker.
+	else if(istype(O, /obj/item/reagent_containers/food/snacks/cracker)) //Polly wants a cracker.
 		qdel(O)
 		if(health < maxHealth)
 			adjustBruteLoss(-10)
@@ -352,7 +371,7 @@
 /*
  * AI - Not really intelligent, but I'm calling it AI anyway.
  */
-/mob/living/simple_animal/parrot/BiologicalLife(seconds, times_fired)
+/mob/living/simple_animal/parrot/BiologicalLife(delta_time, times_fired)
 	if(!(. = ..()))
 		return
 	//Sprite update for when a parrot gets pulled
@@ -630,7 +649,7 @@
 					item = I
 					break
 		if(item)
-			if(!AStar(src, get_turf(item), /turf/proc/Distance_cardinal))
+			if(!get_path_to(src, item))
 				item = null
 				continue
 			return item
@@ -865,18 +884,19 @@
 /*
  * Sub-types
  */
-/mob/living/simple_animal/parrot/Poly
-	name = "Poly"
-	desc = "Poly the Parrot. An expert on quantum cracker theory."
-	speak = list("Poly wanna cracker!", ":e Check the crystal, you chucklefucks!",":e Wire the solars, you lazy bums!",":e WHO TOOK THE DAMN HARDSUITS?",":e OH GOD ITS ABOUT TO DELAMINATE CALL THE SHUTTLE")
+/mob/living/simple_animal/parrot/Polly
+	name = "Polly"
+	desc = "Polly the Parrot. An expert on quantum cracker theory."
+	speak = list("Polly wanna cracker!", ":e Check the crystal, you chucklefucks!",":e Wire the solars, you lazy bums!",":e WHO TOOK THE DAMN HARDSUITS?",":e OH GOD ITS ABOUT TO DELAMINATE CALL THE SHUTTLE")
 	gold_core_spawnable = NO_SPAWN
 	speak_chance = 3
+	spawns_with_headset = TRUE
 	var/memory_saved = FALSE
 	var/rounds_survived = 0
 	var/longest_survival = 0
 	var/longest_deathstreak = 0
 
-/mob/living/simple_animal/parrot/Poly/Initialize()
+/mob/living/simple_animal/parrot/Polly/Initialize(mapload)
 	ears = new /obj/item/radio/headset/headset_eng(src)
 	available_channels = list(":e")
 	Read_Memory()
@@ -884,11 +904,13 @@
 		speak += pick("...[longest_survival].", "The things I've seen!", "I have lived many lives!", "What are you before me?")
 		desc += " Old as sin, and just as loud. Claimed to be [rounds_survived]."
 		speak_chance = 20 //His hubris has made him more annoying/easier to justify killing
-		add_atom_colour("#EEEE22", FIXED_COLOUR_PRIORITY)
+		if(!color)
+			add_atom_colour("#EEEE22", FIXED_COLOUR_PRIORITY)
 	else if(rounds_survived == longest_deathstreak)
 		speak += pick("What are you waiting for!", "Violence breeds violence!", "Blood! Blood!", "Strike me down if you dare!")
 		desc += " The squawks of [-rounds_survived] dead parrots ring out in your ears..."
-		add_atom_colour("#BB7777", FIXED_COLOUR_PRIORITY)
+		if(!color)
+			add_atom_colour("#BB7777", FIXED_COLOUR_PRIORITY)
 	else if(rounds_survived > 0)
 		speak += pick("...again?", "No, It was over!", "Let me out!", "It never ends!")
 		desc += " Over [rounds_survived] shifts without a \"terrible\" \"accident\"!"
@@ -897,30 +919,31 @@
 
 	. = ..()
 
-/mob/living/simple_animal/parrot/Poly/say(message, bubble_type,var/list/spans = list(), sanitize = TRUE, datum/language/language = null, ignore_spam = FALSE, forced = null)
+/mob/living/simple_animal/parrot/Polly/say(message, bubble_type,var/list/spans = list(), sanitize = TRUE, datum/language/language = null, ignore_spam = FALSE, forced = null)
 	. = ..()
-	if(. && !client && prob(1) && prob(1)) //Only the one true bird may speak across dimensions.
-		world.TgsTargetedChatBroadcast("A stray squawk is heard... \"[message]\"", FALSE)
+	if(. && !client && prob(1) && prob(1) && CONFIG_GET(string/chat_squawk_tag)) //Only the one true bird may speak across dimensions.
+		send2chat("A stray squawk is heard... \"[message]\"", CONFIG_GET(string/chat_squawk_tag))
 
-/mob/living/simple_animal/parrot/Poly/BiologicalLife(seconds, times_fired)
+/mob/living/simple_animal/parrot/Polly/BiologicalLife(delta_time, times_fired)
 	if(!(. = ..()))
 		return
 	if(!stat && SSticker.current_state == GAME_STATE_FINISHED && !memory_saved)
 		Write_Memory(FALSE)
 		memory_saved = TRUE
 
-/mob/living/simple_animal/parrot/Poly/death(gibbed)
+/mob/living/simple_animal/parrot/Polly/death(gibbed)
 	if(!memory_saved)
 		Write_Memory(TRUE)
 	if(rounds_survived == longest_survival || rounds_survived == longest_deathstreak || prob(0.666))
-		var/mob/living/simple_animal/parrot/Poly/ghost/G = new(loc)
+		var/mob/living/simple_animal/parrot/Polly/ghost/G = new(loc)
 		if(mind)
 			mind.transfer_to(G)
 		else
 			transfer_ckey(G)
 	..(gibbed)
 
-/mob/living/simple_animal/parrot/Poly/proc/Read_Memory()
+/mob/living/simple_animal/parrot/Polly/proc/Read_Memory()
+	var/saved_color
 	if(fexists("data/npc_saves/Poly.sav")) //legacy compatability to convert old format to new
 		var/savefile/S = new /savefile("data/npc_saves/Poly.sav")
 		S["phrases"] 			>> speech_buffer
@@ -937,10 +960,13 @@
 		rounds_survived = json["roundssurvived"]
 		longest_survival = json["longestsurvival"]
 		longest_deathstreak = json["longestdeathstreak"]
+		saved_color = json["color"]
 	if(!islist(speech_buffer))
 		speech_buffer = list()
+	if(!isnull(saved_color))
+		add_atom_colour(json_decode(saved_color), FIXED_COLOUR_PRIORITY)
 
-/mob/living/simple_animal/parrot/Poly/proc/Write_Memory(dead)
+/mob/living/simple_animal/parrot/Polly/proc/Write_Memory(dead)
 	var/json_file = file("data/npc_saves/Poly.json")
 	var/list/file_data = list()
 	if(islist(speech_buffer))
@@ -952,6 +978,7 @@
 			file_data["longestdeathstreak"] = rounds_survived - 1
 		else
 			file_data["longestdeathstreak"] = longest_deathstreak
+		file_data["color"] = null
 	else
 		file_data["roundssurvived"] = rounds_survived + 1
 		if(rounds_survived + 1 > longest_survival)
@@ -959,17 +986,21 @@
 		else
 			file_data["longestsurvival"] = longest_survival
 		file_data["longestdeathstreak"] = longest_deathstreak
+		if(color)
+			file_data["color"] = json_encode(color)
+		else
+			file_data["color"] = null
 	fdel(json_file)
 	WRITE_FILE(json_file, json_encode(file_data))
 
-/mob/living/simple_animal/parrot/Poly/ratvar_act()
+/mob/living/simple_animal/parrot/Polly/ratvar_act()
 	playsound(src, 'sound/magic/clockwork/fellowship_armory.ogg', 75, TRUE)
 	var/mob/living/simple_animal/parrot/clock_hawk/H = new(loc)
 	H.setDir(dir)
 	qdel(src)
 
-/mob/living/simple_animal/parrot/Poly/ghost
-	name = "The Ghost of Poly"
+/mob/living/simple_animal/parrot/Polly/ghost
+	name = "The Ghost of Polly"
 	desc = "Doomed to squawk the Earth."
 	color = "#FFFFFF"
 	alpha = 77
@@ -978,16 +1009,16 @@
 	incorporeal_move = INCORPOREAL_MOVE_BASIC
 	butcher_results = list(/obj/item/ectoplasm = 1)
 
-/mob/living/simple_animal/parrot/Poly/ghost/Initialize()
+/mob/living/simple_animal/parrot/Polly/ghost/Initialize(mapload)
 	memory_saved = TRUE //At this point nothing is saved
 	. = ..()
 
-/mob/living/simple_animal/parrot/Poly/ghost/handle_automated_speech()
+/mob/living/simple_animal/parrot/Polly/ghost/handle_automated_speech()
 	if(ismob(loc))
 		return
 	..()
 
-/mob/living/simple_animal/parrot/Poly/ghost/handle_automated_movement()
+/mob/living/simple_animal/parrot/Polly/ghost/handle_automated_movement()
 	if(isliving(parrot_interest))
 		if(!ishuman(parrot_interest))
 			parrot_interest = null
@@ -996,7 +1027,7 @@
 			Possess(parrot_interest)
 	..()
 
-/mob/living/simple_animal/parrot/Poly/ghost/proc/Possess(mob/living/carbon/human/H)
+/mob/living/simple_animal/parrot/Polly/ghost/proc/Possess(mob/living/carbon/human/H)
 	if(!ishuman(H))
 		return
 	var/datum/disease/parrot_possession/P = new
@@ -1024,3 +1055,159 @@
 
 /mob/living/simple_animal/parrot/clock_hawk/ratvar_act()
 	return
+
+// Different Parrot Breeds
+
+/mob/living/simple_animal/parrot/kea
+	name = "Kea"
+	icon_state = "kea-flap"
+	icon_living = "kea-flap"
+	icon_dead = "kea-dead"
+	icon_sit = "kea_sit"
+
+/mob/living/simple_animal/parrot/eclectusr
+	name = "Eclectus"
+	icon_state = "eclectusr-flap"
+	icon_living = "eclectusr-flap"
+	icon_dead = "eclectusr-dead"
+	icon_sit = "electusr_sit"
+
+/mob/living/simple_animal/parrot/eclectus
+	name = "Eclectus"
+	icon_state = "eclectus-flap"
+	icon_living = "eclectus-flap"
+	icon_dead = "eclectus-dead"
+	icon_sit = "electus_sit"
+
+/mob/living/simple_animal/parrot/eclectusf
+	name = "Eclectus"
+	icon_state = "eclectusf-flap"
+	icon_living = "eclectusf-flap"
+	icon_dead = "eclectusf-dead"
+	icon_sit = "electusf_sit"
+
+/mob/living/simple_animal/parrot/greybird
+	name = "Grey Bird"
+	icon_state = "agrey-flap"
+	icon_living = "agrey-flap"
+	icon_dead = "agrey-dead"
+	icon_sit = "agrey_sit"
+
+/mob/living/simple_animal/parrot/blue_caique
+	name = "Blue Caique "
+	icon_state = "bcaique-flap"
+	icon_living = "bcaique-flap"
+	icon_dead = "bcaique-dead"
+	icon_sit = "bcaique_sit"
+
+/mob/living/simple_animal/parrot/white_caique
+	name = "White caique"
+	icon_state = "wcaique-flap"
+	icon_living = "wcaique-flap"
+	icon_dead = "wcaique-dead"
+	icon_sit = "wcaique_sit"
+
+/mob/living/simple_animal/parrot/green_budgerigar
+	name = "Green Budgerigar"
+	icon_state = "gbudge-flap"
+	icon_living = "gbudge-flap"
+	icon_dead = "gbudge-dead"
+	icon_sit = "gbudge_sit"
+
+/mob/living/simple_animal/parrot/blue_Budgerigar
+	name = "Blue Budgerigar"
+	icon_state = "bbudge-flap"
+	icon_living = "bbudge-flap"
+	icon_dead = "bbudge-dead"
+	icon_sit = "bbudge_sit"
+
+/mob/living/simple_animal/parrot/bluegreen_Budgerigar
+	name = "Bluegreen Budgerigar"
+	icon_state = "bgbudge-flap"
+	icon_living = "bgbudge-flap"
+	icon_dead = "bgbudge-dead"
+	icon_sit = "bgbudge_sit"
+
+/mob/living/simple_animal/parrot/commonblackbird
+	name = "Black Bird"
+	icon_state = "commonblackbird"
+	icon_living = "commonblackbird"
+	icon_dead = "commonblackbird-dead"
+	icon_sit = "commonblackbird_sit"
+
+/mob/living/simple_animal/parrot/azuretit
+	name = "Azure Tit"
+	icon_state = "azuretit"
+	icon_living = "azuretit"
+	icon_dead = "azuretit-dead"
+	icon_sit = "azuretit_sit"
+
+/mob/living/simple_animal/parrot/europeanrobin
+	name = "European Robin"
+	icon_state = "europeanrobin"
+	icon_living = "europeanrobin"
+	icon_dead = "europeanrobin-dead"
+	icon_sit = "europeanrobin_sit"
+
+/mob/living/simple_animal/parrot/goldcrest
+	name = "Goldcrest"
+	icon_state = "goldcrest"
+	icon_living = "goldcrest"
+	icon_dead = "goldcrest-dead"
+	icon_sit = "goldencrest_sit"
+
+/mob/living/simple_animal/parrot/ringneckdove
+	name = "Ringneck Dove"
+	icon_state = "ringneckdove"
+	icon_living = "ringneckdove"
+	icon_dead = "ringneckdove-dead"
+	icon_sit = "ringneckdove_sit"
+
+/mob/living/simple_animal/parrot/cockatiel
+	name = "Cockatiel"
+	icon_state = "tiel-flap"
+	icon_living = "tiel-flap"
+	icon_dead = "tiel-dead"
+	icon_sit = "tiel_sit"
+
+/mob/living/simple_animal/parrot/white_cockatiel
+	name = "White Cockatiel"
+	icon_state = "wtiel-flap"
+	icon_living = "wtiel-flap"
+	icon_dead = "wtiel-dead"
+	icon_sit = "wtiel_sit"
+
+/mob/living/simple_animal/parrot/yellowish_cockatiel
+	name = "Yellowish Cockatiel"
+	icon_state = "luttiel-flap"
+	icon_living = "luttiel-flap"
+	icon_dead = "luttiel-dead"
+	icon_sit = "luttiel_sit"
+
+/mob/living/simple_animal/parrot/grey_cockatiel
+	name = "Grey Cockatiel"
+	icon_state = "blutiel-flap"
+	icon_living = "blutiel-flap"
+	icon_dead = "blutiel-dead"
+	icon_sit = "blutiel_sit"
+
+/mob/living/simple_animal/parrot/too
+	name = "Too"
+	icon_state = "too-flap"
+	icon_living = "too-flap"
+	icon_dead = "too-dead"
+	icon_sit = "too_sit"
+
+/mob/living/simple_animal/parrot/hooded_too
+	name = "Utoo"
+	icon_state = "utoo-flap"
+	icon_living = "utoo-flap"
+	icon_dead = "utoo-dead"
+	icon_sit = "utoo_sit"
+
+/mob/living/simple_animal/parrot/pink_too
+	name = "Mtoo"
+	icon_state = "mtoo-flap"
+	icon_living = "mtoo-flap"
+	icon_dead = "mtoo-dead"
+	icon_sit = "mtoo_sit"

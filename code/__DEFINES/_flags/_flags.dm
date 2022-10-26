@@ -5,10 +5,6 @@
 #define NONE 0
 
 //for convenience
-#define ENABLE_BITFIELD(variable, flag) (variable |= (flag))
-#define DISABLE_BITFIELD(variable, flag) (variable &= ~(flag))
-#define CHECK_BITFIELD(variable, flag) (variable & (flag))
-#define TOGGLE_BITFIELD(variable, flag) (variable ^= (flag))
 #define COPY_SPECIFIC_BITFIELDS(a,b,flags)\
 	do{\
 		var/_old = a & ~(flags);\
@@ -17,7 +13,11 @@
 	} while(0);
 #define CHECK_MULTIPLE_BITFIELDS(flagvar, flags) (((flagvar) & (flags)) == (flags))
 
-GLOBAL_LIST_INIT(bitflags, list(1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768))
+GLOBAL_LIST_INIT(bitflags, list(
+	1<<0, 1<<1, 1<<2, 1<<3, 1<<4, 1<<5, 1<<6, 1<<7,
+	1<<8, 1<<9, 1<<10, 1<<11, 1<<12, 1<<13, 1<<14, 1<<15,
+	1<<16, 1<<17, 1<<18, 1<<19, 1<<20, 1<<21, 1<<22, 1<<23
+))
 
 // for /datum/var/datum_flags
 #define DF_USE_TAG		(1<<0)
@@ -37,6 +37,8 @@ GLOBAL_LIST_INIT(bitflags, list(1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 204
 #define OVERLAY_QUEUED_1			(1<<8)
 ///Item has priority to check when entering or leaving.
 #define ON_BORDER_1					(1<<9)
+///Whether or not this atom shows screentips when hovered over
+#define NO_SCREENTIPS_1				(1<<10)
 ///Prevent clicking things below it on the same turf eg. doors/ fulltile windows.
 #define PREVENT_CLICK_UNDER_1		(1<<11)
 #define HOLOGRAM_1					(1<<12)
@@ -52,14 +54,46 @@ GLOBAL_LIST_INIT(bitflags, list(1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 204
 #define BLOCK_FACE_ATOM_1			(1<<17)
 
 //turf-only flags
-#define NOJAUNT_1					(1<<0)
-#define UNUSED_RESERVATION_TURF_1	(1<<1)
-///If a turf can be made dirty at roundstart. This is also used in areas.
-#define CAN_BE_DIRTY_1				(1<<2)
-///Blocks lava rivers being generated on the turf.
-#define NO_LAVA_GEN_1				(1<<6)
-///Blocks ruins spawning on the turf.
-#define NO_RUINS_1					(1<<10)
+#define NOJAUNT_1 (1<<0)
+#define UNUSED_RESERVATION_TURF_1 (1<<1)
+/// If a turf can be made dirty at roundstart. This is also used in areas.
+#define CAN_BE_DIRTY_1 (1<<2)
+/// Blocks lava rivers being generated on the turf
+#define NO_LAVA_GEN_1 (1<<6)
+/// Blocks ruins spawning on the turf
+#define NO_RUINS_1 (1<<10)
+/// Should this tile be cleaned up and reinserted into an excited group?
+#define EXCITED_CLEANUP_1 (1 << 13)
+
+////////////////Area flags\\\\\\\\\\\\\\
+/// If it's a valid territory for cult summoning or the CRAB-17 phone to spawn
+#define VALID_TERRITORY (1<<0)
+/// If blobs can spawn there and if it counts towards their score.
+#define BLOBS_ALLOWED (1<<1)
+/// If mining tunnel generation is allowed in this area
+#define CAVES_ALLOWED (1<<2)
+/// If flora are allowed to spawn in this area randomly through tunnel generation
+#define FLORA_ALLOWED (1<<3)
+/// If mobs can be spawned by natural random generation
+#define MOB_SPAWN_ALLOWED (1<<4)
+/// If megafauna can be spawned by natural random generation
+#define MEGAFAUNA_SPAWN_ALLOWED (1<<5)
+/// Are you forbidden from teleporting to the area? (centcom, mobs, wizard, hand teleporter)
+#define NOTELEPORT (1<<6)
+/// Hides area from player Teleport function.
+#define HIDDEN_AREA (1<<7)
+/// If false, loading multiple maps with this area type will create multiple instances.
+#define UNIQUE_AREA (1<<8)
+/// If people are allowed to suicide in it. Mostly for OOC stuff like minigames
+#define BLOCK_SUICIDE (1<<9)
+/// Can the Xenobio management console transverse this area by default?
+#define XENOBIOLOGY_COMPATIBLE (1<<10)
+/// If Abductors are unable to teleport in with their observation console
+#define ABDUCTOR_PROOF (1<<11)
+/// If an area should be hidden from power consoles, power/atmosphere alerts, etc.
+#define NO_ALERTS (1<<12)
+/// If blood cultists can draw runes or build structures on this AREA.
+#define CULT_PERMITTED (1<<13)
 
 /*
 	These defines are used specifically with the atom/pass_flags bitmask
@@ -72,15 +106,18 @@ GLOBAL_LIST_INIT(bitflags, list(1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 204
 #define PASSBLOB		(1<<3)
 #define PASSMOB			(1<<4)
 #define PASSCLOSEDTURF	(1<<5)
+/// Let thrown things past us. **ONLY MEANINGFUL ON pass_flags_self!**
 #define LETPASSTHROW	(1<<6)
+#define	PASSMACHINE		(1<<7)
+#define PASSSTRUCTURE	(1<<8)
 
 //Movement Types
 #define GROUND				(1<<0)
 #define FLYING				(1<<1)
 #define VENTCRAWLING		(1<<2)
 #define FLOATING			(1<<3)
-///When moving, will Bump()/Cross()/Uncross() everything, but won't be stopped.
-#define UNSTOPPABLE			(1<<4)
+///When moving, will Bump()/Cross()/Uncross() everything, but won't stop or Bump() anything.
+#define PHASING				(1<<4)
 ///Applied if you're crawling around on the ground/resting.
 #define CRAWLING			(1<<5)
 
@@ -118,7 +155,7 @@ GLOBAL_LIST_INIT(bitflags, list(1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 204
 
 //Mob mobility var flags
 /// any flag
-#define CHECK_MOBILITY(target, flags) CHECK_BITFIELD(target.mobility_flags, flags)
+#define CHECK_MOBILITY(target, flags) (target.mobility_flags & flags)
 #define CHECK_ALL_MOBILITY(target, flags) CHECK_MULTIPLE_BITFIELDS(target.mobility_flags, flags)
 
 /// can move
@@ -162,6 +199,20 @@ GLOBAL_LIST_INIT(bitflags, list(1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 204
 		REMOVE_TRAIT(x, TRAIT_KEEP_TOGETHER, KEEP_TOGETHER_ORIGINAL);\
 	else if(!HAS_TRAIT(x, TRAIT_KEEP_TOGETHER))\
 	 	x.appearance_flags &= ~KEEP_TOGETHER
+
+//dir macros
+///Returns true if the dir is diagonal, false otherwise
+#define ISDIAGONALDIR(d) (d&(d-1))
+///True if the dir is north or south, false therwise
+#define NSCOMPONENT(d)   (d&(NORTH|SOUTH))
+///True if the dir is east/west, false otherwise
+#define EWCOMPONENT(d)   (d&(EAST|WEST))
+///Flips the dir for north/south directions
+#define NSDIRFLIP(d)     (d^(NORTH|SOUTH))
+///Flips the dir for east/west directions
+#define EWDIRFLIP(d)     (d^(EAST|WEST))
+///Turns the dir by 180 degrees
+#define DIRFLIP(d)       turn(d, 180)
 
 /// 33554431 (2^24 - 1) is the maximum value our bitflags can reach.
 #define MAX_BITFLAG_DIGITS 8

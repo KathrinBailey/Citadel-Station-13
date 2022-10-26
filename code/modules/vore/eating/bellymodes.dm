@@ -76,7 +76,7 @@
 					play_sound = pick(pred_digest)
 
 				//Pref protection!
-				if (!CHECK_BITFIELD(M.vore_flags, DIGESTABLE) || M.vore_flags & ABSORBED)
+				if (!(M.vore_flags & DIGESTABLE) || M.vore_flags & ABSORBED)
 					continue
 
 				//Person just died in guts!
@@ -150,7 +150,7 @@
 						SEND_SOUND(M,prey_digest)
 					play_sound = pick(pred_digest)
 
-				if(M.vore_flags & ABSORBED)
+				if(M.vore_flags & ABSORBED || !(M.vore_flags & ABSORBABLE)) //Negative.
 					continue
 
 				if(M.nutrition >= 100) //Drain them until there's no nutrients left. Slowly "absorb" them.
@@ -165,7 +165,7 @@
 
 			for (var/mob/living/M in contents)
 				if(M.vore_flags & ABSORBED && owner.nutrition >= 100)
-					DISABLE_BITFIELD(M.vore_flags, ABSORBED)
+					M.vore_flags &= ~(ABSORBED)
 					to_chat(M,"<span class='notice'>You suddenly feel solid again </span>")
 					to_chat(owner,"<span class='notice'>You feel like a part of you is missing.</span>")
 					owner.adjust_nutrition(-100)
@@ -245,7 +245,7 @@
 				last_hearcheck = world.time
 			for(var/mob/M in hearing_mobs) //so we don't fill the whole room with the sound effect
 				if(M && M.client && (isturf(M.loc) || (M.loc != src.contents))) //to avoid people on the inside getting the outside sounds and their direct sounds + built in sound pref check
-					M.playsound_local(owner.loc, play_sound, vol = 75, vary = 1, falloff = VORE_SOUND_FALLOFF)
+					M.playsound_local(owner.loc, play_sound, 75, TRUE)
 					//these are all external sound triggers now, so it's ok.
 	if(to_update)
 		for(var/mob/living/M in contents)

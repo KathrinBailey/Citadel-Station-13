@@ -4,7 +4,7 @@
 	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "labeler0"
 	item_state = "flight"
-	// inhand_icon_state = "flight"
+	// item_state = "flight"
 	var/label = null
 	var/labels_left = 30
 	var/mode = 0
@@ -40,7 +40,7 @@
 	. = ..()
 	if(!proximity)
 		return
-	if(!mode)	//if it's off, give up.
+	if(!mode) //if it's off, give up.
 		return
 
 	if(!labels_left)
@@ -57,7 +57,7 @@
 		return
 
 	user.visible_message("<span class='notice'>[user] labels [A] with \"[label]\".</span>", \
-						 "<span class='notice'>You label [A] with \"[label]\".</span>")
+		"<span class='notice'>You label [A] with \"[label]\".</span>")
 	A.AddComponent(/datum/component/label, label)
 	// playsound(A, 'sound/items/handling/component_pickup.ogg', 20, TRUE)
 	labels_left--
@@ -86,7 +86,7 @@
 	if(istype(I, /obj/item/hand_labeler_refill))
 		to_chat(user, "<span class='notice'>You insert [I] into [src].</span>")
 		qdel(I)
-		labels_left = initial(labels_left)	//Yes, it's capped at its initial value
+		labels_left = initial(labels_left) //Yes, it's capped at its initial value
 
 /obj/item/hand_labeler/borg
 	name = "cyborg-hand labeler"
@@ -118,7 +118,7 @@
 	desc = "A roll of paper. Use it on a hand labeler to refill it."
 	icon_state = "labeler_refill"
 	item_state = "electropack"
-	// inhand_icon_state = "electropack"
+	// item_state = "electropack"
 	lefthand_file = 'icons/mob/inhands/misc/devices_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/misc/devices_righthand.dmi'
 	w_class = WEIGHT_CLASS_TINY

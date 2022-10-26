@@ -30,7 +30,7 @@
 	mob_types = list(/mob/living/simple_animal/hostile/asteroid/basilisk/watcher/icewing)
 
 GLOBAL_LIST_INIT(tendrils, list())
-/obj/structure/spawner/lavaland/Initialize()
+/obj/structure/spawner/lavaland/Initialize(mapload)
 	. = ..()
 	emitted_light = new(loc)
 	for(var/F in RANGE_TURFS(1, src))
@@ -52,12 +52,12 @@ GLOBAL_LIST_INIT(tendrils, list())
 		last_tendril = FALSE
 
 	if(last_tendril && !(flags_1 & ADMIN_SPAWNED_1))
-		if(SSmedals.hub_enabled)
+		if(SSachievements.achievements_enabled)
 			for(var/mob/living/L in view(7,src))
 				if(L.stat || !L.client)
 					continue
-				SSmedals.UnlockMedal("[BOSS_MEDAL_TENDRIL] [ALL_KILL_MEDAL]", L.client)
-				SSmedals.SetScore(TENDRIL_CLEAR_SCORE, L.client, 1)
+				L.client.give_award(/datum/award/achievement/boss/tendril_exterminator, L)
+				L.client.give_award(/datum/award/score/tendril_score, L) //Progresses score by one
 	GLOB.tendrils -= src
 	QDEL_NULL(emitted_light)
 	QDEL_NULL(gps)
@@ -78,7 +78,7 @@ GLOBAL_LIST_INIT(tendrils, list())
 	density = TRUE
 	var/obj/effect/light_emitter/tendril/emitted_light
 
-/obj/effect/collapse/Initialize()
+/obj/effect/collapse/Initialize(mapload)
 	. = ..()
 	emitted_light = new(loc)
 	visible_message("<span class='boldannounce'>The tendril writhes in fury as the earth around it begins to crack and break apart! Get back!</span>")

@@ -1,6 +1,13 @@
 /obj/effect/decal/cleanable
 	gender = PLURAL
 	layer = ABOVE_NORMAL_TURF_LAYER
+	/// Is this kind of cleanable decal persistent
+	var/persistent = FALSE
+	/// Can we stack multiple in one tile?
+	var/persistence_allow_stacking = FALSE
+	/// Are we deleted by turf changes?
+	var/wiped_by_floor_change = FALSE
+
 	var/list/random_icon_states = null
 	var/blood_state = "" //I'm sorry but cleanable/blood code is ass, and so is blood_DNA
 	var/bloodiness = 0 //0-100, amount of blood in this decal, used for making footprints and affecting the alpha of bloody footprints
@@ -29,9 +36,21 @@
 
 	addtimer(CALLBACK(src, /datum.proc/_AddElement, list(/datum/element/beauty, beauty)), 0)
 
+/**
+ * A data list is passed into this.
+ * This should return null to skip saving, or the type of data to save. Type must be /cleanable.
+ */
+/obj/effect/decal/cleanable/proc/PersistenceSave(list/data)
+	return type
+
+/**
+ * Loads from a data list.
+ */
+/obj/effect/decal/cleanable/proc/PersistenceLoad(list/data)
+	return
+
 /obj/effect/decal/cleanable/proc/replace_decal(obj/effect/decal/cleanable/C) // Returns true if we should give up in favor of the pre-existing decal
-	if(mergeable_decal)
-		qdel(C)
+	return mergeable_decal
 
 /obj/effect/decal/cleanable/attackby(obj/item/W, mob/user, params)
 	if(istype(W, /obj/item/reagent_containers/glass) || istype(W, /obj/item/reagent_containers/food/drinks))
@@ -58,10 +77,10 @@
 	else
 		return ..()
 
-/obj/effect/decal/cleanable/ex_act()
+/obj/effect/decal/cleanable/ex_act(severity, target, origin)
 	if(reagents)
 		for(var/datum/reagent/R in reagents.reagent_list)
-			R.on_ex_act()
+			R.on_ex_act(severity)
 	..()
 
 /obj/effect/decal/cleanable/fire_act(exposed_temperature, exposed_volume)

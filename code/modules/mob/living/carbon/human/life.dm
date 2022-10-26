@@ -18,7 +18,7 @@
 #define THERMAL_PROTECTION_HAND_LEFT	0.025
 #define THERMAL_PROTECTION_HAND_RIGHT	0.025
 
-/mob/living/carbon/human/BiologicalLife(seconds, times_fired)
+/mob/living/carbon/human/BiologicalLife(delta_time, times_fired)
 	if(!(. = ..()))
 		return
 	handle_active_genes()
@@ -30,6 +30,8 @@
 /mob/living/carbon/human/PhysicalLife(seconds, times_fired)
 	if(!(. = ..()))
 		return
+	if(HAS_TRAIT(src, TRAIT_ROBOTIC_ORGANISM) && hud_used)
+		hud_used.coolant_display.update_counter(src)
 	//Update our name based on whether our face is obscured/disfigured
 	name = get_visible_name()
 
@@ -76,9 +78,23 @@
 
 /mob/living/carbon/human/check_breath(datum/gas_mixture/breath)
 
-	var/L = getorganslot(ORGAN_SLOT_LUNGS)
+	if(breath && HAS_TRAIT(src, TRAIT_NOBREATH) && HAS_TRAIT(src, TRAIT_AUXILIARY_LUNGS))	//Something something bz and synth cooling systems interacting (in reality, this only exists to not make robot lings too strong)
+		var/total_moles = breath.total_moles()
+		var/pressure = breath.return_pressure()
+		#define PP_MOLES(X) ((X / total_moles) * pressure)
+		#define PP(air, gas) PP_MOLES(air.get_moles(gas))
+		var/bz_pp = PP(breath, GAS_BZ)
+		if(bz_pp > 1)
+			reagents.add_reagent(/datum/reagent/bz_metabolites,5)
+		else if(bz_pp > 0.1)
+			reagents.add_reagent(/datum/reagent/bz_metabolites,1)
+		#undef PP_MOLES
+		#undef PP
 
+	var/L = getorganslot(ORGAN_SLOT_LUNGS)
 	if(!L)
+		if(HAS_TRAIT(src, TRAIT_NOBREATH))
+			return
 		if(health >= crit_threshold)
 			adjustOxyLoss(HUMAN_MAX_OXYLOSS + 1)
 		else if(!HAS_TRAIT(src, TRAIT_NOCRITDAMAGE))
@@ -89,15 +105,15 @@
 		var/datum/species/S = dna.species
 
 		if(S.breathid == "o2")
-			throw_alert("not_enough_oxy", /obj/screen/alert/not_enough_oxy)
+			throw_alert("not_enough_oxy", /atom/movable/screen/alert/not_enough_oxy)
 		else if(S.breathid == "tox")
-			throw_alert("not_enough_tox", /obj/screen/alert/not_enough_tox)
+			throw_alert("not_enough_tox", /atom/movable/screen/alert/not_enough_tox)
 		else if(S.breathid == "co2")
-			throw_alert("not_enough_co2", /obj/screen/alert/not_enough_co2)
+			throw_alert("not_enough_co2", /atom/movable/screen/alert/not_enough_co2)
 		else if(S.breathid == "n2")
-			throw_alert("not_enough_nitro", /obj/screen/alert/not_enough_nitro)
+			throw_alert("not_enough_nitro", /atom/movable/screen/alert/not_enough_nitro)
 		else if(S.breathid == "ch3br")
-			throw_alert("not_enough_ch3br", /obj/screen/alert/not_enough_ch3br)
+			throw_alert("not_enough_ch3br", /atom/movable/screen/alert/not_enough_ch3br)
 
 		return FALSE
 	else
@@ -214,7 +230,7 @@
 	var/missing_body_parts_flags = ~get_body_parts_flags()
 	var/max_protection = 1
 	if(missing_body_parts_flags) //I don't like copypasta as much as proc overhead. Do you want me to make these into a macro?
-		DISABLE_BITFIELD(thermal_protection_flags, missing_body_parts_flags)
+		thermal_protection_flags &= ~(missing_body_parts_flags)
 		if(missing_body_parts_flags & HEAD)
 			max_protection -= THERMAL_PROTECTION_HEAD
 		if(missing_body_parts_flags & CHEST)
@@ -273,7 +289,7 @@
 		if(getToxLoss() >= 45 && nutrition > 20 && !HAS_TRAIT(src, TRAIT_ROBOTIC_ORGANISM))
 			lastpuke += prob(50)
 			if(lastpuke >= 50) // about 25 second delay I guess
-				vomit(20, toxic = TRUE)
+				vomit(20)
 				lastpuke = 0
 
 

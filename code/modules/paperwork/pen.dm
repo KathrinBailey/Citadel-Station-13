@@ -1,9 +1,9 @@
-/*	Pens!
- *	Contains:
- *		Pens
- *		Sleepy Pens
- *		Parapens
- *		Edaggers
+/* Pens!
+ * Contains:
+ * Pens
+ * Sleepy Pens
+ * Parapens
+ * Edaggers
  */
 
 
@@ -16,7 +16,7 @@
 	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "pen"
 	item_state = "pen"
-	// inhand_icon_state = "pen"
+	// item_state = "pen"
 	// worn_icon_state = "pen"
 	slot_flags = ITEM_SLOT_BELT | ITEM_SLOT_EARS
 	throwforce = 0
@@ -26,7 +26,7 @@
 	custom_materials = list(/datum/material/iron=10)
 	pressure_resistance = 2
 	grind_results = list(/datum/reagent/iron = 2, /datum/reagent/iodine = 1)
-	var/colour = "black"	//what colour the ink is!
+	var/colour = "black" //what colour the ink is!
 	var/degrees = 0
 	var/font = PEN_FONT
 	embedding = list()
@@ -113,7 +113,7 @@
 						)
 	embedding = list("embed_chance" = 75)
 
-/obj/item/pen/fountain/captain/Initialize()
+/obj/item/pen/fountain/captain/Initialize(mapload)
 	. = ..()
 	AddComponent(/datum/component/butchering, 200, 115) //the pen is mightier than the sword
 
@@ -147,29 +147,54 @@
 
 /obj/item/pen/afterattack(obj/O, mob/living/user, proximity)
 	. = ..()
-	//Changing Name/Description of items. Only works if they have the 'unique_rename' flag set
+	//Changing name/description of items. Only works if they have the UNIQUE_RENAME object flag set
+	try_modify_object(O, user, proximity)
+
+/obj/item/pen/proc/try_modify_object(obj/O, mob/living/user, proximity)
+	set waitfor = FALSE
 	if(isobj(O) && proximity && (O.obj_flags & UNIQUE_RENAME))
-		var/penchoice = input(user, "What would you like to edit?", "Rename or change description?") as null|anything in list("Rename","Change description")
+		var/penchoice = input(user, "What would you like to edit?", "Rename, change description or reset both?") as null|anything in list("Rename","Change description","Reset")
 		if(QDELETED(O) || !user.canUseTopic(O, BE_CLOSE))
 			return
 		if(penchoice == "Rename")
-			var/input = stripped_input(user,"What do you want to name \the [O.name]?", ,"", MAX_NAME_LEN)
+			var/input = stripped_input(user,"What do you want to name [O]?", ,"[O.name]", MAX_NAME_LEN)
 			var/oldname = O.name
 			if(QDELETED(O) || !user.canUseTopic(O, BE_CLOSE))
 				return
-			if(oldname == input)
-				to_chat(user, "<span class='notice'>You changed \the [O.name] to... well... \the [O.name].</span>")
+			if(oldname == input || input == "")
+				to_chat(user, "<span class='notice'>You changed [O] to... well... [O].</span>")
 			else
 				O.name = input
-				to_chat(user, "<span class='notice'>\The [oldname] has been successfully been renamed to \the [input].</span>")
+				var/datum/component/label/label = O.GetComponent(/datum/component/label)
+				if(label)
+					label.remove_label()
+					label.apply_label()
+				to_chat(user, "<span class='notice'>You have successfully renamed \the [oldname] to [O].</span>")
 				O.renamedByPlayer = TRUE
 
 		if(penchoice == "Change description")
-			var/input = stripped_input(user,"Describe \the [O.name] here", ,"", 100)
+			var/input = stripped_input(user,"Describe [O] here:", ,"[O.desc]", 350)
+			var/olddesc = O.desc
 			if(QDELETED(O) || !user.canUseTopic(O, BE_CLOSE))
 				return
-			O.desc = input
-			to_chat(user, "<span class='notice'>You have successfully changed \the [O.name]'s description.</span>")
+			if(olddesc == input || input == "")
+				to_chat(user, "<span class='notice'>You decide against changing [O]'s description.</span>")
+			else
+				O.desc = input
+				to_chat(user, "<span class='notice'>You have successfully changed [O]'s description.</span>")
+				O.renamedByPlayer = TRUE
+
+		if(penchoice == "Reset")
+			if(QDELETED(O) || !user.canUseTopic(O, BE_CLOSE))
+				return
+			O.desc = initial(O.desc)
+			O.name = initial(O.name)
+			var/datum/component/label/label = O.GetComponent(/datum/component/label)
+			if(label)
+				label.remove_label()
+				label.apply_label()
+			to_chat(user, "<span class='notice'>You have successfully reset [O]'s name and description.</span>")
+			O.renamedByPlayer = FALSE
 
 /*
  * Sleepypens
@@ -182,11 +207,12 @@
 	if(..())
 		if(reagents.total_volume)
 			if(M.reagents)
+				log_combat(user, M, "injected with sleepypen", src, reagents.log_list())
 				reagents.reaction(M, INJECT)
-				reagents.trans_to(M, reagents.total_volume)
+				reagents.trans_to(M, reagents.total_volume, log = "sleepypen inject")
 
 
-/obj/item/pen/sleepy/Initialize()
+/obj/item/pen/sleepy/Initialize(mapload)
 	. = ..()
 	create_reagents(45, OPENCONTAINER)
 	reagents.add_reagent(/datum/reagent/toxin/chloralhydrate, 20)
@@ -255,6 +281,7 @@
 		item_state = initial(item_state)
 		lefthand_file = initial(lefthand_file)
 		righthand_file = initial(righthand_file)
+	return ..()
 
 /obj/item/pen/survival
 	name = "survival pen"
@@ -262,7 +289,7 @@
 	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "digging_pen"
 	item_state = "pen"
-	// inhand_icon_state = "pen"
+	// item_state = "pen"
 	// worn_icon_state = "pen"
 	force = 3
 	w_class = WEIGHT_CLASS_TINY

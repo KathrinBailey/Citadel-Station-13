@@ -15,7 +15,7 @@
 	var/self_delay = FALSE //pills are instant, this is because patches inheret their aplication from pills
 	var/dissolvable = TRUE
 
-/obj/item/reagent_containers/pill/Initialize()
+/obj/item/reagent_containers/pill/Initialize(mapload)
 	. = ..()
 	if(!icon_state)
 		icon_state = "pill[rand(1,20)]"
@@ -56,7 +56,7 @@
 	log_combat(user, M, "fed", reagents.log_list())
 	if(reagents.total_volume)
 		reagents.reaction(M, apply_type)
-		reagents.trans_to(M, reagents.total_volume)
+		reagents.trans_to(M, reagents.total_volume, log = TRUE)
 	qdel(src)
 	return TRUE
 
@@ -76,7 +76,8 @@
 
 	user.visible_message("<span class='warning'>[user] slips something into [target]!</span>",
 						"<span class='notice'>You dissolve [src] in [target].</span>", vision_distance = 2)
-	reagents.trans_to(target, reagents.total_volume)
+	log_combat(user, target, "spiked", src, reagents.log_list())
+	reagents.trans_to(target, reagents.total_volume, log = TRUE)
 	qdel(src)
 	return STOP_ATTACK_PROC_CHAIN
 
@@ -247,7 +248,7 @@
 	var/static/list/descs = list("Your feeling is telling you no, but...","Drugs are expensive, you can't afford not to eat any pills that you find."\
 	, "Surely, there's no way this could go bad.")
 
-/obj/item/reagent_containers/pill/floorpill/Initialize()
+/obj/item/reagent_containers/pill/floorpill/Initialize(mapload)
 	list_reagents = list(get_random_reagent_id() = rand(10,50))
 	. = ..()
 	name = pick(names)
@@ -264,3 +265,7 @@
 /obj/item/reagent_containers/pill/breast_enlargement
 	name = "breast enlargement pill"
 	list_reagents = list(/datum/reagent/fermi/breast_enlarger = 10)
+
+/obj/item/reagent_containers/pill/butt_enlargement
+	name = "butt enlargement pill"
+	list_reagents = list(/datum/reagent/fermi/butt_enlarger = 10)

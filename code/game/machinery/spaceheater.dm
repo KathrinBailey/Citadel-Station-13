@@ -6,19 +6,20 @@
 	anchored = FALSE
 	density = TRUE
 	interaction_flags_machine = INTERACT_MACHINE_WIRES_IF_OPEN | INTERACT_MACHINE_ALLOW_SILICON | INTERACT_MACHINE_OPEN
+	use_power = NO_POWER_USE
 	icon = 'icons/obj/atmos.dmi'
 	icon_state = "sheater-off"
 	name = "space heater"
 	desc = "Made by Space Amish using traditional space techniques, this heater/cooler is guaranteed not to set the station on fire. Warranty void if used in engines."
 	max_integrity = 250
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 100, "rad" = 100, "fire" = 80, "acid" = 10)
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 100, RAD = 100, FIRE = 80, ACID = 10)
 	circuit = /obj/item/circuitboard/machine/space_heater
 	var/obj/item/stock_parts/cell/cell
 	var/on = FALSE
 	var/mode = HEATER_MODE_STANDBY
 	var/setMode = "auto" // Anything other than "heat" or "cool" is considered auto.
 	var/targetTemperature = T20C
-	var/heatingPower = 40000
+	var/heatingPower = 10000
 	var/efficiency = 20000
 	var/temperatureTolerance = 1
 	var/settableTemperatureMedian = 30 + T0C
@@ -27,7 +28,7 @@
 /obj/machinery/space_heater/get_cell()
 	return cell
 
-/obj/machinery/space_heater/Initialize()
+/obj/machinery/space_heater/Initialize(mapload)
 	. = ..()
 	cell = new(src)
 	update_icon()
@@ -66,53 +67,63 @@
 	if(panel_open)
 		. += "sheater-open"
 
-/obj/machinery/space_heater/process()
+/obj/machinery/space_heater/process_atmos()
 	if(!on || !is_operational())
 		if (on) // If it's broken, turn it off too
 			on = FALSE
 		return PROCESS_KILL
 
-	if(cell && cell.charge > 0)
+	if(cell && cell.charge > 1 / efficiency)
 		var/turf/L = loc
-		if(!istype(L))
-			if(mode != HEATER_MODE_STANDBY)
-				mode = HEATER_MODE_STANDBY
-				update_icon()
-			return
+		PerformHeating(L)
 
-		var/datum/gas_mixture/env = L.return_air()
+		for(var/direction in GLOB.alldirs)
+			L=get_step(src,direction)
+			if(!locate(/turf/closed) in L) // we don't want to heat walls and cause jank
+				PerformHeating(L)
 
-		var/newMode = HEATER_MODE_STANDBY
-		if(setMode != HEATER_MODE_COOL && env.return_temperature() < targetTemperature - temperatureTolerance)
-			newMode = HEATER_MODE_HEAT
-		else if(setMode != HEATER_MODE_HEAT && env.return_temperature() > targetTemperature + temperatureTolerance)
-			newMode = HEATER_MODE_COOL
-
-		if(mode != newMode)
-			mode = newMode
-			update_icon()
-
-		if(mode == HEATER_MODE_STANDBY)
-			return
-
-		var/heat_capacity = env.heat_capacity()
-		var/requiredPower = abs(env.return_temperature() - targetTemperature) * heat_capacity
-		requiredPower = min(requiredPower, heatingPower)
-
-		if(requiredPower < 1)
-			return
-
-		var/deltaTemperature = requiredPower / heat_capacity
-		if(mode == HEATER_MODE_COOL)
-			deltaTemperature *= -1
-		if(deltaTemperature)
-			env.set_temperature(env.return_temperature() + deltaTemperature)
-			air_update_turf()
-		cell.use(requiredPower / efficiency)
 	else
 		on = FALSE
 		update_icon()
 		return PROCESS_KILL
+
+/obj/machinery/space_heater/proc/PerformHeating(turf/L)
+	if(!istype(L))
+		if(mode != HEATER_MODE_STANDBY)
+			mode = HEATER_MODE_STANDBY
+			update_icon()
+		return
+
+	var/datum/gas_mixture/env = L.return_air()
+
+	var/newMode = HEATER_MODE_STANDBY
+	if(setMode != HEATER_MODE_COOL && env.return_temperature() < targetTemperature - temperatureTolerance)
+		newMode = HEATER_MODE_HEAT
+	else if(setMode != HEATER_MODE_HEAT && env.return_temperature() > targetTemperature + temperatureTolerance)
+		newMode = HEATER_MODE_COOL
+
+	if(mode != newMode)
+		mode = newMode
+		update_icon()
+
+	if(mode == HEATER_MODE_STANDBY)
+		return
+
+	var/heat_capacity = env.heat_capacity()
+	var/requiredPower = abs(env.return_temperature() - targetTemperature) * heat_capacity
+	requiredPower = min(requiredPower, heatingPower)
+
+	if(requiredPower < 1 || !cell.use(requiredPower / efficiency))
+		on = FALSE
+		update_icon()
+		return
+
+	var/deltaTemperature = requiredPower / heat_capacity
+	if(mode == HEATER_MODE_COOL)
+		deltaTemperature *= -1
+	if(deltaTemperature)
+		env.set_temperature(env.return_temperature() + deltaTemperature)
+		air_update_turf()
 
 /obj/machinery/space_heater/RefreshParts()
 	var/laser = 2
@@ -122,7 +133,7 @@
 	for(var/obj/item/stock_parts/capacitor/M in component_parts)
 		cap += M.rating
 
-	heatingPower = laser * 40000
+	heatingPower = laser * 10000
 
 	settableTemperatureRange = cap * 30
 	efficiency = (cap + 1) * 10000
@@ -155,7 +166,7 @@
 		else
 			to_chat(user, "<span class='warning'>The hatch must be open to insert a power cell!</span>")
 			return
-	else if(istype(I, /obj/item/screwdriver))
+	else if(I.tool_behaviour == TOOL_SCREWDRIVER)
 		panel_open = !panel_open
 		user.visible_message("\The [user] [panel_open ? "opens" : "closes"] the hatch on \the [src].", "<span class='notice'>You [panel_open ? "open" : "close"] the hatch on \the [src].</span>")
 		update_icon()
@@ -211,7 +222,7 @@
 			usr.visible_message("<span class='notice'>[usr] switches [on ? "on" : "off"] \the [src].</span>", "<span class='notice'>You switch [on ? "on" : "off"] \the [src].</span>")
 			update_icon()
 			if (on)
-				START_PROCESSING(SSmachines, src)
+				SSair.atmos_air_machinery += src
 			. = TRUE
 		if("mode")
 			setMode = params["mode"]

@@ -13,7 +13,7 @@
 			if(damaged_clothes)
 				. += mutable_appearance('icons/effects/item_damage.dmi', "damagedmask")
 			if(blood_DNA)
-				. += mutable_appearance('icons/effects/blood.dmi', "maskblood", color = blood_DNA_to_color())
+				. += mutable_appearance('icons/effects/blood.dmi', "maskblood", color = blood_DNA_to_color(), blend_mode = blood_DNA_to_blend())
 
 /obj/item/clothing/neck/tie
 	name = "tie"
@@ -175,7 +175,7 @@
 	var/tagname = null
 	var/treat_path = /obj/item/reagent_containers/food/snacks/cookie
 
-/obj/item/clothing/neck/petcollar/Initialize()
+/obj/item/clothing/neck/petcollar/Initialize(mapload)
 	. = ..()
 	if(treat_path)
 		new treat_path(src)
@@ -189,6 +189,12 @@
 /obj/item/clothing/neck/petcollar/attack_self(mob/user)
 	tagname = stripped_input(user, "Would you like to change the name on the tag?", "Name your new pet", "Spot", MAX_NAME_LEN)
 	name = "[initial(name)] - [tagname]"
+
+/obj/item/clothing/neck/petcollar/ribbon
+	name = "ribbon pet collar"
+	icon_state = "ribboncollar"
+	poly_states = 2
+	poly_colors = list("#454545", "#292929")
 
 /obj/item/clothing/neck/petcollar/leather
 	name = "leather pet collar"
@@ -220,10 +226,16 @@
 	return
 
 /obj/item/clothing/neck/petcollar/locked/on_attack_hand(mob/user, act_intent = user.a_intent, unarmed_attack_flags)
-	if(loc == user && user.get_item_by_slot(SLOT_NECK) && lock != FALSE)
+	if(loc == user && user.get_item_by_slot(ITEM_SLOT_NECK) && lock != FALSE)
 		to_chat(user, "<span class='warning'>The collar is locked! You'll need unlock the collar before you can take it off!</span>")
 		return
 	..()
+
+/obj/item/clothing/neck/petcollar/locked/ribbon
+	name = "ribbon pet collar"
+	icon_state = "ribboncollar"
+	poly_states = 2
+	poly_colors = list("#454545", "#292929")
 
 /obj/item/clothing/neck/petcollar/locked/leather
 	name = "leather pet collar"
@@ -237,9 +249,24 @@
 	icon_state = "choker"
 	poly_colors = list("#222222")
 
+/obj/item/clothing/neck/necklace/cowbell
+	name = "cowbell collar"
+	desc = "Who would wear this? Take this off, you aren't a cow, you're just an awful degenerate."
+	icon = 'icons/obj/clothing/neck.dmi'
+	icon_state = "cowbell"
+
 /obj/item/key/collar
 	name = "Collar Key"
 	desc = "A key for a tiny lock on a collar or bag."
+
+/obj/item/clothing/neck/maid
+	name = "polychromic maid collar"
+	desc = "A collar that goes with the polychromic maid outfit."
+	icon_state = "maid_neck"
+
+/obj/item/clothing/neck/maid/ComponentInitialize()
+	. = ..()
+	AddElement(/datum/element/polychromic, list("#333333", "#FFFFFF"), 2)
 
 //////////////
 //DOPE BLING//
@@ -289,7 +316,7 @@
 //VERY SUPER BADASS NECKERCHIEFS//
 //////////////////////////////////
 
-obj/item/clothing/neck/neckerchief
+/obj/item/clothing/neck/neckerchief
 	icon = 'icons/obj/clothing/masks.dmi' //In order to reuse the bandana sprite
 	w_class = WEIGHT_CLASS_TINY
 	var/sourceBandanaType
@@ -305,7 +332,7 @@ obj/item/clothing/neck/neckerchief
 	. = ..()
 	if(iscarbon(user))
 		var/mob/living/carbon/C = user
-		if(C.get_item_by_slot(SLOT_NECK) == src)
+		if(C.get_item_by_slot(ITEM_SLOT_NECK) == src)
 			to_chat(user, "<span class='warning'>You can't untie [src] while wearing it!</span>")
 			return
 		if(user.is_holding(src))

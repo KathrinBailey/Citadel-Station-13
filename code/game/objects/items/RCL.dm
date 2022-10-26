@@ -23,7 +23,7 @@
 	var/datum/radial_menu/persistent/wiring_gui_menu
 	var/mob/listeningTo
 
-/obj/item/rcl/Initialize()
+/obj/item/rcl/Initialize(mapload)
 	. = ..()
 	RegisterSignal(src, COMSIG_TWOHANDED_WIELD, .proc/on_wield)
 	RegisterSignal(src, COMSIG_TWOHANDED_UNWIELD, .proc/on_unwield)
@@ -63,7 +63,7 @@
 			return
 		update_icon()
 		to_chat(user, "<span class='notice'>You add the cables to [src]. It now contains [loaded.amount].</span>")
-	else if(istype(W, /obj/item/screwdriver))
+	else if(W.tool_behaviour == TOOL_SCREWDRIVER)
 		if(!loaded)
 			return
 		if(ghetto && prob(10)) //Is it a ghetto RCL? If so, give it a 10% chance to fall apart
@@ -166,7 +166,7 @@
 				last = C
 				break
 
-obj/item/rcl/proc/getMobhook(mob/to_hook)
+/obj/item/rcl/proc/getMobhook(mob/to_hook)
 	if(listeningTo == to_hook)
 		return
 	if(listeningTo)
@@ -314,7 +314,7 @@ obj/item/rcl/proc/getMobhook(mob/to_hook)
 		else //open the menu
 			showWiringGui(user)
 
-/obj/item/rcl/pre_loaded/Initialize() //Comes preloaded with cable, for testing stuff
+/obj/item/rcl/pre_loaded/Initialize(mapload) //Comes preloaded with cable, for testing stuff
 	loaded = new()
 	loaded.max_amount = max_amount
 	loaded.amount = max_amount

@@ -80,10 +80,10 @@
 /atom/proc/IsAutoclickable()
 	. = 1
 
-/obj/screen/IsAutoclickable()
+/atom/movable/screen/IsAutoclickable()
 	. = 0
 
-/obj/screen/click_catcher/IsAutoclickable()
+/atom/movable/screen/click_catcher/IsAutoclickable()
 	. = 1
 
 //Please don't roast me too hard
@@ -94,17 +94,13 @@
 	mouseControlObject = control
 	if(mob)
 		SEND_SIGNAL(mob, COMSIG_MOB_CLIENT_MOUSEMOVE, object, location, control, params)
+		// god forgive me for i have sinned - used for autoparry. currently at 5 objects.
+		moused_over_objects[object] = world.time
+		if(moused_over_objects.len > 7)
+			moused_over_objects.Cut(1, 2)
 	..()
 
 /client/MouseDrag(src_object,atom/over_object,src_location,over_location,src_control,over_control,params)
-	var/list/L = params2list(params)
-	if (L["middle"])
-		if (src_object && src_location != over_location)
-			middragtime = world.time
-			middragatom = src_object
-		else
-			middragtime = 0
-			middragatom = null
 	mouseParams = params
 	mouseLocation = over_location
 	mouseObject = over_object
@@ -115,12 +111,5 @@
 	if(active_mousedown_item)
 		active_mousedown_item.onMouseDrag(src_object, over_object, src_location, over_location, params, mob)
 
-
 /obj/item/proc/onMouseDrag(src_object, over_object, src_location, over_location, params, mob)
 	return
-
-/client/MouseDrop(src_object, over_object, src_location, over_location, src_control, over_control, params)
-	if (middragatom == src_object)
-		middragtime = 0
-		middragatom = null
-	..()

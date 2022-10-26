@@ -8,7 +8,7 @@
 	projectile_type = /obj/item/projectile/bullet/shotgun_slug
 	custom_materials = list(/datum/material/iron=4000)
 
-obj/item/ammo_casing/shotgun/executioner
+/obj/item/ammo_casing/shotgun/executioner
 	name = "executioner slug"
 	desc = "A 12 gauge lead slug purpose built to annihilate flesh on impact."
 	icon_state = "stunshell"
@@ -124,7 +124,7 @@ obj/item/ammo_casing/shotgun/executioner
 	projectile_type = /obj/item/projectile/bullet/dart
 	var/reagent_amount = 30
 
-/obj/item/ammo_casing/shotgun/dart/Initialize()
+/obj/item/ammo_casing/shotgun/dart/Initialize(mapload)
 	. = ..()
 	create_reagents(reagent_amount, OPENCONTAINER)
 
@@ -137,16 +137,16 @@ obj/item/ammo_casing/shotgun/executioner
 	icon_state = "cnrshell"
 	reagent_amount = 10
 
-/obj/item/ammo_casing/shotgun/dart/noreact/Initialize()
+/obj/item/ammo_casing/shotgun/dart/noreact/Initialize(mapload)
 	. = ..()
-	ENABLE_BITFIELD(reagents.reagents_holder_flags, NO_REACT)
+	reagents.reagents_holder_flags |= NO_REACT
 
 /obj/item/ammo_casing/shotgun/dart/bioterror
 	desc = "A shotgun dart filled with an obscene amount of lethal reagents. God help whoever is shot with this."
 	projectile_type = /obj/item/projectile/bullet/dart/piercing
 	reagent_amount = 50
 
-/obj/item/ammo_casing/shotgun/dart/bioterror/Initialize()
+/obj/item/ammo_casing/shotgun/dart/bioterror/Initialize(mapload)
 	. = ..()
 	reagents.add_reagent(/datum/reagent/toxin/amanitin, 12) //for a nasty surprise after you get shot and somehow escape and don't think to quickly purge, and even shock those who are loaded up on purging agents
 	reagents.add_reagent(/datum/reagent/toxin/chloralhydrate, 6)

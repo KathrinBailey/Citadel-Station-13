@@ -55,3 +55,13 @@
 	name = "triple-barrel shotgun internal magazine"
 	ammo_type = /obj/item/ammo_casing/shotgun/incapacitate
 	max_ammo = 3
+
+/obj/item/ammo_box/magazine/internal/shot/levergun
+	name = "levergun internal magazine"
+	ammo_type = /obj/item/ammo_casing/c38 // they're rubber by default, i guess
+	caliber = "38"
+	max_ammo = 7
+
+/obj/item/ammo_box/magazine/internal/shot/levergun/brush
+	name = "brush gun internal magazine"
+	ammo_type = /obj/item/ammo_casing/g4570

@@ -261,6 +261,8 @@ GLOBAL_LIST_INIT(blacklisted_malf_machines, typecacheof(list(
 		return //prevent the AI from activating an already active doomsday
 	if (owner_AI.shunted)
 		return //prevent AI from activating doomsday while shunted.
+	if (istype(owner.loc, /obj/item/aicard))
+		return //prevent AI from activating doomsday while carded. If the AI gets carded after doomsdaying, there's already code to stop it then.
 	active = TRUE
 	set_us_up_the_bomb(owner)
 
@@ -327,6 +329,10 @@ GLOBAL_LIST_INIT(blacklisted_malf_machines, typecacheof(list(
 	sleep(30)
 	if(QDELETED(owner) || owner.stat == DEAD)
 		return
+	if(istype(owner.loc, /obj/item/aicard))
+		to_chat(owner, "<span class='boldnotice'>Error: Signal transmission failed. Reason: Lost connection to network.</span>")
+		to_chat(owner, "<span class='warning'>You can't activate the doomsday device while inside an intelliCard!</span>")
+		return
 	priority_announce("Hostile runtimes detected in all station systems, please deactivate your AI to prevent possible damage to its morality core.", "Anomaly Alert", "aimalf")
 	set_security_level("delta")
 	var/obj/machinery/doomsday_device/DOOM = new(owner_AI)
@@ -349,7 +355,7 @@ GLOBAL_LIST_INIT(blacklisted_malf_machines, typecacheof(list(
 	var/detonation_timer
 	var/next_announce
 
-/obj/machinery/doomsday_device/Initialize()
+/obj/machinery/doomsday_device/Initialize(mapload)
 	. = ..()
 	countdown = new(src)
 
@@ -395,6 +401,7 @@ GLOBAL_LIST_INIT(blacklisted_malf_machines, typecacheof(list(
 		next_announce += DOOMSDAY_ANNOUNCE_INTERVAL
 
 /obj/machinery/doomsday_device/proc/detonate()
+	set waitfor = FALSE
 	sound_to_playing_players('sound/machines/alarm.ogg')
 	sleep(100)
 	for(var/i in GLOB.mob_living_list)

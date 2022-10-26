@@ -43,7 +43,7 @@
 	var/moduleselect_alternate_icon
 	var/dogborg = FALSE
 
-/obj/item/robot_module/Initialize()
+/obj/item/robot_module/Initialize(mapload)
 	. = ..()
 	for(var/i in basic_modules)
 		var/obj/item/I = new i(src)
@@ -231,8 +231,11 @@
 	R.update_module_innate()
 	RM.rebuild_modules()
 	INVOKE_ASYNC(RM, .proc/do_transform_animation)
-	if(RM.dogborg)
+	if(RM.dogborg || R.dogborg)
 		RM.dogborg_equip()
+		R.typing_indicator_state = /obj/effect/overlay/typing_indicator/machine/dogborg
+	else
+		R.typing_indicator_state = /obj/effect/overlay/typing_indicator/machine
 	R.maxHealth = borghealth
 	R.health = min(borghealth, R.health)
 	qdel(src)
@@ -269,9 +272,10 @@
 	if(!prev_locked_down)
 		R.SetLockdown(0)
 	R.setDir(SOUTH)
-	R.anchored = FALSE
+	R.set_anchored(FALSE)
 	R.mob_transforming = FALSE
-	R.update_headlamp()
+	R.updatehealth()
+	R.update_icons()
 	R.notify_ai(NEW_MODULE)
 	if(R.hud_used)
 		R.hud_used.update_robot_modules_display()
@@ -324,7 +328,7 @@
 		/obj/item/crowbar/cyborg,
 		/obj/item/healthanalyzer,
 		/obj/item/reagent_containers/borghypo,
-		/obj/item/weapon/gripper/medical,
+		/obj/item/gripper/medical,
 		/obj/item/reagent_containers/dropper,
 		/obj/item/reagent_containers/syringe,
 		/obj/item/surgical_drapes,
@@ -417,8 +421,8 @@
 		if("Alina")
 			cyborg_base_icon = "alina-med"
 			cyborg_icon_override = 'modular_citadel/icons/mob/widerobot.dmi'
-			special_light_key = "alina"
-			sleeper_overlay = "alinasleeper"
+			special_light_key = "alina-med"
+			sleeper_overlay = "valemedsleeper"
 			moduleselect_icon = "medihound"
 			moduleselect_alternate_icon = 'modular_citadel/icons/ui/screen_cyborg.dmi'
 			dogborg = TRUE
@@ -444,7 +448,7 @@
 		/obj/item/analyzer,
 		/obj/item/storage/part_replacer/cyborg,
 		/obj/item/holosign_creator/combifan,
-		/obj/item/weapon/gripper,
+		/obj/item/gripper,
 		/obj/item/lightreplacer/cyborg,
 		/obj/item/geiger_counter/cyborg,
 		/obj/item/assembly/signaler/cyborg,
@@ -532,9 +536,9 @@
 			dogborg = TRUE
 		if("Alina")
 			cyborg_base_icon = "alina-eng"
-			special_light_key = "alina"
+			special_light_key = "alina-eng"
 			cyborg_icon_override = 'modular_citadel/icons/mob/widerobot.dmi'
-			sleeper_overlay = "alinasleeper"
+			sleeper_overlay = "valeengsleeper"
 			dogborg = TRUE
 		else
 			return FALSE
@@ -616,8 +620,8 @@
 			dogborg = TRUE
 		if("Alina")
 			cyborg_base_icon = "alina-sec"
-			special_light_key = "alina"
-			sleeper_overlay = "alinasleeper"
+			special_light_key = "alina-sec"
+			sleeper_overlay = "valesecsleeper"
 			cyborg_icon_override = 'modular_citadel/icons/mob/widerobot.dmi'
 			dogborg = TRUE
 		if("K9 Dark")
@@ -634,7 +638,7 @@
 			return FALSE
 	return ..()
 
-/obj/item/robot_module/security/Initialize()
+/obj/item/robot_module/security/Initialize(mapload)
 	. = ..()
 	if(!CONFIG_GET(flag/weaken_secborg))
 		for(var/obj/item/gun/energy/disabler/cyborg/pewpew in basic_modules)
@@ -919,11 +923,12 @@
 		/obj/item/gun/energy/kinetic_accelerator/cyborg,
 		/obj/item/gun/energy/plasmacutter/cyborg,
 		/obj/item/gps/cyborg,
-		/obj/item/weapon/gripper/mining,
+		/obj/item/gripper/mining,
 		/obj/item/cyborg_clamp,
 		/obj/item/stack/marker_beacon,
 		/obj/item/destTagger,
-		/obj/item/stack/packageWrap)
+		/obj/item/stack/packageWrap,
+		/obj/item/card/id/miningborg)
 	emag_modules = list(/obj/item/borg/stun)
 	ratvar_modules = list(
 		/obj/item/clockwork/slab/cyborg/miner,
@@ -1029,6 +1034,7 @@
 		/obj/item/extinguisher/mini,
 		/obj/item/crowbar/cyborg,
 		/obj/item/reagent_containers/borghypo/syndicate,
+		/obj/item/gripper/medical,
 		/obj/item/shockpaddles/syndicate,
 		/obj/item/healthanalyzer/advanced,
 		/obj/item/surgical_drapes/advanced,
@@ -1070,7 +1076,7 @@
 		/obj/item/multitool/cyborg,
 		/obj/item/storage/part_replacer/cyborg,
 		/obj/item/holosign_creator/atmos,
-		/obj/item/weapon/gripper,
+		/obj/item/gripper,
 		/obj/item/lightreplacer/cyborg,
 		/obj/item/stack/sheet/metal/cyborg,
 		/obj/item/stack/sheet/glass/cyborg,
@@ -1142,3 +1148,73 @@
 	max_energy = 30
 	recharge_rate = 1
 	name = "Wrapping Paper Storage"
+
+/obj/item/robot_module/syndicate/spider// used for space ninja and their cyborg hacking special objective
+	name = "Spider Assault"
+	basic_modules = list(
+		/obj/item/assembly/flash/cyborg,
+		/obj/item/extinguisher/mini,
+		/obj/item/crowbar/cyborg,
+		/obj/item/melee/transforming/energy/sword/cyborg,
+		/obj/item/gun/energy/printer,
+		/obj/item/pinpointer/spider_cyborg)
+
+	cyborg_base_icon = "spider_sec"
+
+/obj/item/robot_module/syndicate_medical/spider// ditto
+	name = "Spider Medical"
+	basic_modules = list(
+		/obj/item/assembly/flash/cyborg,
+		/obj/item/extinguisher/mini,
+		/obj/item/crowbar/cyborg,
+		/obj/item/reagent_containers/borghypo/syndicate,
+		/obj/item/gripper/medical,
+		/obj/item/shockpaddles/syndicate,
+		/obj/item/healthanalyzer/advanced,
+		/obj/item/surgical_drapes/advanced,
+		/obj/item/retractor,
+		/obj/item/hemostat,
+		/obj/item/cautery,
+		/obj/item/surgicaldrill,
+		/obj/item/scalpel,
+		/obj/item/bonesetter,
+		/obj/item/stack/medical/bone_gel,
+		/obj/item/melee/transforming/energy/sword/cyborg/saw,
+		/obj/item/roller/robo,
+		/obj/item/stack/medical/gauze/cyborg,
+		/obj/item/gun/medbeam,
+		/obj/item/organ_storage,
+		/obj/item/pinpointer/spider_cyborg)
+
+	cyborg_base_icon = "spider_medical"
+
+/obj/item/robot_module/saboteur/spider// ditto
+	name = "Spider Saboteur"
+	basic_modules = list(
+		/obj/item/assembly/flash/cyborg,
+		/obj/item/borg/sight/thermal,
+		/obj/item/construction/rcd/borg/syndicate,
+		/obj/item/pipe_dispenser,
+		/obj/item/restraints/handcuffs/cable/zipties,
+		/obj/item/extinguisher,
+		/obj/item/weldingtool/largetank/cyborg,
+		/obj/item/screwdriver/nuke,
+		/obj/item/wrench/cyborg,
+		/obj/item/crowbar/cyborg,
+		/obj/item/wirecutters/cyborg,
+		/obj/item/multitool/cyborg,
+		/obj/item/storage/part_replacer/cyborg,
+		/obj/item/holosign_creator/atmos,
+		/obj/item/gripper,
+		/obj/item/lightreplacer/cyborg,
+		/obj/item/stack/sheet/metal/cyborg,
+		/obj/item/stack/sheet/glass/cyborg,
+		/obj/item/stack/sheet/rglass/cyborg,
+		/obj/item/stack/rods/cyborg,
+		/obj/item/stack/tile/plasteel/cyborg,
+		/obj/item/destTagger/borg,
+		/obj/item/stack/cable_coil/cyborg,
+		/obj/item/borg_chameleon,
+		/obj/item/pinpointer/spider_cyborg)
+
+	cyborg_base_icon = "spider_engi"

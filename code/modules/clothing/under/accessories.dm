@@ -57,7 +57,7 @@
 	plane = initial(plane)
 	U.cut_overlays()
 	U.attached_accessory = null
-	U.accessory_overlay = null
+	U.accessory_overlays = null
 
 /obj/item/clothing/accessory/proc/on_uniform_equip(obj/item/clothing/under/U, user)
 	return
@@ -79,18 +79,196 @@
 	if(initial(above_suit))
 		. += "<span class='notice'>\The [src] can be worn above or below your suit. Alt-click to toggle.</span>"
 
+//////////////
+//Waistcoats//
+//////////////
+
 /obj/item/clothing/accessory/waistcoat
-	name = "waistcoat"
+	name = "black waistcoat"
 	desc = "For some classy, murderous fun."
 	icon_state = "waistcoat"
 	item_state = "waistcoat"
 	minimize_when_attached = FALSE
+
+/obj/item/clothing/accessory/waistcoat/red
+	name = "red waistcoat"
+	icon_state = "waistcoat_red"
+	item_state = "waistcoat_red"
+
+/obj/item/clothing/accessory/waistcoat/grey
+	name = "grey waistcoat"
+	icon_state = "waistcoat_grey"
+	item_state = "waistcoat_grey"
+
+/obj/item/clothing/accessory/waistcoat/brown
+	name = "red waistcoat"
+	icon_state = "waistcoat_brown"
+	item_state = "waistcoat_brown"
+
+/obj/item/clothing/accessory/waistcoat/sweatervest
+	name = "black sweatervest"
+	icon_state = "sweatervest"
+	item_state = "sweatervest"
+
+/obj/item/clothing/accessory/waistcoat/sweatervest/blue
+	name = "blue sweatervest"
+	icon_state = "sweatervest_blue"
+	item_state = "sweatervest_blue"
+
+/obj/item/clothing/accessory/waistcoat/sweatervest/red
+	name = "red sweatervest"
+	icon_state = "sweatervest_red"
+	item_state = "sweatervest_red"
+
+////////////
+//Sweaters//
+////////////
+
+/obj/item/clothing/accessory/sweater
+	name = "grey sweater"
+	desc = "Nicely comfy and warm!"
+	icon_state = "sweater"
+	item_state = "sweater"
+	minimize_when_attached = FALSE
+
+/obj/item/clothing/accessory/sweater/pink
+	name = "pink sweater"
+	icon_state = "sweater_pink"
+	item_state = "sweater_pink"
+
+/obj/item/clothing/accessory/sweater/heart
+	name = "heart sweater"
+	icon_state = "sweater_heart"
+	item_state = "sweater_heart"
+
+/obj/item/clothing/accessory/sweater/blue
+	name = "blue sweater"
+	icon_state = "sweater_blue"
+	item_state = "sweater_blue"
+
+/obj/item/clothing/accessory/sweater/nt
+	name = "nanotrasen sweater"
+	icon_state = "sweater_nt"
+	item_state = "sweater_nt"
+
+/obj/item/clothing/accessory/sweater/mint
+	name = "mint sweater"
+	icon_state = "sweater_mint"
+	item_state = "sweater_mint"
+
+/obj/item/clothing/accessory/sweater/shoulderless
+	name = "shoulderless sweater"
+	icon_state = "sweater_shoulderless"
+	item_state = "sweater_shoulderless"
+
+/obj/item/clothing/accessory/sweater/uglyxmas
+	name = "ugly xmas sweater"
+	icon_state = "sweater_uglyxmas"
+	item_state = "sweater_uglyxmas"
+
+/obj/item/clothing/accessory/sweater/flower
+	name = "flower sweater"
+	icon_state = "sweater_flower"
+	item_state = "sweater_flower"
+
+////////////////
+//Suit Jackets//
+////////////////
+
+/obj/item/clothing/accessory/suitjacket
+	name = "tan suit jacket"
+	desc = "For those times when you have to attend a fancy business meeting without wearing your pants."
+	icon_state = "jacket_tan"
+	item_state = "jacket_tan"
+	minimize_when_attached = FALSE
+
+/obj/item/clothing/accessory/suitjacket/charcoal
+	name = "charcoal suit jacket"
+	icon_state = "jacket_charcoal"
+	item_state = "jacket_charcoal"
+
+/obj/item/clothing/accessory/suitjacket/navy
+	name = "navy suit jacket"
+	icon_state = "jacket_navy"
+	item_state = "jacket_navy"
+
+/obj/item/clothing/accessory/suitjacket/burgundy
+	name = "burgundy suit jacket"
+	icon_state = "jacket_burgundy"
+	item_state = "jacket_burgundy"
+
+/obj/item/clothing/accessory/suitjacket/checkered
+	name = "checkered suit jacket"
+	icon_state = "jacket_checkered"
+	item_state = "jacket_checkered"
+
+///////////////////////
+//Tactical Turtlnecks//
+///////////////////////
+
+/obj/item/clothing/accessory/turtleneck
+	name = "black turtleneck"
+	desc = "Extra cool. Extra fool."
+	icon_state = "turtleneck"
+	item_state = "turtleneck"
+	minimize_when_attached = FALSE
+
+/obj/item/clothing/accessory/turtleneck/red
+	name = "red turtleneck"
+	icon_state = "turtleneck_red"
+	item_state = "turtleneck_red"
+
+/obj/item/clothing/accessory/turtleneck/comfy
+	name = "comfy turtleneck"
+	icon_state = "turtleneck_comfy"
+	item_state = "turtleneck_comfy"
+
+/obj/item/clothing/accessory/turtleneck/tactifool
+	name = "black sweaterneck"
+	desc = "Extra fool. Extra cool."
+	icon_state = "tactifool"
+	item_state = "tactifool"
+
+/obj/item/clothing/accessory/turtleneck/tactifool/green
+	name = "green sweaterneck"
+	icon_state = "tactifool_green"
+	item_state = "tactifool_green"
+
+/obj/item/clothing/accessory/turtleneck/tactifool/blue
+	name = "blue sweaterneck"
+	icon_state = "tactifool_blue"
+	item_state = "tactifool_blue"
+
+/obj/item/clothing/accessory/turtleneck/tactifool/syndicate
+	name = "tactifool sweaterneck"
+	icon_state = "tactifool_syndicate"
+	item_state = "tactifool_syndicate"
+
+/////////////////
+//Miscellaneous//
+/////////////////
 
 /obj/item/clothing/accessory/maidapron
 	name = "maid apron"
 	desc = "The best part of a maid costume."
 	icon_state = "maidapron"
 	item_state = "maidapron"
+	minimize_when_attached = FALSE
+
+/obj/item/clothing/accessory/maidapron/polychromic
+	name = "polychromic maid apron"
+	icon_state = "polymaidapron"
+	item_state = "polymaidapron"
+
+/obj/item/clothing/accessory/maidapron/polychromic/ComponentInitialize()
+	. = ..()
+	AddElement(/datum/element/polychromic, list("#333333", "#FFFFFF"), 2)
+
+/obj/item/clothing/accessory/sleevecrop
+	name = "one sleeved crop top"
+	desc = "Off the shoulder crop top, for those nights out partying."
+	icon_state = "sleevecrop"
+	item_state = "sleevecrop"
 	minimize_when_attached = FALSE
 
 //////////
@@ -209,7 +387,7 @@
 /obj/item/clothing/accessory/medal/gold/captain/family
 	name = "old medal of captaincy"
 	desc = "A rustic badge pure gold, has been through hell and back by the looks, the syndcate have been after these by the looks of it for generations..."
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 0, "acid" = 10) //Pure gold
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 0, ACID = 10) //Pure gold
 	custom_materials = list(/datum/material/gold=2000)
 
 /obj/item/clothing/accessory/medal/gold/heroism
@@ -221,7 +399,7 @@
 	desc = "An eccentric medal made of plasma."
 	icon_state = "plasma"
 	medaltype = "medal-plasma"
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = -10, "acid" = 0) //It's made of plasma. Of course it's flammable.
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = -10, ACID = 0) //It's made of plasma. Of course it's flammable.
 	custom_materials = list(/datum/material/plasma=1000)
 
 /obj/item/clothing/accessory/medal/plasma/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
@@ -304,19 +482,20 @@
 ////////////////
 //HA HA! NERD!//
 ////////////////
+
 /obj/item/clothing/accessory/pocketprotector
 	name = "pocket protector"
 	desc = "Can protect your clothing from ink stains, but you'll look like a nerd if you're using one."
 	icon_state = "pocketprotector"
 	pocket_storage_component_path = /datum/component/storage/concrete/pockets/pocketprotector
 
-/obj/item/clothing/accessory/pocketprotector/full/Initialize()
+/obj/item/clothing/accessory/pocketprotector/full/Initialize(mapload)
 	. = ..()
 	new /obj/item/pen/red(src)
 	new /obj/item/pen(src)
 	new /obj/item/pen/blue(src)
 
-/obj/item/clothing/accessory/pocketprotector/cosmetology/Initialize()
+/obj/item/clothing/accessory/pocketprotector/cosmetology/Initialize(mapload)
 	. = ..()
 	for(var/i in 1 to 3)
 		new /obj/item/lipstick/random(src)
@@ -329,21 +508,21 @@
 	name = "bone talisman"
 	desc = "A hunter's talisman, some say the old gods smile on those who wear it."
 	icon_state = "talisman"
-	armor = list("melee" = 5, "bullet" = 5, "laser" = 5, "energy" = 5, "bomb" = 20, "bio" = 20, "rad" = 5, "fire" = 0, "acid" = 25)
+	armor = list(MELEE = 5, BULLET = 5, LASER = 0, ENERGY = 0, BOMB = 10, BIO = 20, RAD = 5, FIRE = 0, ACID = 25)
 
 /obj/item/clothing/accessory/skullcodpiece
 	name = "skull codpiece"
 	desc = "A skull shaped ornament, intended to protect the important things in life."
 	icon_state = "skull"
 	above_suit = TRUE
-	armor = list("melee" = 5, "bullet" = 5, "laser" = 5, "energy" = 5, "bomb" = 20, "bio" = 20, "rad" = 5, "fire" = 0, "acid" = 25)
+	armor = list(MELEE = 5, BULLET = 5, LASER = 0, ENERGY = 0, BOMB = 10, BIO = 20, RAD = 5, FIRE = 0, ACID = 25)
 
 /obj/item/clothing/accessory/skullcodpiece/fake
 	name = "false codpiece"
 	desc = "A plastic ornament, intended to protect the important things in life. It's not very good at it."
 	icon_state = "skull"
 	above_suit = TRUE
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 0, "acid" = 0)
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 0, ACID = 0)
 
 /////////////////////
 //Syndie Accessories//
@@ -353,21 +532,21 @@
 	name = "protective padding"
 	desc = "A soft padding meant to cushion the wearer from melee harm."
 	icon_state = "padding"
-	armor = list("melee" = 20, "bullet" = 10, "laser" = 0, "energy" = 0, "bomb" = 5, "bio" = 0, "rad" = 0, "fire" = -20, "acid" = 45)
+	armor = list(MELEE = 20, BULLET = 10, LASER = 0, ENERGY = 0, BOMB = 5, BIO = 0, RAD = 0, FIRE = -20, ACID = 45)
 	flags_inv = HIDEACCESSORY //hidden from indiscrete mob examines.
 
 /obj/item/clothing/accessory/kevlar
 	name = "kevlar padding"
 	desc = "A layered kevlar padding meant to cushion the wearer from ballistic harm."
 	icon_state = "padding"
-	armor = list("melee" = 10, "bullet" = 20, "laser" = 0, "energy" = 0, "bomb" = 10, "bio" = 0, "rad" = 0, "fire" = 0, "acid" = 25)
+	armor = list(MELEE = 10, BULLET = 20, LASER = 0, ENERGY = 0, BOMB = 10, BIO = 0, RAD = 0, FIRE = 0, ACID = 25)
 	flags_inv = HIDEACCESSORY
 
 /obj/item/clothing/accessory/plastics
 	name = "ablative padding"
 	desc = "A thin ultra-refractory composite padding meant to cushion the wearer from energy lasers harm."
 	icon_state = "plastics"
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 20, "energy" = 10, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 20, "acid" = -40)
+	armor = list(MELEE = 0, BULLET = 0, LASER = 20, ENERGY = 10, BOMB = 0, BIO = 0, RAD = 0, FIRE = 20, ACID = -40)
 	flags_inv = HIDEACCESSORY
 
 //necklace

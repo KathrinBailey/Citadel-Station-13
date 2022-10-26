@@ -85,9 +85,18 @@
 		to_chat(user, "<span class='warning'>You're not ready to tackle!</span>")
 		return
 
+	if(!user.mob_has_gravity() ||!user.loc.has_gravity() || isspaceturf(user.loc))
+		to_chat(user, "<span class='warning'>You can't find your footing without gravity!</span>")
+		return
+
 	if(user.has_status_effect(STATUS_EFFECT_TASED)) // can't tackle if you just got tased
 		to_chat(user, "<span class='warning'>You can't tackle while tased!</span>")
 		return
+
+	var/left_paralysis = HAS_TRAIT(user, TRAIT_PARALYSIS_L_ARM)
+	var/right_paralysis = HAS_TRAIT(user, TRAIT_PARALYSIS_R_ARM)
+	if(left_paralysis && right_paralysis)
+		to_chat(user, "<span class='warning'>You can't tackle without the use of your arms!</span>")
 
 	user.face_atom(A)
 
@@ -280,6 +289,10 @@
 		attack_mod -= 2
 	if(HAS_TRAIT(sacker, TRAIT_GIANT))
 		attack_mod += 2
+	var/left_paralysis = HAS_TRAIT(sacker, TRAIT_PARALYSIS_L_ARM)
+	var/right_paralysis = HAS_TRAIT(sacker, TRAIT_PARALYSIS_R_ARM)
+	if(left_paralysis || right_paralysis)
+		attack_mod -= 2
 
 	if(ishuman(target))
 		var/mob/living/carbon/human/S = sacker
@@ -357,7 +370,7 @@
 			user.emote("scream")
 			user.gain_trauma(/datum/brain_trauma/severe/paralysis/spinesnapped) // oopsie indeed!
 			shake_camera(user, 7, 7)
-			user.overlay_fullscreen("flash", /obj/screen/fullscreen/flash)
+			user.overlay_fullscreen("flash", /atom/movable/screen/fullscreen/tiled/flash)
 			user.clear_fullscreen("flash", 4.5)
 
 		if(94 to 98)
@@ -368,7 +381,7 @@
 			user.gain_trauma_type(BRAIN_TRAUMA_MILD)
 			user.playsound_local(get_turf(user), 'sound/weapons/flashbang.ogg', 100, TRUE, 8, 0.9)
 			shake_camera(user, 6, 6)
-			user.overlay_fullscreen("flash", /obj/screen/fullscreen/flash)
+			user.overlay_fullscreen("flash", /atom/movable/screen/fullscreen/tiled/flash)
 			user.clear_fullscreen("flash", 3.5)
 
 		if(84 to 93)
@@ -381,7 +394,7 @@
 			user.playsound_local(get_turf(user), 'sound/weapons/flashbang.ogg', 100, TRUE, 8, 0.9)
 			user.DefaultCombatKnockdown(40)
 			shake_camera(user, 5, 5)
-			user.overlay_fullscreen("flash", /obj/screen/fullscreen/flash)
+			user.overlay_fullscreen("flash", /atom/movable/screen/fullscreen/tiled/flash)
 			user.clear_fullscreen("flash", 2.5)
 
 		if(64 to 83)

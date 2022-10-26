@@ -9,6 +9,9 @@
 #define TEXT_EAST			"[EAST]"
 #define TEXT_WEST			"[WEST]"
 
+/// yeah yeah i'm a lazy asshole who can't debug yeah yeah
+#define DEBUG_LINE message_admins("DEBUG: [__FILE__] [__LINE__] executing!")
+
 /// world.icon_size
 #define PIXELS 32
 
@@ -30,7 +33,8 @@ Will print: "/mob/living/carbon/human/death" (you can optionally embed it in a s
 
 //Human Overlays Indexes/////////
 //LOTS OF CIT CHANGES HERE. BE CAREFUL WHEN UPSTREAM ADDS MORE LAYERS
-#define MUTATIONS_LAYER			33		//mutations. Tk headglows, cold resistance glow, etc
+#define MUTATIONS_LAYER			34		//mutations. Tk headglows, cold resistance glow, etc
+#define ANTAG_LAYER 			33		//stuff for things like cultism indicators (clock cult glow, cultist red halos, whatever else new that comes up)
 #define GENITALS_BEHIND_LAYER	32		//Some genitalia needs to be behind everything, such as with taurs (Taurs use body_behind_layer
 #define BODY_BEHIND_LAYER		31		//certain mutantrace features (tail when looking south) that must appear behind the body parts
 #define BODYPARTS_LAYER			30		//Initially "AUGMENTS", this was repurposed to be a catch-all bodyparts flag
@@ -63,7 +67,7 @@ Will print: "/mob/living/carbon/human/death" (you can optionally embed it in a s
 #define HANDS_LAYER				3
 #define BODY_FRONT_LAYER		2
 #define FIRE_LAYER				1		//If you're on fire
-#define TOTAL_LAYERS			33		//KEEP THIS UP-TO-DATE OR SHIT WILL BREAK ;_;
+#define TOTAL_LAYERS			34		//KEEP THIS UP-TO-DATE OR SHIT WILL BREAK ;_;
 
 //Human Overlay Index Shortcuts for alternate_worn_layer, layers
 //Because I *KNOW* somebody will think layer+1 means "above"
@@ -158,7 +162,8 @@ GLOBAL_LIST_EMPTY(bloody_footprints_cache)
 #define BLOOD_COLOR_SLIME			"#00ff90"
 #define BLOOD_COLOR_LIZARD			"#db004D"
 #define BLOOD_COLOR_UNIVERSAL		"#db3300"
-#define BLOOD_COLOR_BUG				"#a37c0f"
+#define BLOOD_COLOR_BUG				"#ffc933"
+#define BLOOD_COLOR_PLANT			"#3d610e"
 
 
 //suit sensors: sensor_mode defines
@@ -172,8 +177,18 @@ GLOBAL_LIST_EMPTY(bloody_footprints_cache)
 
 #define BROKEN_SENSORS -1
 #define NO_SENSORS 0
-#define HAS_SENSORS 1
-#define LOCKED_SENSORS 2
+#define DAMAGED_SENSORS_LIVING 1
+#define DAMAGED_SENSORS_VITALS 2
+#define HAS_SENSORS 3
+
+//suit sensor flags: sensor_flag defines
+#define SENSOR_RANDOM (1<<0)
+#define SENSOR_LOCKED (1<<1)
+
+//suit sensor integrity percentage threshold defines
+#define SENSOR_INTEGRITY_COORDS 0.2
+#define SENSOR_INTEGRITY_VITALS 0.6
+#define SENSOR_INTEGRITY_BINARY 1
 
 //Wet floor type flags. Stronger ones should be higher in number.
 #define TURF_DRY		(0)
@@ -308,6 +323,7 @@ GLOBAL_LIST_INIT(pda_reskins, list(PDA_SKIN_CLASSIC = 'icons/obj/pda.dmi', PDA_S
 #define FIRST_DIAG_STEP 1
 #define SECOND_DIAG_STEP 2
 
+#define DEADCHAT_ANNOUNCEMENT "announcement"
 #define DEADCHAT_ARRIVALRATTLE "arrivalrattle"
 #define DEADCHAT_DEATHRATTLE "deathrattle"
 #define DEADCHAT_REGULAR "regular-deadchat"
@@ -328,18 +344,6 @@ GLOBAL_LIST_INIT(pda_reskins, list(PDA_SKIN_CLASSIC = 'icons/obj/pda.dmi', PDA_S
 
 //TODO Move to a pref
 #define STATION_GOAL_BUDGET  1
-
-//Luma coefficients suggested for HDTVs. If you change these, make sure they add up to 1.
-#define LUMA_R 0.213
-#define LUMA_G 0.715
-#define LUMA_B 0.072
-
-//different types of atom colorations
-#define ADMIN_COLOUR_PRIORITY 		1 //only used by rare effects like greentext coloring mobs and when admins varedit color
-#define TEMPORARY_COLOUR_PRIORITY 	2 //e.g. purple effect of the revenant on a mob, black effect when mob electrocuted
-#define WASHABLE_COLOUR_PRIORITY 	3 //color splashed onto an atom (e.g. paint on turf)
-#define FIXED_COLOUR_PRIORITY 		4 //color inherent to the atom (e.g. blob color)
-#define COLOUR_PRIORITY_AMOUNT 4 //how many priority levels there are.
 
 //Endgame Results
 #define NUKE_NEAR_MISS 1
@@ -364,7 +368,8 @@ GLOBAL_LIST_INIT(pda_reskins, list(PDA_SKIN_CLASSIC = 'icons/obj/pda.dmi', PDA_S
 #define CLOCK_SILICONS 22
 #define CLOCK_PROSELYTIZATION 23
 #define SHUTTLE_HIJACK 24
-#define GANG_VICTORY 25
+#define GANG_DESTROYED 25
+#define GANG_OPERATING 26
 
 #define FIELD_TURF 1
 #define FIELD_EDGE 2
@@ -434,8 +439,13 @@ GLOBAL_LIST_INIT(pda_reskins, list(PDA_SKIN_CLASSIC = 'icons/obj/pda.dmi', PDA_S
 //text files
 #define BRAIN_DAMAGE_FILE "traumas.json"
 #define ION_FILE "ion_laws.json"
-#define REDPILL_FILE "redpill.json"
 #define PIRATE_NAMES_FILE "pirates.json"
+#define REDPILL_FILE "redpill.json"
+#define ARCADE_FILE "arcade.json"
+// #define BOOMER_FILE "boomer.json"
+// #define LOCATIONS_FILE "locations.json"
+// #define WANTED_FILE "wanted_message.json"
+// #define VISTA_FILE "steve.json"
 #define FLESH_SCAR_FILE "wounds/flesh_scar_desc.json"
 #define BONE_SCAR_FILE "wounds/bone_scar_desc.json"
 #define SCAR_LOC_FILE "wounds/scar_loc.json"
@@ -498,6 +508,7 @@ GLOBAL_LIST_INIT(pda_reskins, list(PDA_SKIN_CLASSIC = 'icons/obj/pda.dmi', PDA_S
 
 #define VOMIT_TOXIC 1
 #define VOMIT_PURPLE 2
+#define VOMIT_NANITE 3
 
 // possible bitflag return values of intercept_zImpact(atom/movable/AM, levels = 1) calls
 #define FALL_INTERCEPTED		(1<<0) //Stops the movable from falling further and crashing on the ground
@@ -546,3 +557,8 @@ GLOBAL_LIST_INIT(pda_reskins, list(PDA_SKIN_CLASSIC = 'icons/obj/pda.dmi', PDA_S
 #define SHOES_KNOTTED 2
 
 #define WANTED_FILE "wanted_message.json"
+
+// Notification action types
+#define NOTIFY_JUMP "jump"
+#define NOTIFY_ATTACK "attack"
+#define NOTIFY_ORBIT "orbit"

@@ -14,7 +14,7 @@
 	var/turf/target
 	var/obj/item/implant/imp_t
 
-/obj/machinery/computer/teleporter/Initialize()
+/obj/machinery/computer/teleporter/Initialize(mapload)
 	. = ..()
 	id = "[rand(1000, 9999)]"
 	link_power_station()
@@ -200,6 +200,6 @@
 	if(is_centcom_level(T.z) || is_away_level(T.z))
 		return FALSE
 	var/area/A = get_area(T)
-	if(!A || A.noteleport)
+	if(!A || (A.area_flags & NOTELEPORT))
 		return FALSE
 	return TRUE

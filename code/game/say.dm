@@ -31,14 +31,42 @@ GLOBAL_LIST_INIT(freqtospan, list(
 /atom/movable/proc/Hear(message, atom/movable/speaker, message_language, raw_message, radio_freq, list/spans, message_mode, atom/movable/source)
 	SEND_SIGNAL(src, COMSIG_MOVABLE_HEAR, args)
 
+/atom/movable/proc/bark(list/hearers, distance, volume, pitch, queue_time)
+	if(queue_time && vocal_current_bark != queue_time)
+		return
+	if(SEND_SIGNAL(src, COMSIG_MOVABLE_BARK, hearers, distance, volume, pitch))
+		return //bark interception. this probably counts as some flavor of BDSM
+	if(!vocal_bark)
+		if(!vocal_bark_id || !set_bark(vocal_bark_id)) //just-in-time bark generation
+			return
+	volume = min(volume, 100)
+	var/turf/T = get_turf(src)
+	for(var/mob/M in hearers)
+		M.playsound_local(T, vol = volume, vary = TRUE, frequency = pitch, max_distance = distance, falloff_distance = 0, falloff_exponent = BARK_SOUND_FALLOFF_EXPONENT(distance), S = vocal_bark, distance_multiplier = 1)
+
 /atom/movable/proc/can_speak()
 	return 1
 
 /atom/movable/proc/send_speech(message, range = 7, atom/movable/source = src, bubble_type, list/spans, datum/language/message_language = null, message_mode)
 	var/rendered = compose_message(src, message_language, message, , spans, message_mode, source)
-	for(var/_AM in get_hearers_in_view(range, source))
+	var/list/hearers = get_hearers_in_view(range, source)
+	for(var/_AM in hearers)
 		var/atom/movable/AM = _AM
 		AM.Hear(rendered, src, message_language, message, , spans, message_mode, source)
+	if(SEND_SIGNAL(src, COMSIG_MOVABLE_QUEUE_BARK, hearers, args) || vocal_bark || vocal_bark_id)
+		for(var/mob/M in hearers)
+			if(!M.client)
+				continue
+			if(!(M.client.prefs.toggles & SOUND_BARK))
+				hearers -= M
+		var/barks = min(round((LAZYLEN(message) / vocal_speed)) + 1, BARK_MAX_BARKS)
+		var/total_delay
+		vocal_current_bark = world.time //this is juuuuust random enough to reliably be unique every time send_speech() is called, in most scenarios
+		for(var/i in 1 to barks)
+			if(total_delay > BARK_MAX_TIME)
+				break
+			addtimer(CALLBACK(src, .proc/bark, hearers, range, vocal_volume, BARK_DO_VARY(vocal_pitch, vocal_pitch_range), vocal_current_bark), total_delay)
+			total_delay += rand(DS2TICKS(vocal_speed / BARK_SPEED_BASELINE), DS2TICKS(vocal_speed / BARK_SPEED_BASELINE) + DS2TICKS(vocal_speed / BARK_SPEED_BASELINE)) TICKS
 
 /atom/movable/proc/compose_message(atom/movable/speaker, datum/language/message_language, raw_message, radio_freq, list/spans, message_mode, face_name = FALSE, atom/movable/source)
 	if(!source)
@@ -59,7 +87,7 @@ GLOBAL_LIST_INIT(freqtospan, list(
 	var/endspanpart = "</span>"
 
 	//Message
-	var/messagepart = " <span class='message'>[say_emphasis(lang_treat(speaker, message_language, raw_message, spans, message_mode))]</span></span>"
+	var/messagepart = " <span class='message'>[lang_treat(speaker, message_language, raw_message, spans, message_mode)]</span></span>"
 
 	var/languageicon = ""
 	var/datum/language/D = GLOB.language_datum_instances[message_language]
@@ -96,17 +124,15 @@ GLOBAL_LIST_INIT(freqtospan, list(
 	return "[say_mod(input, message_mode)][spanned ? ", \"[spanned]\"" : ""]"
 	// Citadel edit [spanned ? ", \"[spanned]\"" : ""]"
 
-#define ENCODE_HTML_EPHASIS(input, char, html, varname) \
-	var/static/regex/##varname = regex("[char]{2}(.+?)[char]{2}", "g");\
-	input = varname.Replace_char(input, "<[html]>$1</[html]>")
-
+/// Converts specific characters, like +, |, and _ to formatted output.
 /atom/movable/proc/say_emphasis(input)
-	ENCODE_HTML_EPHASIS(input, "\\|", "i", italics)
-	ENCODE_HTML_EPHASIS(input, "\\+", "b", bold)
-	ENCODE_HTML_EPHASIS(input, "_", "u", underline)
+	var/static/regex/italics = regex(@"\|((?=\S)[\w\W]*?(?<=\S))\|", "g")
+	input = italics.Replace_char(input, "<i>$1</i>")
+	var/static/regex/bold = regex(@"\+((?=\S)[\w\W]*?(?<=\S))\+", "g")
+	input = bold.Replace_char(input, "<b>$1</b>")
+	var/static/regex/underline = regex(@"_((?=\S)[\w\W]*?(?<=\S))_", "g")
+	input = underline.Replace_char(input, "<u>$1</u>")
 	return input
-
-#undef ENCODE_HTML_EPHASIS
 
 /// Quirky citadel proc for our custom sayverbs to strip the verb out. Snowflakey as hell, say rewrite 3.0 when?
 /atom/movable/proc/quoteless_say_quote(input, list/spans = list(speech_span), message_mode)
@@ -118,6 +144,7 @@ GLOBAL_LIST_INIT(freqtospan, list(
 /atom/movable/proc/lang_treat(atom/movable/speaker, datum/language/language, raw_message, list/spans, message_mode, no_quote = FALSE)
 	if(has_language(language))
 		var/atom/movable/AM = speaker.GetSource()
+		raw_message = say_emphasis(raw_message)
 		if(AM) //Basically means "if the speaker is virtual"
 			return no_quote ? AM.quoteless_say_quote(raw_message, spans, message_mode) : AM.say_quote(raw_message, spans, message_mode)
 		else

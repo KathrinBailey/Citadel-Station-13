@@ -29,7 +29,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 	item_flags = NOBLUDGEON
 	w_class = WEIGHT_CLASS_TINY
 	slot_flags = ITEM_SLOT_ID | ITEM_SLOT_BELT
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 100)
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 100, ACID = 100)
 	resistance_flags = FIRE_PROOF | ACID_PROOF
 
 	//Main variables
@@ -115,7 +115,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 	if(LAZYLEN(GLOB.pda_reskins))
 		. += "<span class='notice'>Ctrl-shift-click it to reskin it.</span>"
 
-/obj/item/pda/Initialize()
+/obj/item/pda/Initialize(mapload)
 	. = ..()
 	if(fon)
 		set_light(f_lum, f_pow, f_col)
@@ -369,6 +369,10 @@ GLOBAL_LIST_EMPTY(PDAs)
 						dat += "<li><a href='byond://?src=[REF(src)];choice=Toggle Door'>[PDAIMG(rdoor)]Toggle Remote Door</a></li>"
 					if (cartridge.access & CART_DRONEPHONE)
 						dat += "<li><a href='byond://?src=[REF(src)];choice=Drone Phone'>[PDAIMG(dronephone)]Drone Phone</a></li>"
+					if (cartridge.access & CART_BARTENDER)
+						dat += "<li><a href='byond://?src=[REF(src)];choice=Drink Recipe Browser'>[PDAIMG(bucket)]Drink Recipe Browser</a></li>"
+					if (cartridge.access & CART_CHEMISTRY)
+						dat += "<li><a href='byond://?src=[REF(src)];choice=Chemistry Recipe Browser'>[PDAIMG(bucket)]Chemistry Recipe Browser</a></li>"
 				dat += "<li><a href='byond://?src=[REF(src)];choice=3'>[PDAIMG(atmos)]Atmospheric Scan</a></li>"
 				dat += "<li><a href='byond://?src=[REF(src)];choice=Light'>[PDAIMG(flashlight)][fon ? "Disable" : "Enable"] Flashlight</a></li>"
 				if (pai)
@@ -447,7 +451,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 						for(var/id in environment.get_gases())
 							var/gas_level = environment.get_moles(id)/total_moles
 							if(gas_level > 0)
-								dat += "[GLOB.meta_gas_names[id]]: [round(gas_level*100, 0.01)]%<br>"
+								dat += "[GLOB.gas_data.names[id]]: [round(gas_level*100, 0.01)]%<br>"
 
 					dat += "Temperature: [round(environment.return_temperature()-T0C)]&deg;C<br>"
 				dat += "<br>"
@@ -665,7 +669,8 @@ GLOBAL_LIST_EMPTY(PDAs)
 				create_message(U, locate(href_list["target"]))
 
 			if("MessageAll")
-				send_to_all(U)
+				if(cartridge?.spam_enabled)
+					send_to_all(U)
 
 			if("toggle_block")
 				toggle_blocking(usr, href_list["target"])
@@ -703,6 +708,16 @@ GLOBAL_LIST_EMPTY(PDAs)
 						var/turf/T = get_turf(loc)
 						if(T)
 							pai.forceMove(T)
+
+//DRINK RECIPE BROWSER=============================
+			if("Drink Recipe Browser")
+				if(cartridge && cartridge.access & CART_BARTENDER)
+					recipe_search(U, GLOB.drink_reactions_list)
+
+//CHEMISTRY RECIPE BROWSER
+			if("Chemistry Recipe Browser")
+				if(cartridge && cartridge.access & CART_CHEMISTRY)
+					recipe_search(U, GLOB.normalized_chemical_reactions_list)
 
 //LINK FUNCTIONS===================================
 

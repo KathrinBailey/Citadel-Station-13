@@ -1,8 +1,7 @@
 import { decodeHtmlEntities } from 'common/string';
-import { useBackend, useLocalState } from '../../backend';
-import { Box, Button, LabeledList, NumberInput, Section } from '../../components';
+import { useBackend } from '../../backend';
+import { Button, LabeledList, NumberInput, Section } from '../../components';
 import { getGasLabel } from '../../constants';
-
 
 export const Vent = (props, context) => {
   const { vent } = props;
@@ -38,7 +37,7 @@ export const Vent = (props, context) => {
         <LabeledList.Item label="Mode">
           <Button
             icon="sign-in-alt"
-            content={direction ? 'Pressurizing' : 'Scrubbing'}
+            content={direction ? 'Pressurizing' : 'Siphoning'}
             color={!direction && 'danger'}
             onClick={() => act('direction', {
               id_tag,

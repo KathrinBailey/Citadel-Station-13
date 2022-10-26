@@ -25,11 +25,16 @@ Difficulty: Extremely Hard
 	speed = 20
 	move_to_delay = 20
 	ranged = TRUE
-	crusher_loot = list(/obj/effect/decal/remains/plasma, /obj/item/crusher_trophy/ice_block_talisman)
-	loot = list(/obj/effect/decal/remains/plasma)
+	crusher_loot = list(/obj/effect/decal/remains/plasma, /obj/item/crusher_trophy/ice_block_talisman, ,/obj/item/disk/design_disk/modkit_disc/mob_and_turf_aoe,
+	/obj/item/disk/design_disk/modkit_disc/bounty,/obj/item/disk/design_disk/modkit_disc/resonator_blast,/obj/item/disk/design_disk/modkit_disc/rapid_repeater)
+	loot = list(/obj/effect/decal/remains/plasma, ,/obj/item/disk/design_disk/modkit_disc/mob_and_turf_aoe,
+	/obj/item/disk/design_disk/modkit_disc/bounty,/obj/item/disk/design_disk/modkit_disc/resonator_blast,/obj/item/disk/design_disk/modkit_disc/rapid_repeater)
 	wander = FALSE
 	del_on_death = TRUE
 	blood_volume = BLOOD_VOLUME_NORMAL
+	achievement_type = /datum/award/achievement/boss/demonic_miner_kill
+	crusher_achievement_type = /datum/award/achievement/boss/demonic_miner_crusher
+	score_achievement_type = /datum/award/score/demonic_miner_score
 	deathmessage = "falls to the ground, decaying into plasma particles."
 	deathsound = "bodyfall"
 	attack_action_types = list(/datum/action/innate/megafauna_attack/frost_orbs,
@@ -42,7 +47,7 @@ Difficulty: Extremely Hard
 	/// If the demonic frost miner is currently transforming to its enraged state
 	var/enraging = FALSE
 
-/mob/living/simple_animal/hostile/megafauna/demonic_frost_miner/Initialize()
+/mob/living/simple_animal/hostile/megafauna/demonic_frost_miner/Initialize(mapload)
 	. = ..()
 	AddComponent(/datum/component/knockback, 7, FALSE, TRUE)
 	AddComponent(/datum/component/lifesteal, 50)
@@ -141,7 +146,7 @@ Difficulty: Extremely Hard
 	if(isturf(target) || isobj(target))
 		target.ex_act(EXPLODE_HEAVY)
 
-/mob/living/simple_animal/hostile/megafauna/demonic_frost_miner/ex_act(severity, target)
+/mob/living/simple_animal/hostile/megafauna/demonic_frost_miner/ex_act(severity, target, origin)
 	adjustBruteLoss(30 * severity - 120)
 	visible_message("<span class='danger'>[src] absorbs the explosion!</span>", "<span class='userdanger'>You absorb the explosion!</span>")
 
@@ -303,7 +308,7 @@ Difficulty: Extremely Hard
 	desc = "A pair of winter boots contractually made by a devil, they cannot be taken off once put on."
 	slowdown = SHOES_SPEED_SLIGHT
 
-/obj/item/clothing/shoes/winterboots/ice_boots/speedy/Initialize()
+/obj/item/clothing/shoes/winterboots/ice_boots/speedy/Initialize(mapload)
 	. = ..()
 	ADD_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
 
@@ -312,7 +317,7 @@ Difficulty: Extremely Hard
 	desc = "Cracks rocks at an inhuman speed, as well as being enhanced for combat purposes."
 	toolspeed = 0
 
-/obj/item/pickaxe/drill/jackhammer/demonic/Initialize()
+/obj/item/pickaxe/drill/jackhammer/demonic/Initialize(mapload)
 	. = ..()
 	AddComponent(/datum/component/knockback, 4, FALSE, TRUE)
 	AddComponent(/datum/component/lifesteal, 5)
@@ -333,11 +338,11 @@ Difficulty: Extremely Hard
 	id = "ice_block_talisman"
 	duration = 25
 	status_type = STATUS_EFFECT_REFRESH
-	alert_type = /obj/screen/alert/status_effect/ice_block_talisman
+	alert_type = /atom/movable/screen/alert/status_effect/ice_block_talisman
 	/// Stored icon overlay for the hit mob, removed when effect is removed
 	var/icon/cube
 
-/obj/screen/alert/status_effect/ice_block_talisman
+/atom/movable/screen/alert/status_effect/ice_block_talisman
 	name = "Frozen Solid"
 	desc = "You're frozen inside an ice cube, and cannot move!"
 	icon_state = "frozen"

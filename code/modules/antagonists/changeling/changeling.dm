@@ -125,6 +125,8 @@
 /datum/antagonist/changeling/proc/remove_changeling_powers()
 	if(ishuman(owner.current) || ismonkey(owner.current))
 		reset_properties()
+		QDEL_NULL(cellular_emporium)
+		QDEL_NULL(emporium_action)
 		for(var/obj/effect/proc_holder/changeling/p in purchasedpowers)
 			if(p.always_keep)
 				continue
@@ -139,6 +141,7 @@
 /datum/antagonist/changeling/proc/reset_powers()
 	if(purchasedpowers)
 		remove_changeling_powers()
+	create_actions()
 	//Repurchase free powers.
 	for(var/path in all_powers)
 		var/obj/effect/proc_holder/changeling/S = new path()
@@ -213,7 +216,7 @@
 	if(canrespec)
 		to_chat(owner.current, "<span class='notice'>We have removed our evolutions from this form, and are now ready to readapt.</span>")
 		reset_powers()
-		playsound(get_turf(owner.current), 'sound/effects/lingreadapt.ogg', 75, TRUE, 5, soundenvwet = 0)
+		playsound(get_turf(owner.current), 'sound/effects/lingreadapt.ogg', 75, TRUE, 5)
 		canrespec = 0
 		SSblackbox.record_feedback("tally", "changeling_power_purchase", 1, "Readapt")
 		return 1
@@ -225,7 +228,8 @@
 /datum/antagonist/changeling/proc/regenerate()
 	var/mob/living/carbon/the_ling = owner.current
 	if(istype(the_ling))
-		emporium_action.Grant(the_ling)
+		if(emporium_action)
+			emporium_action.Grant(the_ling)
 		if(the_ling.stat == DEAD)
 			chem_charges = min(max(0, chem_charges + chem_recharge_rate - chem_recharge_slowdown), (chem_storage*0.5))
 			geneticdamage = max(LING_DEAD_GENETICDAMAGE_HEAL_CAP,geneticdamage-1)
@@ -293,8 +297,14 @@
 	prof.socks = H.socks
 	prof.socks_color = H.socks_color
 
-	var/list/slots = list("head", "wear_mask", "back", "wear_suit", "w_uniform", "shoes", "belt", "gloves", "glasses", "ears", "wear_id", "s_store")
-	for(var/slot in slots)
+	var/datum/icon_snapshot/entry = new
+	entry.name = H.name
+	entry.icon = H.icon
+	entry.icon_state = H.icon_state
+	entry.overlays = H.get_overlays_copy(list(HANDS_LAYER, HANDCUFF_LAYER, LEGCUFF_LAYER))
+	prof.profile_snapshot = entry
+
+	for(var/slot in GLOB.slots)
 		if(slot in H.vars)
 			var/obj/item/I = H.vars[slot]
 			if(!I)
@@ -433,30 +443,21 @@
 		destroy_objective.find_target()
 		objectives += destroy_objective
 	else
-		if(prob(70))
-			var/datum/objective/assassinate/once/kill_objective = new
-			kill_objective.owner = owner
-			if(team_mode) //No backstabbing while in a team
-				kill_objective.find_target_by_role(role = ROLE_CHANGELING, role_type = 1, invert = 1)
-			else
-				kill_objective.find_target()
-			objectives += kill_objective
+		var/datum/objective/assassinate/once/kill_objective = new
+		kill_objective.owner = owner
+		if(team_mode) //No backstabbing while in a team
+			kill_objective.find_target_by_role(role = ROLE_CHANGELING, role_type = 1, invert = 1)
 		else
-			var/datum/objective/maroon/maroon_objective = new
-			maroon_objective.owner = owner
-			if(team_mode)
-				maroon_objective.find_target_by_role(role = ROLE_CHANGELING, role_type = 1, invert = 1)
-			else
-				maroon_objective.find_target()
-			objectives += maroon_objective
+			kill_objective.find_target()
+		objectives += kill_objective
 
-			if (!(locate(/datum/objective/escape) in objectives) && escape_objective_possible)
-				var/datum/objective/escape/escape_with_identity/identity_theft = new
-				identity_theft.owner = owner
-				identity_theft.target = maroon_objective.target
-				identity_theft.update_explanation_text()
-				objectives += identity_theft
-				escape_objective_possible = FALSE
+		if(!(locate(/datum/objective/escape) in objectives) && escape_objective_possible && prob(50))
+			var/datum/objective/escape/escape_with_identity/identity_theft = new
+			identity_theft.owner = owner
+			identity_theft.target = kill_objective.target
+			identity_theft.update_explanation_text()
+			objectives += identity_theft
+			escape_objective_possible = FALSE
 
 	if (!(locate(/datum/objective/escape) in objectives) && escape_objective_possible)
 		if(prob(50))
@@ -523,6 +524,9 @@
 	var/socks
 	var/socks_color
 
+	/// Icon snapshot of the profile
+	var/datum/icon_snapshot/profile_snapshot
+
 /datum/changelingprofile/Destroy()
 	qdel(dna)
 	. = ..()
@@ -540,13 +544,14 @@
 	newprofile.underwear = underwear
 	newprofile.undershirt = undershirt
 	newprofile.socks = socks
-
+	newprofile.profile_snapshot = profile_snapshot
 
 /datum/antagonist/changeling/xenobio
 	name = "Xenobio Changeling"
 	give_objectives = FALSE
 	show_in_roundend = FALSE //These are here for admin tracking purposes only
 	you_are_greet = FALSE
+	antag_moodlet = FALSE
 
 /datum/antagonist/changeling/roundend_report()
 	var/list/parts = list()

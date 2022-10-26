@@ -85,6 +85,7 @@
 	name = "trash bag of holding"
 	desc = "The latest and greatest in custodial convenience, a trashbag that is capable of holding vast quantities of garbage."
 	icon_state = "bluetrashbag"
+	item_state = "bluetrashbag"
 	item_flags = NO_MAT_REDEMPTION
 	rad_flags = RAD_PROTECT_CONTENTS | RAD_NO_CONTAMINATE
 
@@ -107,7 +108,7 @@
 	desc = "This little bugger can be used to store and transport ores."
 	icon = 'icons/obj/mining.dmi'
 	icon_state = "satchel"
-	slot_flags = ITEM_SLOT_BELT | ITEM_SLOT_POCKET
+	slot_flags = ITEM_SLOT_BELT | ITEM_SLOT_POCKETS
 	w_class = WEIGHT_CLASS_NORMAL
 	component_type = /datum/component/storage/concrete/stack
 	var/spam_protection = FALSE //If this is TRUE, the holder won't receive any messages when they fail to pick up ore through crossing it
@@ -316,7 +317,7 @@
  * Trays - Agouri
  */
 /obj/item/storage/bag/tray
-	name = "tray"
+	name = "serving tray"
 	icon = 'icons/obj/food/containers.dmi'
 	icon_state = "tray"
 	desc = "A metal tray to lay food on."
@@ -376,6 +377,12 @@
 	. = ..()
 	update_icon()
 
+/obj/item/storage/bag/tray/cafeteria
+	name = "cafeteria tray"
+	icon = 'icons/obj/food/containers.dmi'
+	icon_state = "foodtray"
+	desc = "A cheap metal tray to pile today's meal onto."
+
 //bluespace tray, holds more items
 /obj/item/storage/bag/tray/bluespace
 	name = "bluespace tray"
@@ -393,7 +400,7 @@
 	icon = 'icons/obj/chemical.dmi'
 	icon_state = "bag"
 	desc = "A bag for storing pills, patches, and bottles."
-	slot_flags = ITEM_SLOT_BELT|ITEM_SLOT_POCKET
+	slot_flags = ITEM_SLOT_BELT|ITEM_SLOT_POCKETS
 	resistance_flags = FLAMMABLE
 
 /obj/item/storage/bag/chemistry/ComponentInitialize()
@@ -413,7 +420,7 @@
 	icon = 'icons/obj/chemical.dmi'
 	icon_state = "biobag"
 	desc = "A bag for the safe transportation and disposal of biowaste and other biological materials."
-	slot_flags = ITEM_SLOT_BELT|ITEM_SLOT_POCKET
+	slot_flags = ITEM_SLOT_BELT|ITEM_SLOT_POCKETS
 	resistance_flags = FLAMMABLE
 
 /obj/item/storage/bag/bio/ComponentInitialize()
@@ -444,7 +451,7 @@
 	desc = "A pouch for your ammo that goes in your pocket."
 	icon = 'icons/obj/items_and_weapons.dmi'
 	icon_state = "ammopouch"
-	slot_flags = ITEM_SLOT_POCKET
+	slot_flags = ITEM_SLOT_POCKETS
 	w_class = WEIGHT_CLASS_BULKY
 	resistance_flags = FLAMMABLE
 
@@ -457,12 +464,15 @@
 	STR.display_numerical_stacking = FALSE
 	STR.can_hold = typecacheof(list(/obj/item/ammo_box/magazine, /obj/item/ammo_casing))
 
+/*
+Bag for holding materials
+*/
 /obj/item/storage/bag/material
 	name = "material pouch"
 	desc = "A pouch for sheets and RCD ammunition that manages to hang where you would normally put things in your pocket."
 	icon = 'icons/obj/items_and_weapons.dmi'
 	icon_state = "materialpouch"
-	slot_flags = ITEM_SLOT_POCKET
+	slot_flags = ITEM_SLOT_POCKETS
 	w_class = WEIGHT_CLASS_BULKY
 	resistance_flags = FLAMMABLE
 
@@ -474,3 +484,24 @@
 	STR.max_items = 2
 	STR.display_numerical_stacking = TRUE
 	STR.can_hold = typecacheof(list(/obj/item/rcd_ammo, /obj/item/stack/sheet))
+
+/*
+ *  Construction bag (for engineering, holds stock parts and electronics)
+ */
+
+/obj/item/storage/bag/construction
+	name = "construction bag"
+	icon = 'icons/obj/tools.dmi'
+	icon_state = "construction_bag"
+	desc = "A bag for storing small construction components."
+	w_class = WEIGHT_CLASS_TINY
+	resistance_flags = FLAMMABLE
+
+/obj/item/storage/bag/construction/ComponentInitialize()
+	. = ..()
+	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
+	STR.max_combined_w_class = 100
+	STR.max_items = 50
+	STR.max_w_class = WEIGHT_CLASS_SMALL
+	STR.insert_preposition = "in"
+	STR.can_hold = typecacheof(list(/obj/item/stack/ore/bluespace_crystal, /obj/item/assembly, /obj/item/stock_parts, /obj/item/reagent_containers/glass/beaker, /obj/item/stack/cable_coil, /obj/item/circuitboard, /obj/item/electronics,/obj/item/wallframe/camera))

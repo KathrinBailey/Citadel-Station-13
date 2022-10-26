@@ -73,3 +73,37 @@
 	. = ..()
 	whitelisted_turfs = typecacheof(/turf/closed/mineral)
 	banned_objects = typecacheof(/obj/structure/stone_tile)
+
+/datum/map_template/shelter/delta
+	name = "Shelter Delta"
+	shelter_id = "shelter_delta"
+	description = "A massive but barebones survival capsule useful\
+	for projects that require great deals of space."
+	mappath = "_maps/templates/shelter_4.dmm"
+
+/datum/map_template/shelter/delta/New()
+	. = ..()
+	whitelisted_turfs = typecacheof(/turf/closed/mineral)
+	banned_objects = typecacheof(/obj/structure/stone_tile)
+
+/datum/map_template/shelter/epsilon
+	name = "Shelter Epsilon"
+	shelter_id = "shelter_epsilon"
+	description = "A small apartment in the palm of your hand."
+	mappath = "_maps/templates/shelter_5.dmm"
+
+/datum/map_template/shelter/epsilon/New()
+	. = ..()
+	whitelisted_turfs = typecacheof(/turf/closed/mineral)
+	banned_objects = typecacheof(/obj/structure/stone_tile)
+
+/datum/map_template/shelter/zeta
+	name = "Shelter zeta"
+	shelter_id = "shelter_zeta"
+	description = "A survival capsule with a garden and kitchen. Commonly used by space fast food joints everywhere."
+	mappath = "_maps/templates/shelter_6.dmm"
+
+/datum/map_template/shelter/zeta/New()
+	. = ..()
+	whitelisted_turfs = typecacheof(/turf/closed/mineral)
+	banned_objects = typecacheof(/obj/structure/stone_tile)

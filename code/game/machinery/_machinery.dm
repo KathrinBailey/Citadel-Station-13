@@ -90,14 +90,23 @@ Class Procs:
 	verb_say = "beeps"
 	verb_yell = "blares"
 	pressure_resistance = 15
+	pass_flags_self = PASSMACHINE
 	max_integrity = 200
 	layer = BELOW_OBJ_LAYER //keeps shit coming out of the machine from ending up underneath it.
 	flags_1 = DEFAULT_RICOCHET_1
 	flags_ricochet = RICOCHET_HARD
 	ricochet_chance_mod = 0.3
 
+	explosion_flags = EXPLOSION_FLAG_DENSITY_DEPENDENT
+	wave_explosion_block = EXPLOSION_BLOCK_MACHINE
+	wave_explosion_multiply = EXPLOSION_DAMPEN_MACHINE
+
 	anchored = TRUE
 	interaction_flags_atom = INTERACT_ATOM_ATTACK_HAND | INTERACT_ATOM_UI_INTERACT
+
+	vocal_bark_id = "synth"
+	vocal_pitch = 0.6
+	vocal_volume = 40
 
 	var/stat = 0
 	var/use_power = IDLE_POWER_USE
@@ -130,25 +139,29 @@ Class Procs:
 	var/market_verb = "Customer"
 	var/payment_department = ACCOUNT_ENG
 
-/obj/machinery/Initialize()
+/obj/machinery/Initialize(mapload)
 	if(!armor)
-		armor = list("melee" = 25, "bullet" = 10, "laser" = 10, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 50, "acid" = 70)
+		armor = list(MELEE = 25, BULLET = 10, LASER = 10, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 50, ACID = 70)
 	. = ..()
 	GLOB.machines += src
 
 	if(ispath(circuit, /obj/item/circuitboard))
-		circuit = new circuit
+		circuit = new circuit(src)
 		circuit.apply_default_parts(src)
 
 	if(!speed_process && init_process)
 		START_PROCESSING(SSmachines, src)
 	else
 		START_PROCESSING(SSfastprocess, src)
-	power_change()
 	RegisterSignal(src, COMSIG_ENTER_AREA, .proc/power_change)
 
 	if (occupant_typecache)
 		occupant_typecache = typecacheof(occupant_typecache)
+	return INITIALIZE_HINT_LATELOAD
+
+/obj/machinery/LateInitialize()
+	. = ..()
+	power_change()
 
 /obj/machinery/Destroy()
 	GLOB.machines.Remove(src)
@@ -171,6 +184,17 @@ Class Procs:
 
 /obj/machinery/proc/process_atmos()//If you dont use process why are you here
 	return PROCESS_KILL
+
+///Called when we want to change the value of the stat variable. Holds bitflags.
+/obj/machinery/proc/set_machine_stat(new_value)
+	if(new_value == stat)
+		return
+	. = stat
+	stat = new_value
+	on_machine_stat_update(stat)
+
+/obj/machinery/proc/on_machine_stat_update(stat)
+	return
 
 /obj/machinery/emp_act(severity)
 	. = ..()
@@ -228,61 +252,124 @@ Class Procs:
 
 /obj/machinery/proc/auto_use_power()
 	if(!powered(power_channel))
-		return 0
+		return FALSE
 	if(use_power == 1)
 		use_power(idle_power_usage,power_channel)
 	else if(use_power >= 2)
 		use_power(active_power_usage,power_channel)
-	return 1
+	return TRUE
 
 /obj/machinery/proc/is_operational()
 	return !(stat & (NOPOWER|BROKEN|MAINT))
 
 /obj/machinery/can_interact(mob/user)
-	var/silicon = hasSiliconAccessInArea(user) || IsAdminGhost(user)
-	if((stat & (NOPOWER|BROKEN)) && !(interaction_flags_machine & INTERACT_MACHINE_OFFLINE))
+	if((stat & (NOPOWER|BROKEN)) && !(interaction_flags_machine & INTERACT_MACHINE_OFFLINE)) // Check if the machine is broken, and if we can still interact with it if so
 		return FALSE
-	if(panel_open && !(interaction_flags_machine & INTERACT_MACHINE_OPEN))
-		if(!silicon || !(interaction_flags_machine & INTERACT_MACHINE_OPEN_SILICON))
-			return FALSE
 
-	if(silicon)
+	if(IsAdminGhost(user))
+		return TRUE //if you're an admin, you probably know what you're doing (or at least have permission to do what you're doing)
+
+	if(!isliving(user))
+		return FALSE //no ghosts in the machine allowed, sorry
+
+	// if(SEND_SIGNAL(user, COMSIG_TRY_USE_MACHINE, src) & COMPONENT_CANT_USE_MACHINE_INTERACT)
+	// 	return FALSE
+
+	var/mob/living/living_user = user
+
+	var/is_dextrous = FALSE
+	if(isanimal(user))
+		var/mob/living/simple_animal/user_as_animal = user
+		if (user_as_animal.dextrous)
+			is_dextrous = TRUE
+
+	if(!issilicon(user) && !is_dextrous && !user.can_hold_items())
+		return FALSE //spiders gtfo
+
+	if(issilicon(user)) // If we are a silicon, make sure the machine allows silicons to interact with it
 		if(!(interaction_flags_machine & INTERACT_MACHINE_ALLOW_SILICON))
 			return FALSE
-	else
-		if(interaction_flags_machine & INTERACT_MACHINE_REQUIRES_SILICON)
+
+		if(panel_open && !(interaction_flags_machine & INTERACT_MACHINE_OPEN) && !(interaction_flags_machine & INTERACT_MACHINE_OPEN_SILICON))
 			return FALSE
-		if(!Adjacent(user))
-			var/mob/living/carbon/H = user
-			if(!(istype(H) && H.has_dna() && H.dna.check_mutation(TK)))
-				return FALSE
+
+		return TRUE //silicons don't care about petty mortal concerns like needing to be next to a machine to use it
+
+	if(living_user.incapacitated()) //idk why silicons aren't supposed to care about incapacitation when interacting with machines, but it was apparently like this before
+		return FALSE
+
+	// TODO: nerf blind people
+	// if((interaction_flags_machine & INTERACT_MACHINE_REQUIRES_SIGHT) && user.is_blind())
+	// 	to_chat(user, span_warning("This machine requires sight to use."))
+	// 	return FALSE
+
+	if(panel_open && !(interaction_flags_machine & INTERACT_MACHINE_OPEN))
+		return FALSE
+
+	if(interaction_flags_machine & INTERACT_MACHINE_REQUIRES_SILICON) //if the user was a silicon, we'd have returned out earlier, so the user must not be a silicon
+		return FALSE
+
+	if(!Adjacent(user)) // Next make sure we are next to the machine unless we have telekinesis
+		var/mob/living/carbon/carbon_user = living_user
+		if(!istype(carbon_user) || !carbon_user.has_dna() || !carbon_user.dna.check_mutation(TK))
+			return FALSE
+
+	return TRUE // If we passed all of those checks, woohoo! We can interact with this machine.
+
+/obj/machinery/proc/can_transact(obj/item/card/id/thecard, allowdepartment, silent)
+	if(!istype(thecard))
+		if(!silent)
+			say("No card found.")
+		return FALSE
+	else if (!thecard.registered_account)
+		if(!silent)
+			say("No account found.")
+		return FALSE
+	else if(!allowdepartment && !thecard.registered_account.account_job)
+		if(!silent)
+			say("Departmental accounts have been blacklisted from personal expenses due to embezzlement.")
+		return FALSE
+	return TRUE
+
+/obj/machinery/proc/attempt_transact(obj/item/card/id/thecard, transaction_cost)
+	if(!istype(thecard))
+		return FALSE
+	var/datum/bank_account/account = thecard.registered_account
+	if(!istype(account))
+		return FALSE
+
+	if(transaction_cost)
+		if(!account.adjust_money(-transaction_cost))
+			return FALSE
+		var/datum/bank_account/D = SSeconomy.get_dep_account(payment_department)
+		if(D)
+			D.adjust_money(transaction_cost)
 	return TRUE
 
 /obj/machinery/proc/check_nap_violations()
 	if(!SSeconomy.full_ancap)
 		return TRUE
 	if(occupant && !state_open)
-		if(ishuman(occupant))
-			var/mob/living/carbon/human/H = occupant
-			var/obj/item/card/id/I = H.get_idcard()
-			if(I)
-				var/datum/bank_account/insurance = I.registered_account
-				if(!insurance)
-					say("[market_verb] NAP Violation: No bank account found.")
-					nap_violation()
-					return FALSE
-				else
-					if(!insurance.adjust_money(-fair_market_price))
-						say("[market_verb] NAP Violation: Unable to pay.")
-						nap_violation()
-						return FALSE
-					var/datum/bank_account/D = SSeconomy.get_dep_account(payment_department)
-					if(D)
-						D.adjust_money(fair_market_price)
-			else
-				say("[market_verb] NAP Violation: No ID card found.")
-				nap_violation()
+		var/mob/living/L = occupant
+		var/obj/item/card/id/I = L.get_idcard(TRUE)
+		if(I)
+			var/datum/bank_account/insurance = I.registered_account
+			if(!insurance)
+				say("[market_verb] NAP Violation: No bank account found.")
+				nap_violation(L)
 				return FALSE
+			else
+				if(!insurance.adjust_money(-fair_market_price))
+					say("[market_verb] NAP Violation: Unable to pay.")
+					nap_violation(L)
+					return FALSE
+				var/datum/bank_account/D = SSeconomy.get_dep_account(payment_department)
+				if(D)
+					D.adjust_money(fair_market_price)
+		else
+			say("[market_verb] NAP Violation: No ID card found.")
+			nap_violation(L)
+			return FALSE
 	return TRUE
 
 /obj/machinery/proc/nap_violation(mob/violator)
@@ -303,11 +390,11 @@ Class Procs:
 /obj/machinery/Topic(href, href_list)
 	..()
 	if(!can_interact(usr))
-		return 1
+		return TRUE
 	if(!usr.canUseTopic(src))
-		return 1
+		return TRUE
 	add_fingerprint(usr)
-	return 0
+	return FALSE
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -318,7 +405,7 @@ Class Procs:
 		user.DelayNextAction(CLICK_CD_MELEE)
 		user.do_attack_animation(src, ATTACK_EFFECT_PUNCH)
 		user.visible_message("<span class='danger'>[user.name] smashes against \the [src.name] with its paws.</span>", null, null, COMBAT_MESSAGE_RANGE)
-		take_damage(4, BRUTE, "melee", 1)
+		take_damage(4, BRUTE, MELEE, 1)
 
 /obj/machinery/attack_robot(mob/user)
 	if(!(interaction_flags_machine & INTERACT_MACHINE_ALLOW_SILICON) && !IsAdminGhost(user))
@@ -361,11 +448,11 @@ Class Procs:
 /obj/machinery/deconstruct(disassembled = TRUE)
 	if(!(flags_1 & NODECONSTRUCT_1))
 		on_deconstruction()
-		if(component_parts && component_parts.len)
+		if(LAZYLEN(component_parts))
 			spawn_frame(disassembled)
 			for(var/obj/item/I in component_parts)
 				I.forceMove(loc)
-			component_parts.Cut()
+			LAZYCLEARLIST(component_parts)
 	qdel(src)
 
 /obj/machinery/proc/spawn_frame(disassembled)
@@ -379,19 +466,28 @@ Class Procs:
 	M.icon_state = "box_1"
 
 /obj/machinery/obj_break(damage_flag)
-	if(!(flags_1 & NODECONSTRUCT_1))
+	. = ..()
+	if(!(stat & BROKEN) && !(flags_1 & NODECONSTRUCT_1))
 		stat |= BROKEN
+		SEND_SIGNAL(src, COMSIG_MACHINERY_BROKEN, damage_flag)
+		update_appearance()
 		return TRUE
 
-/obj/machinery/contents_explosion(severity, target)
+/obj/machinery/contents_explosion(severity, target, origin)
 	if(occupant)
-		occupant.ex_act(severity, target)
+		occupant.ex_act(severity, target, origin)
 
 /obj/machinery/handle_atom_del(atom/A)
 	if(A == occupant)
 		occupant = null
 		update_icon()
 		updateUsrDialog()
+
+/obj/machinery/CanAllowThrough(atom/movable/mover, turf/target)
+	. = ..()
+
+	if(mover.pass_flags & PASSMACHINE)
+		return TRUE
 
 /obj/machinery/proc/default_deconstruction_screwdriver(mob/user, icon_state_open, icon_state_closed, obj/item/I)
 	if(!(flags_1 & NODECONSTRUCT_1) && I.tool_behaviour == TOOL_SCREWDRIVER)
@@ -519,6 +615,8 @@ Class Procs:
 
 //called on machinery construction (i.e from frame to machinery) but not on initialization
 /obj/machinery/proc/on_construction()
+	for(var/obj/I in contents)
+		I.moveToNullspace()
 	return
 
 //called on deconstruction before the final deletion
@@ -528,23 +626,28 @@ Class Procs:
 /obj/machinery/proc/can_be_overridden()
 	. = 1
 
-/obj/machinery/tesla_act(power, tesla_flags, shocked_objects)
-	..()
-	if(prob(85) && (tesla_flags & TESLA_MACHINE_EXPLOSIVE))
+/obj/machinery/zap_act(power, zap_flags, shocked_objects)
+	. = ..()
+	if(prob(85) && (zap_flags & ZAP_MACHINE_EXPLOSIVE))
 		explosion(src, 1, 2, 4, flame_range = 2, adminlog = FALSE, smoke = FALSE)
-	if(tesla_flags & TESLA_OBJ_DAMAGE)
-		take_damage(power/2000, BURN, "energy")
+	else if(zap_flags & ZAP_OBJ_DAMAGE)
+		take_damage(power/2000, BURN, ENERGY)
 		if(prob(40))
 			emp_act(50)
 
 /obj/machinery/Exited(atom/movable/AM, atom/newloc)
 	. = ..()
+	// if(AM == occupant)
+	// 	set_occupant(null)
 	if (AM == occupant)
 		SEND_SIGNAL(src, COMSIG_MACHINE_EJECT_OCCUPANT, occupant)
 		occupant = null
+	if(AM == circuit && circuit.loc != src)
+		component_parts -= AM //TODO: make the cmp part functions use lazyX
+		circuit = null
 
-/obj/machinery/proc/adjust_item_drop_location(atom/movable/AM)	// Adjust item drop location to a 3x3 grid inside the tile, returns slot id from 0 to 8
-	var/md5 = md5(AM.name)										// Oh, and it's deterministic too. A specific item will always drop from the same slot.
+/obj/machinery/proc/adjust_item_drop_location(atom/movable/AM) // Adjust item drop location to a 3x3 grid inside the tile, returns slot id from 0 to 8
+	var/md5 = md5(AM.name) // Oh, and it's deterministic too. A specific item will always drop from the same slot.
 	for (var/i in 1 to 32)
 		. += hex2num(md5[i])
 	. = . % 9
@@ -552,4 +655,15 @@ Class Procs:
 	AM.pixel_y = -8 + (round( . / 3)*8)
 
 /obj/machinery/rust_heretic_act()
-	take_damage(500, BRUTE, "melee", 1)
+	take_damage(500, BRUTE, MELEE, 1)
+
+/**
+ * Alerts the AI that a hack is in progress.
+ *
+ * Sends all AIs a message that a hack is occurring.  Specifically used for space ninja tampering as this proc was originally in the ninja files.
+ * However, the proc may also be used elsewhere.
+ */
+/obj/machinery/proc/AI_notify_hack()
+	var/alertstr = "<span class='userdanger'>Network Alert: Hacking attempt detected[get_area(src)?" in [get_area_name(src, TRUE)]":". Unable to pinpoint location"].</span>"
+	for(var/mob/living/silicon/ai/AI in GLOB.player_list)
+		to_chat(AI, alertstr)

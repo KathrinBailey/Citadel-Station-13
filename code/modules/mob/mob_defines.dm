@@ -9,12 +9,19 @@
 	mouse_drag_pointer = MOUSE_ACTIVE_POINTER
 	throwforce = 10
 	blocks_emissive = EMISSIVE_BLOCK_GENERIC
-
+	pass_flags_self = PASSMOB
 	vis_flags = VIS_INHERIT_PLANE //when this be added to vis_contents of something it inherit something.plane, important for visualisation of mob in openspace.
-	
+
 	attack_hand_is_action = TRUE
 	attack_hand_unwieldlyness = CLICK_CD_MELEE
 	attack_hand_speed = 0
+
+	// Rendering
+	/// Fullscreen objects
+	var/list/fullscreens = list()
+
+	/// What receives our keyboard input. src by default.
+	var/datum/focus
 
 	var/lighting_alpha = LIGHTING_PLANE_ALPHA_VISIBLE
 	var/datum/mind/mind
@@ -139,8 +146,7 @@
 
 	var/registered_z
 
-	var/list/alerts = list() // contains /obj/screen/alert only // On /mob so clientless mobs will throw alerts properly
-	var/list/screens = list()
+	var/list/alerts = list() // contains /atom/movable/screen/alert only // On /mob so clientless mobs will throw alerts properly
 	var/list/client_colours = list()
 	var/hud_type = /datum/hud
 
@@ -166,3 +172,17 @@
 	var/typing_indicator_timerid
 	/// Current state of our typing indicator. Used for cut overlay, DO NOT RUNTIME ASSIGN OTHER THAN FROM SHOW/CLEAR. Used to absolutely ensure we do not get stuck overlays.
 	var/mutable_appearance/typing_indicator_current
+
+	/// Ability system based on action buttons. Can be ported to base /mob or /mob/living later if needed, easily - the procs are currently on living/carbon/human/innate_abilities.dm
+	/// datum traits-style lazylist of abilities
+	var/list/innate_abilities
+	/// ability = action button instance.
+	var/list/ability_actions
+	/// ability = list(data). see __DEFINES/mobs/innate_abilities.dm
+	var/list/ability_properties
+
+	///Override for sound_environments. If this is set the user will always hear a specific type of reverb (Instead of the area defined reverb)
+	var/sound_environment_override = SOUND_ENVIRONMENT_NONE
+
+/// A mock client, provided by tests and friends
+	var/datum/client_interface/mock_client

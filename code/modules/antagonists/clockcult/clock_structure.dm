@@ -18,7 +18,7 @@
 	var/construction_value = 0 //How much value the structure contributes to the overall "power" of the structures on the station
 	var/immune_to_servant_attacks = FALSE //if we ignore attacks from servants of ratvar instead of taking damage
 
-/obj/structure/destructible/clockwork/Initialize()
+/obj/structure/destructible/clockwork/Initialize(mapload)
 	. = ..()
 	change_construction_value(construction_value)
 	GLOB.all_clockwork_objects += src
@@ -72,11 +72,6 @@
 		return FALSE
 	return ..()
 
-/obj/structure/destructible/clockwork/mech_melee_attack(obj/mecha/M)
-	if(M.occupant && is_servant_of_ratvar(M.occupant) && immune_to_servant_attacks)
-		return FALSE
-	return ..()
-
 /obj/structure/destructible/clockwork/proc/get_efficiency_mod()
 	if(GLOB.ratvar_awakens)
 		return 2
@@ -95,7 +90,7 @@
 		return ..()
 
 /obj/structure/destructible/clockwork/attackby(obj/item/I, mob/user, params)
-	if(is_servant_of_ratvar(user) && istype(I, /obj/item/wrench) && unanchored_icon)
+	if(is_servant_of_ratvar(user) && I.tool_behaviour == TOOL_WRENCH && unanchored_icon)
 		if(default_unfasten_wrench(user, I, 50) == SUCCESSFUL_UNFASTEN)
 			update_anchored(user)
 		return 1
@@ -134,7 +129,7 @@
 	density = FALSE
 	resistance_flags = LAVA_PROOF | FIRE_PROOF | ACID_PROOF | FREEZE_PROOF
 
-/obj/structure/destructible/clockwork/massive/Initialize()
+/obj/structure/destructible/clockwork/massive/Initialize(mapload)
 	. = ..()
 	GLOB.poi_list += src
 

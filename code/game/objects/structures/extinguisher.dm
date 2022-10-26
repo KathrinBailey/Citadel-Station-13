@@ -32,9 +32,9 @@
 		stored_extinguisher = null
 	return ..()
 
-/obj/structure/extinguisher_cabinet/contents_explosion(severity, target)
+/obj/structure/extinguisher_cabinet/contents_explosion(severity, target, origin)
 	if(stored_extinguisher)
-		stored_extinguisher.ex_act(severity, target)
+		stored_extinguisher.ex_act(severity, target, origin)
 
 /obj/structure/extinguisher_cabinet/handle_atom_del(atom/A)
 	if(A == stored_extinguisher)
@@ -42,7 +42,7 @@
 		update_icon()
 
 /obj/structure/extinguisher_cabinet/attackby(obj/item/I, mob/user, params)
-	if(istype(I, /obj/item/wrench) && !stored_extinguisher)
+	if(I.tool_behaviour == TOOL_WRENCH && !stored_extinguisher)
 		to_chat(user, "<span class='notice'>You start unsecuring [name]...</span>")
 		I.play_tool_sound(src)
 		if(I.use_tool(src, user, 60))

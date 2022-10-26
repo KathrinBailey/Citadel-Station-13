@@ -16,7 +16,7 @@
 		return
 	. = ..()
 
-	if(AM.movement_type & FLYING)
+	if(AM.movement_type & FLYING || iseffect(AM))
 		return
 
 	triggermine(AM)
@@ -116,7 +116,7 @@
 	density = FALSE
 	var/duration = 0
 
-/obj/effect/mine/pickup/Initialize()
+/obj/effect/mine/pickup/Initialize(mapload)
 	. = ..()
 	animate(src, pixel_y = 4, time = 20, loop = -1)
 

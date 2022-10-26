@@ -3,12 +3,13 @@
 
 /datum/reagent/fermi
 	name = "Fermi" //This should never exist, but it does so that it can exist in the case of errors..
-	taste_description	= "affection and love!"
+	taste_description	= "the default fermi taste"
 	can_synth = FALSE
 	value = 20
 	impure_chem 			= /datum/reagent/impure/fermiTox // What chemical is metabolised with an inpure reaction
 	inverse_chem_val 		= 0.25		// If the impurity is below 0.5, replace ALL of the chem with inverse_chemupon metabolising
 	inverse_chem			= /datum/reagent/impure/fermiTox
+	chemical_flags = REAGENT_ALL_PROCESS	//Lets just default to robots being able to process these funky chems.
 
 
 //This should process fermichems to find out how pure they are and what effect to do.
@@ -33,10 +34,10 @@
 	name = "Hat growth serium"
 	description = "A strange substance that draws in a hat from the hat dimention."
 	color = "#7c311a" // rgb: , 0, 255
-	taste_description = "like jerky, whiskey and an off aftertaste of a crypt."
+	taste_description = "like jerky, whiskey and an off aftertaste of a crypt"
 	metabolization_rate = 0.2
 	overdose_threshold = 25
-	chemical_flags = REAGENT_DONOTSPLIT
+	chemical_flags = REAGENT_DONOTSPLIT | REAGENT_ALL_PROCESS
 	pH = 4
 	can_synth = TRUE
 
@@ -47,7 +48,7 @@
 		var/obj/item/W = M.head
 		M.dropItemToGround(W, TRUE)
 	var/hat = new /obj/item/clothing/head/hattip()
-	M.equip_to_slot(hat, SLOT_HEAD, 1, 1)
+	M.equip_to_slot(hat, ITEM_SLOT_HEAD, 1, 1)
 
 
 /datum/reagent/fermi/hatmium/on_mob_life(mob/living/carbon/human/M)
@@ -84,7 +85,7 @@
 	metabolization_rate = 0.5 * REAGENTS_METABOLISM
 	inverse_chem_val 		= 0
 	var/obj/item/organ/tongue/nT
-	chemical_flags = REAGENT_DONOTSPLIT
+	chemical_flags = REAGENT_DONOTSPLIT | REAGENT_ALL_PROCESS
 	pH = 5
 	var/obj/item/organ/tongue/T
 	can_synth = TRUE
@@ -200,7 +201,7 @@
 	impure_chem 			= /datum/reagent/fermi/nanite_b_goneTox //If you make an inpure chem, it stalls growth
 	inverse_chem_val 		= 0.25
 	inverse_chem		= /datum/reagent/fermi/nanite_b_goneTox //At really impure vols, it just becomes 100% inverse
-	taste_description = "what can only be described as licking a battery."
+	taste_description = "what can only be described as licking a battery"
 	pH = 9
 	value = 90
 	can_synth = FALSE
@@ -212,11 +213,10 @@
 		return ..()
 	if(HAS_TRAIT(C, TRAIT_ROBOTIC_ORGANISM))
 		C.adjustToxLoss(1, toxins_type = TOX_SYSCORRUPT) //Interferes with robots. Rare chem, so, pretty good at that too.
-	N.nanite_volume += -cached_purity*5//0.5 seems to be the default to me, so it'll neuter them.
+	N.adjust_nanites(-cached_purity*5) //0.5 seems to be the default to me, so it'll neuter them.
 	..()
 
 /datum/reagent/fermi/nanite_b_gone/overdose_process(mob/living/carbon/C)
-	//var/component/nanites/N = M.GetComponent(/datum/component/nanites)
 	var/datum/component/nanites/N = C.GetComponent(/datum/component/nanites)
 	if(prob(5))
 		to_chat(C, "<span class='warning'>The residual voltage from the nanites causes you to seize up!</b></span>")
@@ -227,10 +227,10 @@
 		to_chat(C, "<span class='warning'>You feel a strange tingling sensation come from your core.</b></span>")
 	if(isnull(N))
 		return ..()
-	N.nanite_volume += -10*cached_purity
+	N.adjust_nanites(-10*cached_purity)
 	..()
 
-datum/reagent/fermi/nanite_b_gone/reaction_obj(obj/O, reac_volume)
+/datum/reagent/fermi/nanite_b_gone/reaction_obj(obj/O, reac_volume)
 	for(var/active_obj in react_objs)
 		if(O == active_obj)
 			return
@@ -240,8 +240,9 @@ datum/reagent/fermi/nanite_b_gone/reaction_obj(obj/O, reac_volume)
 /datum/reagent/fermi/nanite_b_goneTox
 	name = "Electromagnetic crystals"
 	description = "Causes items upon the patient to sometimes short out, as well as causing a shock in the patient, if the residual charge between the crystals builds up to sufficient quantities"
+	taste_description = "shocking pain"
 	metabolization_rate = 0.5
-	chemical_flags = REAGENT_INVISIBLE
+	chemical_flags = REAGENT_INVISIBLE | REAGENT_ALL_PROCESS
 
 //Increases shock events.
 /datum/reagent/fermi/nanite_b_goneTox/on_mob_life(mob/living/carbon/C)//Damages the taker if their purity is low. Extended use of impure chemicals will make the original die. (thus can't be spammed unless you've very good)
@@ -262,7 +263,7 @@ datum/reagent/fermi/nanite_b_gone/reaction_obj(obj/O, reac_volume)
 /datum/reagent/fermi/fermiAcid
 	name = "Acid vapour"
 	description = "Someone didn't do like an otter, and add acid to water."
-	taste_description = "acid burns, ow"
+	taste_description = "burning"
 	color = "#FFFFFF"
 	pH = 0
 	can_synth = FALSE
@@ -304,7 +305,7 @@ datum/reagent/fermi/nanite_b_gone/reaction_obj(obj/O, reac_volume)
 /datum/reagent/fermi/fermiTest
 	name = "Fermis Test Reagent"
 	description = "You should be really careful with this...! Also, how did you get this?"
-	chemical_flags = REAGENT_FORCEONNEW
+	chemical_flags = REAGENT_FORCEONNEW | REAGENT_ALL_PROCESS
 	can_synth = FALSE
 
 /datum/reagent/fermi/fermiTest/on_new(datum/reagents/holder)
@@ -335,39 +336,79 @@ datum/reagent/fermi/nanite_b_gone/reaction_obj(obj/O, reac_volume)
 	holder.clear_reagents()
 
 /datum/reagent/fermi/acidic_buffer
-	name = "Acidic buffer"
+	name = "Strong acidic buffer"
 	description = "This reagent will consume itself and move the pH of a beaker towards acidity when added to another."
 	color = "#fbc314"
+	taste_description = "burning"
 	pH = 0
+	chemical_flags = REAGENT_FORCEONNEW | REAGENT_ALL_PROCESS
 	can_synth = TRUE
+	var/strength = 1.5
 
 //Consumes self on addition and shifts pH
 /datum/reagent/fermi/acidic_buffer/on_new(datapH)
+	if(!holder)
+		return ..()
+	if(holder.reagents_holder_flags & NO_REACT)
+		return..()
 	if(holder.has_reagent(/datum/reagent/stabilizing_agent))
 		return ..()
 	data = datapH
 	if(LAZYLEN(holder.reagent_list) == 1)
 		return ..()
-	holder.pH = ((holder.pH * holder.total_volume)+(pH * (volume)))/(holder.total_volume + (volume))
+	if(holder.pH < pH)
+		holder.my_atom.visible_message("<span class='warning'>The beaker fizzes as the buffer is added, to no effect.</b></span>")
+		playsound(holder.my_atom, 'sound/FermiChem/bufferadd.ogg', 50, 1)
+		return ..()
+	holder.pH = clamp((((holder.pH * (holder.total_volume-(volume*strength)))+(pH * (volume*strength)) )/holder.total_volume), 0, 14) //This is BEFORE removal
 	holder.my_atom.visible_message("<span class='warning'>The beaker fizzes as the pH changes!</b></span>")
 	playsound(holder.my_atom, 'sound/FermiChem/bufferadd.ogg', 50, 1)
 	holder.remove_reagent(type, volume, ignore_pH = TRUE)
 	..()
 
+/datum/reagent/fermi/acidic_buffer/weak
+	name = "Acidic buffer"
+	description = "This reagent will consume itself and move the pH of a beaker towards acidity when added to another."
+	color = "#fbf344"
+	taste_description = "vinegar"
+	pH = 4
+	can_synth = TRUE
+	strength = 0.25
+
 /datum/reagent/fermi/basic_buffer
-	name = "Basic buffer"
+	name = "Strong basic buffer"
 	description = "This reagent will consume itself and move the pH of a beaker towards alkalinity when added to another."
 	color = "#3853a4"
+	taste_description = "burning"
 	pH = 14
+	chemical_flags = REAGENT_FORCEONNEW | REAGENT_ALL_PROCESS
 	can_synth = TRUE
+	var/strength = 1.5
+
+/datum/reagent/fermi/basic_buffer/weak
+	name = "Basic buffer"
+	description = "This reagent will consume itself and move the pH of a beaker towards alkalinity when added to another."
+	color = "#5873c4"
+	taste_description = "something soapy"
+	pH = 10
+	can_synth = TRUE
+	strength = 0.25
 
 /datum/reagent/fermi/basic_buffer/on_new(datapH)
+	if(!holder)
+		return ..()
+	if(holder.reagents_holder_flags & NO_REACT)
+		return..()
 	if(holder.has_reagent(/datum/reagent/stabilizing_agent))
 		return ..()
 	data = datapH
 	if(LAZYLEN(holder.reagent_list) == 1)
 		return ..()
-	holder.pH = ((holder.pH * holder.total_volume)+(pH * (volume)))/(holder.total_volume + (volume))
+	if(holder.pH > pH)
+		holder.my_atom.visible_message("<span class='warning'>The beaker froths as the buffer is added, to no effect.</b></span>")
+		playsound(holder.my_atom, 'sound/FermiChem/bufferadd.ogg', 50, 1)
+		return ..()
+	holder.pH = clamp((((holder.pH * (holder.total_volume-(volume*strength)))+(pH * (volume*strength)) )/holder.total_volume), 0, 14) //This is BEFORE removal
 	holder.my_atom.visible_message("<span class='warning'>The beaker froths as the pH changes!</b></span>")
 	playsound(holder.my_atom, 'sound/FermiChem/bufferadd.ogg', 50, 1)
 	holder.remove_reagent(type, volume, ignore_pH = TRUE)

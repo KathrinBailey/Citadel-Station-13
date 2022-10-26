@@ -11,8 +11,12 @@
 /obj/effect/dummy/phased_mob/slaughter/relaymove(mob/user, direction)
 	forceMove(get_step(src,direction))
 
-/obj/effect/dummy/phased_mob/slaughter/ex_act()
+/obj/effect/dummy/phased_mob/slaughter/ex_act(severity, target, origin)
 	return
+
+/obj/effect/dummy/phased_mob/slaughter/wave_ex_act(power, datum/wave_explosion/explosion, dir)
+	return power
+
 /obj/effect/dummy/phased_mob/slaughter/bullet_act()
 	return BULLET_ACT_FORCE_PIERCE
 
@@ -140,7 +144,7 @@
 	icon = 'icons/effects/blood.dmi'
 	item_flags = ABSTRACT
 
-/obj/item/bloodcrawl/Initialize()
+/obj/item/bloodcrawl/Initialize(mapload)
 	. = ..()
 	ADD_TRAIT(src, TRAIT_NODROP, ABSTRACT_ITEM_TRAIT)
 

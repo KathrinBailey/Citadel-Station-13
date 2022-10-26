@@ -14,7 +14,6 @@
 	speak_chance = 1
 	turns_per_move = 5
 	see_in_dark = 6
-	ventcrawler = VENTCRAWLER_ALWAYS
 	pass_flags = PASSTABLE
 	mob_size = MOB_SIZE_SMALL
 	mob_biotypes = MOB_ORGANIC|MOB_BEAST
@@ -24,19 +23,26 @@
 	animal_species = /mob/living/simple_animal/pet/cat
 	childtype = list(/mob/living/simple_animal/pet/cat/kitten)
 	butcher_results = list(/obj/item/reagent_containers/food/snacks/meat/slab = 2, /obj/item/organ/ears/cat = 1, /obj/item/organ/tail/cat = 1)
-	response_help  = "pets"
-	response_disarm = "gently pushes aside"
-	response_harm   = "kicks"
+	response_help_continuous = "pets"
+	response_help_simple = "pet"
+	response_disarm_continuous = "gently pushes aside"
+	response_disarm_simple = "gently push aside"
+	response_harm_continuous = "kicks"
+	response_harm_simple = "kick"
 	var/turns_since_scan = 0
 	var/mob/living/simple_animal/mouse/movement_target
 	gold_core_spawnable = FRIENDLY_SPAWN
 	collar_type = "cat"
 	var/held_icon = "cat2"
-	do_footstep = TRUE
+	footstep_type = FOOTSTEP_MOB_CLAW
+	vocal_bark_id = "mutedc4"
+	vocal_pitch = 1.4
+	vocal_pitch_range = 0.4
 
-/mob/living/simple_animal/pet/cat/Initialize()
+/mob/living/simple_animal/pet/cat/Initialize(mapload)
 	. = ..()
 	add_verb(src, /mob/living/proc/lay_down)
+	AddElement(/datum/element/ventcrawling, given_tier = VENTCRAWLER_ALWAYS)
 
 /mob/living/simple_animal/pet/cat/ComponentInitialize()
 	. = ..()
@@ -104,7 +110,7 @@
 	var/cats_deployed = 0
 	var/memory_saved = FALSE
 
-/mob/living/simple_animal/pet/cat/Runtime/Initialize()
+/mob/living/simple_animal/pet/cat/Runtime/Initialize(mapload)
 	if(prob(5))
 		icon_state = "original"
 		icon_living = "original"
@@ -112,7 +118,7 @@
 	Read_Memory()
 	. = ..()
 
-/mob/living/simple_animal/pet/cat/Runtime/BiologicalLife(seconds, times_fired)
+/mob/living/simple_animal/pet/cat/Runtime/BiologicalLife(delta_time, times_fired)
 	if(!(. = ..()))
 		return
 	if(!cats_deployed && SSticker.current_state >= GAME_STATE_SETTING_UP)
@@ -133,6 +139,7 @@
 	..()
 
 /mob/living/simple_animal/pet/cat/Runtime/proc/Read_Memory()
+	var/saved_color
 	if(fexists("data/npc_saves/Runtime.sav")) //legacy compatability to convert old format to new
 		var/savefile/S = new /savefile("data/npc_saves/Runtime.sav")
 		S["family"] >> family
@@ -143,14 +150,21 @@
 			return
 		var/list/json = json_decode(file2text(json_file))
 		family = json["family"]
+		saved_color = json["color"]
 	if(isnull(family))
 		family = list()
+	if(!isnull(saved_color))
+		add_atom_colour(json_decode(saved_color), FIXED_COLOUR_PRIORITY)
 
 /mob/living/simple_animal/pet/cat/Runtime/proc/Write_Memory(dead)
 	var/json_file = file("data/npc_saves/Runtime.json")
 	var/list/file_data = list()
 	family = list()
 	if(!dead)
+		if(color)
+			file_data["color"] = json_encode(color)
+		else
+			file_data["color"] = null
 		for(var/mob/living/simple_animal/pet/cat/kitten/C in children)
 			if(istype(C,type) || C.stat || !C.z || !C.butcher_results) //That last one is a work around for hologram cats
 				continue
@@ -158,6 +172,8 @@
 				family[C.type] += 1
 			else
 				family[C.type] = 1
+	else
+		file_data["color"] = null
 	file_data["family"] = family
 	fdel(json_file)
 	WRITE_FILE(json_file, json_encode(file_data))
@@ -175,7 +191,7 @@
 	gold_core_spawnable = NO_SPAWN
 	unique_pet = TRUE
 
-/mob/living/simple_animal/pet/cat/BiologicalLife(seconds, times_fired)
+/mob/living/simple_animal/pet/cat/BiologicalLife(delta_time, times_fired)
 	if(!(. = ..()))
 		return
 	if(!stat && !buckled && !client)
@@ -248,7 +264,8 @@
 	harm_intent_damage = 10
 	butcher_results = list(/obj/item/organ/brain = 1, /obj/item/organ/heart = 1, /obj/item/reagent_containers/food/snacks/cakeslice/birthday = 3,  \
 	/obj/item/reagent_containers/food/snacks/meat/slab = 2)
-	response_harm = "takes a bite out of"
+	response_harm_continuous = "takes a bite out of"
+	response_harm_simple = "take a bite out of"
 	attacked_sound = 'sound/items/eatfood.ogg'
 	deathmessage = "loses its false life and collapses!"
 	death_sound = "bodyfall"
@@ -268,7 +285,7 @@
 		to_chat(src, "<span class='notice'>Your name is now <b>\"new_name\"</b>!</span>")
 		name = new_name
 
-/mob/living/simple_animal/pet/cat/cak/BiologicalLife(seconds, times_fired)
+/mob/living/simple_animal/pet/cat/cak/BiologicalLife(delta_time, times_fired)
 	if(!(. = ..()))
 		return
 	if(stat)
@@ -310,7 +327,6 @@
 	if (pseudo_death == TRUE) //secret cat chem
 		icon_state = "custom_cat_dead"
 		Stun(1000)
-		friendly = "deads at"
 		return
 	else
 		..()

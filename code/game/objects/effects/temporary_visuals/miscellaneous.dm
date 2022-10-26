@@ -4,6 +4,7 @@
 	duration = 5
 	randomdir = FALSE
 	layer = BELOW_MOB_LAYER
+	color = BLOOD_COLOR_HUMAN // set it to red by default because the actual icons are white
 	var/splatter_type = "splatter"
 
 /obj/effect/temp_visual/dir_setting/bloodsplatter/Initialize(mapload, set_dir, new_color)
@@ -243,6 +244,17 @@
 	icon_state = "shieldsparkles"
 	duration = 5
 
+/obj/effect/temp_visual/voidpush
+	name = "eldritch energy"
+	icon_state = "emark4"
+	duration = 5
+
+/obj/effect/temp_visual/voidswap
+	name = "altered space"
+	icon = 'icons/mob/mob.dmi'
+	icon_state = "voidalter"
+	duration = 5
+
 /obj/effect/temp_visual/telekinesis
 	name = "telekinetic force"
 	icon_state = "empdisable"
@@ -365,6 +377,12 @@
 
 /obj/effect/temp_visual/impact_effect/ion
 	icon_state = "shieldsparkles"
+	duration = 6
+
+/obj/effect/temp_visual/impact_effect/judgement_cut
+	name = "judgement cut impact"
+	icon = 'icons/effects/effects.dmi'
+	icon_state = "impact_judgement"
 	duration = 6
 
 /obj/effect/temp_visual/heart
@@ -524,3 +542,7 @@
 /obj/effect/temp_visual/slime_puddle/reverse
 	icon_state = "from_puddle"
 	duration = 7
+
+/obj/effect/temp_visual/gib_animation
+	icon = 'icons/mob/mob.dmi'
+	duration = 15

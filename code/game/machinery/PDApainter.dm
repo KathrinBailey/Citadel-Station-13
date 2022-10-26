@@ -31,7 +31,7 @@
 	if(storedpda)
 		. += "[initial(icon_state)]-closed"
 
-/obj/machinery/pdapainter/Initialize()
+/obj/machinery/pdapainter/Initialize(mapload)
 	. = ..()
 	var/list/blocked = list(
 		/obj/item/pda/ai/pai,
@@ -58,9 +58,9 @@
 		storedpda.forceMove(loc)
 		storedpda = null
 
-/obj/machinery/pdapainter/contents_explosion(severity, target)
+/obj/machinery/pdapainter/contents_explosion(severity, target, origin)
 	if(storedpda)
-		storedpda.ex_act(severity, target)
+		storedpda.ex_act(severity, target, origin)
 
 /obj/machinery/pdapainter/handle_atom_del(atom/A)
 	if(A == storedpda)
@@ -82,7 +82,7 @@
 		O.add_fingerprint(user)
 		update_icon()
 
-	else if(istype(O, /obj/item/weldingtool) && user.a_intent != INTENT_HARM)
+	else if(O.tool_behaviour == TOOL_WELDER && user.a_intent != INTENT_HARM)
 		if(stat & BROKEN)
 			if(!O.tool_start_check(user, amount=0))
 				return

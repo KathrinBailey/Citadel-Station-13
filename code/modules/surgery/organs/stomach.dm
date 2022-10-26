@@ -62,13 +62,13 @@
 			H.clear_alert("disgust")
 			SEND_SIGNAL(H, COMSIG_CLEAR_MOOD_EVENT, "disgust")
 		if(DISGUST_LEVEL_GROSS to DISGUST_LEVEL_VERYGROSS)
-			H.throw_alert("disgust", /obj/screen/alert/gross)
+			H.throw_alert("disgust", /atom/movable/screen/alert/gross)
 			SEND_SIGNAL(H, COMSIG_ADD_MOOD_EVENT, "disgust", /datum/mood_event/gross)
 		if(DISGUST_LEVEL_VERYGROSS to DISGUST_LEVEL_DISGUSTED)
-			H.throw_alert("disgust", /obj/screen/alert/verygross)
+			H.throw_alert("disgust", /atom/movable/screen/alert/verygross)
 			SEND_SIGNAL(H, COMSIG_ADD_MOOD_EVENT, "disgust", /datum/mood_event/verygross)
 		if(DISGUST_LEVEL_DISGUSTED to INFINITY)
-			H.throw_alert("disgust", /obj/screen/alert/disgusted)
+			H.throw_alert("disgust", /atom/movable/screen/alert/disgusted)
 			SEND_SIGNAL(H, COMSIG_ADD_MOOD_EVENT, "disgust", /datum/mood_event/disgusted)
 
 /obj/item/organ/stomach/Remove(special = FALSE)
@@ -77,6 +77,11 @@
 		H.clear_alert("disgust")
 		SEND_SIGNAL(H, COMSIG_CLEAR_MOOD_EVENT, "disgust")
 	..()
+
+/obj/item/organ/stomach/slime
+	name = "macrolysosome" //an original cell has multiple lysosomes, but in this case a slimeperson only really has one... a big one? probably give it "macro" in the name.
+	icon_state = "stomach-s"
+	desc = "A slimeperson organelle resembling a stomach. It breaks down, or digests macromolecules. Or food and drinks."
 
 /obj/item/organ/stomach/fly
 	name = "insectoid stomach"
@@ -88,20 +93,61 @@
 	icon_state = "stomach-p"
 	desc = "A strange crystal that is responsible for metabolizing the unseen energy force that feeds plasmamen."
 
+/obj/item/organ/stomach/cybernetic
+	name = "basic cybernetic stomach"
+	icon_state = "stomach-c"
+	desc = "A basic device designed to mimic the functions of a human stomach"
+	organ_flags = ORGAN_SYNTHETIC
+	maxHealth = STANDARD_ORGAN_THRESHOLD * 0.5
+	var/emp_vulnerability = 1 //The value the severity of emps are divided by to determine the likelihood of permanent damage.
+
+/obj/item/organ/stomach/cybernetic/tier2
+	name = "cybernetic stomach"
+	icon_state = "stomach-c-u"
+	desc = "An electronic device designed to mimic the functions of a human stomach. Handles disgusting food a bit better."
+	maxHealth = 1.5 * STANDARD_ORGAN_THRESHOLD
+	disgust_metabolism = 2
+	emp_vulnerability = 2
+
+/obj/item/organ/stomach/cybernetic/tier3
+	name = "upgraded cybernetic stomach"
+	icon_state = "stomach-c-u2"
+	desc = "An upgraded version of the cybernetic stomach, designed to improve further upon organic stomachs. Handles disgusting food very well."
+	maxHealth = 2 * STANDARD_ORGAN_THRESHOLD
+	disgust_metabolism = 3
+	emp_vulnerability = 3
+
+/obj/item/organ/stomach/cybernetic/emp_act(severity)
+	. = ..()
+	if(. & EMP_PROTECT_SELF)
+		return
+	if(!COOLDOWN_FINISHED(src, severe_cooldown)) //So we cant just spam emp to kill people.
+		owner.vomit(stun = FALSE)
+		COOLDOWN_START(src, severe_cooldown, 10 SECONDS)
+	if(prob(severity/emp_vulnerability))	//Chance of permanent effects
+		organ_flags |= ORGAN_SYNTHETIC_EMP //Starts organ faliure - gonna need replacing soon.
+
 /obj/item/organ/stomach/ipc
 	name = "ipc cell"
 	icon_state = "stomach-ipc"
+
+/obj/item/organ/stomach/ipc/on_life()
+	. = ..()
+	if(!.)
+		return
+	if(HAS_TRAIT(owner, TRAIT_ROBOTIC_ORGANISM) && owner.nutrition >= NUTRITION_LEVEL_FED)
+		owner.satiety += 5	//We don't need to cap the value as it's already automatically capped during nutrition level handling. Also effectively only +4 as you lose 1 per life tick. 300 seconds of sufficient charge to reach full satiety.
 
 /obj/item/organ/stomach/ipc/emp_act(severity)
 	. = ..()
 	if(!owner || . & EMP_PROTECT_SELF)
 		return
 	switch(severity)
-		if(1)
-			owner.nutrition = min(owner.nutrition - 50, 0)
+		if(1 to 50)
+			owner.nutrition = max(owner.nutrition - 50, 0)
 			to_chat(owner, "<span class='warning'>Alert: Detected severe battery discharge!</span>")
-		if(2)
-			owner.nutrition = min(owner.nutrition - 100, 0)
+		if(50 to INFINITY)
+			owner.nutrition = max(owner.nutrition - 100, 0)
 			to_chat(owner, "<span class='warning'>Alert: Minor battery discharge!</span>")
 
 /obj/item/organ/stomach/ethereal

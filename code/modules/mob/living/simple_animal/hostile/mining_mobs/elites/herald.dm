@@ -24,6 +24,7 @@
 	icon_aggro = "herald"
 	icon_dead = "herald_dying"
 	icon_gib = "syndicate_gib"
+	health_doll_icon = "herald"
 	maxHealth = 800
 	health = 800
 	melee_damage_lower = 20
@@ -203,7 +204,7 @@
 	is_mirror = TRUE
 	var/mob/living/simple_animal/hostile/asteroid/elite/herald/my_master = null
 
-/mob/living/simple_animal/hostile/asteroid/elite/herald/mirror/Initialize()
+/mob/living/simple_animal/hostile/asteroid/elite/herald/mirror/Initialize(mapload)
 	..()
 	toggle_ai(AI_OFF)
 

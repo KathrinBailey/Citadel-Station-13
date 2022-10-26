@@ -4,8 +4,11 @@
 	actions_types = list(/datum/action/item_action/toggle_hood)
 	var/obj/item/clothing/head/hooded/hood
 	var/hoodtype = /obj/item/clothing/head/hooded/winterhood //so the chaplain hoodie or other hoodies can override this
+	///Alternative mode for hiding the hood, instead of storing the hood in the suit it qdels it, useful for when you deal with hooded suit with storage.
+	var/alternative_mode = FALSE
+	var/no_t //do not update sprites when pulling up hood so we can avoid oddities with certain mechanics
 
-/obj/item/clothing/suit/hooded/Initialize()
+/obj/item/clothing/suit/hooded/Initialize(mapload)
 	. = ..()
 	hood = MakeHelmet()
 
@@ -28,11 +31,11 @@
 	ToggleHood()
 
 /obj/item/clothing/suit/hooded/item_action_slot_check(slot, mob/user, datum/action/A)
-	if(slot == SLOT_WEAR_SUIT || slot == SLOT_NECK)
+	if(slot == ITEM_SLOT_OCLOTHING || slot == ITEM_SLOT_NECK)
 		return 1
 
 /obj/item/clothing/suit/hooded/equipped(mob/user, slot)
-	if(slot != SLOT_WEAR_SUIT && slot != SLOT_NECK)
+	if(slot != ITEM_SLOT_OCLOTHING && slot != ITEM_SLOT_NECK)
 		RemoveHood()
 	..()
 
@@ -43,10 +46,14 @@
 		H.transferItemToLoc(hood, src, TRUE)
 		H.update_inv_wear_suit()
 	else
+		if(alternative_mode)
+			QDEL_NULL(hood)
 		hood.forceMove(src)
 	update_icon()
 
 /obj/item/clothing/suit/hooded/update_icon_state()
+	if(no_t)
+		return
 	icon_state = "[initial(icon_state)]"
 	if(ishuman(hood?.loc))
 		var/mob/living/carbon/human/H = hood.loc
@@ -58,6 +65,12 @@
 	RemoveHood()
 
 /obj/item/clothing/suit/hooded/proc/ToggleHood()
+	if(!hood)
+		to_chat(loc, "<span class='warning'>[src] seems to be missing its hood..</span>")
+		return
+	if(atom_colours)
+		hood.atom_colours = atom_colours.Copy()
+		hood.update_atom_colour()
 	if(!suittoggled)
 		if(ishuman(src.loc))
 			var/mob/living/carbon/human/H = src.loc
@@ -67,7 +80,7 @@
 			if(H.head)
 				to_chat(H, "<span class='warning'>You're already wearing something on your head!</span>")
 				return
-			else if(H.equip_to_slot_if_possible(hood,SLOT_HEAD,0,0,1))
+			else if(H.equip_to_slot_if_possible(hood,ITEM_SLOT_HEAD,0,0,1))
 				suittoggled = TRUE
 				update_icon()
 				H.update_inv_wear_suit()
@@ -89,7 +102,7 @@
 
 /obj/item/clothing/head/hooded/equipped(mob/user, slot)
 	..()
-	if(slot != SLOT_HEAD)
+	if(slot != ITEM_SLOT_HEAD)
 		if(suit)
 			suit.RemoveHood()
 		else
@@ -104,6 +117,9 @@
 	suit_toggle(user)
 	return TRUE
 
+/obj/item/clothing/suit/toggle/proc/on_toggle(mob/user) // override this, not suit_toggle, which does checks
+	to_chat(usr, "<span class='notice'>You toggle [src]'s [togglename].</span>")
+
 /obj/item/clothing/suit/toggle/ui_action_click()
 	suit_toggle()
 
@@ -113,7 +129,7 @@
 	if(!can_use(usr))
 		return 0
 
-	to_chat(usr, "<span class='notice'>You toggle [src]'s [togglename].</span>")
+	on_toggle(usr)
 	if(src.suittoggled)
 		src.icon_state = "[initial(icon_state)]"
 		src.suittoggled = FALSE
@@ -130,7 +146,7 @@
 	. += "Alt-click on [src] to toggle the [togglename]."
 
 //Hardsuit toggle code
-/obj/item/clothing/suit/space/hardsuit/Initialize()
+/obj/item/clothing/suit/space/hardsuit/Initialize(mapload)
 	. = ..()
 	helmet = MakeHelmet()
 
@@ -161,7 +177,7 @@
 /obj/item/clothing/suit/space/hardsuit/equipped(mob/user, slot)
 	if(!helmettype)
 		return
-	if(slot != SLOT_WEAR_SUIT)
+	if(slot != ITEM_SLOT_OCLOTHING)
 		RemoveHelmet()
 	..()
 
@@ -191,7 +207,11 @@
 	if(!helmettype)
 		return
 	if(!helmet)
+		to_chat(H, "<span class='warning'>[src] seems to be missing its helmet..</span>")
 		return
+	if(atom_colours)
+		helmet.atom_colours = atom_colours.Copy()
+		helmet.update_atom_colour()
 	if(!suittoggled)
 		if(ishuman(src.loc))
 			if(H.wear_suit != src)
@@ -202,7 +222,7 @@
 				if(message)
 					to_chat(H, "<span class='warning'>You're already wearing something on your head!</span>")
 				return
-			else if(H.equip_to_slot_if_possible(helmet,SLOT_HEAD,0,0,1))
+			else if(H.equip_to_slot_if_possible(helmet,ITEM_SLOT_HEAD,0,0,1))
 				if(message)
 					to_chat(H, "<span class='notice'>You engage the helmet on the hardsuit.</span>")
 				suittoggled = TRUE

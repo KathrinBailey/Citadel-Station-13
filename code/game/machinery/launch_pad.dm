@@ -38,8 +38,7 @@
 			if(I.tool_behaviour == TOOL_MULTITOOL)
 				if(!multitool_check_buffer(user, I))
 					return
-				var/obj/item/multitool/M = I
-				M.buffer = src
+				I.buffer = src
 				to_chat(user, "<span class='notice'>You save the data in the [I.name]'s buffer.</span>")
 				return TRUE
 
@@ -230,7 +229,7 @@
 /obj/item/storage/briefcase/launchpad
 	var/obj/machinery/launchpad/briefcase/pad
 
-/obj/item/storage/briefcase/launchpad/Initialize()
+/obj/item/storage/briefcase/launchpad/Initialize(mapload)
 	pad = new(null, src) //spawns pad in nullspace to hide it from briefcase contents
 	. = ..()
 

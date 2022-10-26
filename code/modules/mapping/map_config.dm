@@ -18,6 +18,8 @@
 	var/map_name = "Box Station"
 	var/map_path = "map_files/BoxStation"
 	var/map_file = "BoxStation.dmm"
+	/// Persistence key: Defaults to ckey(map_name). If set to "NO_PERSIST", this map will have NO persistence.
+	var/persistence_key
 
 	var/traits = null
 	var/space_ruin_levels = 4
@@ -27,8 +29,6 @@
 	var/minetype = "lavaland"
 
 	var/maptype = MAP_TYPE_STATION //This should be used to adjust ingame behavior depending on the specific type of map being played. For instance, if an overmap were added, it'd be appropriate for it to only generate with a MAP_TYPE_SHIP
-
-	var/announcertype = "standard" //Determines the announcer the map uses. standard uses the default announcer, classic, but has a random chance to use other similarly-themed announcers, like medibot
 
 	var/allow_custom_shuttles = TRUE
 	var/shuttles = list(
@@ -99,6 +99,16 @@
 	map_path = json["map_path"]
 
 	map_file = json["map_file"]
+
+	persistence_key = ckey(map_name)
+
+	var/json_persistence_key = json["persistence_key"]
+	if(json_persistence_key)
+		if(json_persistence_key == "NO_PERSIST")
+			persistence_key = null
+		else
+			persistence_key = json_persistence_key
+
 	// "map_file": "BoxStation.dmm"
 	if (istext(map_file))
 		if (!fexists("_maps/[map_path]/[map_file]"))
@@ -165,9 +175,6 @@
 
 	if ("maptype" in json)
 		maptype = json["maptype"]
-
-	if ("announcertype" in json)
-		announcertype = json["announcertype"]
 
 	if ("orientation" in json)
 		orientation = json["orientation"]
@@ -265,7 +272,6 @@
 	jsonlist["year_offset"] = year_offset
 	jsonlist["minetype"] = minetype
 	jsonlist["maptype"] = maptype
-	jsonlist["announcertype"] = announcertype
 	jsonlist["orientation"] = orientation
 	jsonlist["allow_custom_shuttles"] = allow_custom_shuttles
 	jsonlist["job_whitelist"] = job_whitelist

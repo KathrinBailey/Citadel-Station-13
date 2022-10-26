@@ -10,6 +10,14 @@
 	category = list ("Misc. Machinery")
 	departmental_flags = DEPARTMENTAL_FLAG_ALL
 
+/datum/design/board/autoloom
+	name = "Machine Design (Autoloom Board)"
+	desc = "The circuit board for an autoloom."
+	id = "autoloom"
+	build_path = /obj/item/circuitboard/machine/autoloom
+	category = list ("Misc. Machinery")
+	departmental_flags = DEPARTMENTAL_FLAG_SERVICE
+
 /datum/design/board/holopad
 	name = "Machine Design (AI Holopad Board)"
 	desc = "The circuit board for a holopad."
@@ -163,3 +171,10 @@
 	category = list ("Misc. Machinery")
 	departmental_flags = DEPARTMENTAL_FLAG_ALL
 
+/datum/design/board/colormate
+	name = "ColorMate"
+	desc = "This machine lets you paint your gear."
+	id = "colormate"
+	build_path = /obj/item/circuitboard/machine/colormate
+	category = list ("Misc. Machinery")
+	departmental_flags = DEPARTMENTAL_FLAG_ALL

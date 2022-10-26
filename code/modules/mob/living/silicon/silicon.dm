@@ -1,6 +1,6 @@
 /mob/living/silicon
 	gender = NEUTER
-	silicon_privileges = PRIVILEDGES_SILICON
+	silicon_privileges = PRIVILEGES_SILICON
 	verb_say = "states"
 	verb_ask = "queries"
 	verb_exclaim = "declares"
@@ -48,7 +48,12 @@
 	var/hack_software = FALSE //Will be able to use hacking actions
 	var/interaction_range = 7			//wireless control range
 
-/mob/living/silicon/Initialize()
+	typing_indicator_state = /obj/effect/overlay/typing_indicator/machine
+
+	vocal_bark_id = "synth"
+	vocal_pitch_range = 0.1
+
+/mob/living/silicon/Initialize(mapload)
 	. = ..()
 	GLOB.silicon_mobs += src
 	faction += "silicon"
@@ -59,8 +64,8 @@
 
 /mob/living/silicon/ComponentInitialize()
 	. = ..()
-	AddElement(/datum/element/flavor_text, _name = "Silicon Flavor Text", _save_key = "silicon_flavor_text")
-	AddElement(/datum/element/flavor_text, "", "Temporary Flavor Text", "This should be used only for things pertaining to the current round!")
+	AddElement(/datum/element/flavor_text, _name = "Silicon Flavor Text", _always_show = TRUE, _save_key = "silicon_flavor_text")
+	AddElement(/datum/element/flavor_text, "", "Temporary Flavor Text", "This should be used only for things pertaining to the current round!", _always_show = TRUE)
 	AddElement(/datum/element/flavor_text, _name = "OOC Notes", _addendum = "Put information on ERP/vore/lewd-related preferences here. THIS SHOULD NOT CONTAIN REGULAR FLAVORTEXT!!", _always_show = TRUE, _save_key = "ooc_notes", _examine_no_preview = TRUE)
 
 /mob/living/silicon/med_hud_set_health()
@@ -76,7 +81,7 @@
 	GLOB.silicon_mobs -= src
 	return ..()
 
-/mob/living/silicon/contents_explosion(severity, target)
+/mob/living/silicon/contents_explosion(severity, target, origin)
 	return
 
 /mob/living/silicon/proc/cancelAlarm()
@@ -411,7 +416,7 @@
 	src << browse(dat, "window=airoster")
 	onclose(src, "airoster")
 
-/mob/living/silicon/update_transform()
+/mob/living/silicon/update_transform(do_animate)
 	var/matrix/ntransform = matrix(transform) //aka transform.Copy()
 	var/changed = 0
 	if(resize != RESIZE_DEFAULT_SIZE)

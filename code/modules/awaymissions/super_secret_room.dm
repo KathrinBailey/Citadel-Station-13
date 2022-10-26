@@ -10,7 +10,7 @@
 	var/times_spoken_to = 0
 	var/list/shenanigans = list()
 
-/obj/structure/speaking_tile/Initialize()
+/obj/structure/speaking_tile/Initialize(mapload)
 	. = ..()
 	var/json_file = file("data/npc_saves/Poly.json")
 	if(!fexists(json_file))
@@ -45,9 +45,9 @@
 		if(9)
 			SpeakPeace(list("Alright maybe that's <b>too</b> boring.", "I can't keep manually typing these lines out though.", "It's hard to explain but the code structure I'm using is kind of terrible."))
 		if(10)
-			SpeakPeace(list("Oh I have an idea!", "Lets outsource this endless banter to Poly!", "Then you'll be able to keep listening to this without getting bored!"))
+			SpeakPeace(list("Oh I have an idea!", "Lets outsource this endless banter to Polly!", "Then you'll be able to keep listening to this without getting bored!"))
 			if(isnull(shenanigans) || !shenanigans.len)
-				shenanigans = list("Except the poly file is missing...")
+				shenanigans = list("Except the polly file is missing...")
 		if(11 to 14, 16 to 50, 52 to 99, 103 to 107, 109 to 203, 205 to 249, 252 to 665, 667 to 999, 1001 to 5642)
 			SpeakPeace(list(pick(shenanigans),pick(shenanigans),pick(shenanigans)))
 			if(times_spoken_to % 10 == 0)
@@ -55,7 +55,7 @@
 		if(15)
 			SpeakPeace(list("See? Isn't this fun?","Now you can mash this for hours without getting bored.","Anyway I'll leave you it."))
 		if(51)
-			SpeakPeace(list("The fun never ends around here.", "The Poly text files stores up to 500 statements.", "But you've probably heard a few repeats by now."))
+			SpeakPeace(list("The fun never ends around here.", "The Polly text files stores up to 500 statements.", "But you've probably heard a few repeats by now."))
 		if(100)
 			SpeakPeace(list("And that's a solid hundred.", "Good hustle I guess.", "You've probably heard a lot of repeats by now."))
 		if(101)
@@ -80,7 +80,7 @@
 		if(1000)
 			SpeakPeace(list("The ends exists somewhere beyond meaningful milestones.", "There will be no more messages until then.", "You disgust me."))
 		if(5643)
-			SSmedals.UnlockMedal(MEDAL_TIMEWASTE, user.client)
+			user.client.give_award(/datum/award/achievement/misc/time_waste, user)
 			var/obj/item/reagent_containers/food/drinks/trophy/gold_cup/never_ends = new(get_turf(user))
 			never_ends.name = "Overextending The Joke: First Place"
 			never_ends.desc = "And so we are left alone with our regrets."

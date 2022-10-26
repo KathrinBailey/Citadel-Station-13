@@ -189,6 +189,10 @@
 	name = "Mutate"
 	spell_type = /obj/effect/proc_holder/spell/targeted/genetic/mutate
 
+/datum/spellbook_entry/mantra
+	name = "Inner Mantra"
+	spell_type = /obj/effect/proc_holder/spell/self/mantra
+
 /datum/spellbook_entry/jaunt
 	name = "Ethereal Jaunt"
 	spell_type = /obj/effect/proc_holder/spell/targeted/ethereal_jaunt
@@ -243,6 +247,10 @@
 /datum/spellbook_entry/barnyard
 	name = "Barnyard Curse"
 	spell_type = /obj/effect/proc_holder/spell/pointed/barnyardcurse
+
+/datum/spellbook_entry/cluwne
+	name = "Cluwne Curse"
+	spell_type = /obj/effect/proc_holder/spell/targeted/cluwnecurse
 
 /datum/spellbook_entry/charge
 	name = "Charge"
@@ -606,7 +614,7 @@
 	else
 		. += "It appears to have no author."
 
-/obj/item/spellbook/Initialize()
+/obj/item/spellbook/Initialize(mapload)
 	. = ..()
 	prepare_spells()
 

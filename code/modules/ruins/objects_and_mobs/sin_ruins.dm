@@ -48,7 +48,7 @@
 	anchored = FALSE
 	density = TRUE
 
-/obj/structure/cursed_money/Initialize()
+/obj/structure/cursed_money/Initialize(mapload)
 	. = ..()
 	addtimer(CALLBACK(src, .proc/collapse), 600)
 
@@ -80,7 +80,8 @@
 	icon = 'icons/mob/blob.dmi'
 	color = rgb(145, 150, 0)
 
-/obj/effect/gluttony/CanPass(atom/movable/mover, turf/target)//So bullets will fly over and stuff.
+/obj/effect/gluttony/CanAllowThrough(atom/movable/mover, turf/target)//So bullets will fly over and stuff.
+	. = ..()
 	if(ishuman(mover))
 		var/mob/living/carbon/human/H = mover
 		if(H.nutrition >= NUTRITION_LEVEL_FAT)
@@ -90,8 +91,6 @@
 			to_chat(H, "<span class='warning'>You're repulsed by even looking at [src]. Only a pig could force themselves to go through it.</span>")
 	if(istype(mover, /mob/living/simple_animal/hostile/morph))
 		return TRUE
-	else
-		return FALSE
 
 /obj/structure/mirror/magic/pride //Pride's mirror: Used in the Pride ruin.
 	name = "pride's mirror"
@@ -136,10 +135,13 @@
 		return
 	if(ishuman(AM))
 		var/mob/living/carbon/human/H = AM
-		if(user.real_name != H.dna.real_name)
-			user.real_name = H.dna.real_name
-			H.dna.transfer_identity(user, transfer_SE=1)
-			user.updateappearance(mutcolor_update=1)
-			user.domutcheck()
-			user.visible_message("<span class='warning'>[user]'s appearance shifts into [H]'s!</span>", \
-			"<span class='boldannounce'>[H.p_they(TRUE)] think[H.p_s()] [H.p_theyre()] <i>sooo</i> much better than you. Not anymore, [H.p_they()] won't.</span>")
+		if(!(NOTRANSSTING in H.dna.species.species_traits))
+			if(user.real_name != H.dna.real_name)
+				user.real_name = H.dna.real_name
+				H.dna.transfer_identity(user, transfer_SE=1)
+				user.updateappearance(mutcolor_update=1)
+				user.domutcheck()
+				user.visible_message("<span class='warning'>[user]'s appearance shifts into [H]'s!</span>", \
+				"<span class='boldannounce'>[H.p_they(TRUE)] think[H.p_s()] [H.p_theyre()] <i>sooo</i> much better than you. Not anymore, [H.p_they()] won't.</span>")
+		else
+			to_chat(user, "<span class='warning'>You are unable to transform into [H]!</span>")

@@ -26,7 +26,7 @@
 
 	do_footstep = TRUE
 
-/mob/living/simple_animal/hostile/jungle/mega_arachnid/BiologicalLife(seconds, times_fired)
+/mob/living/simple_animal/hostile/jungle/mega_arachnid/BiologicalLife(delta_time, times_fired)
 	if(!(. = ..()))
 		return
 	if(target && ranged_cooldown > world.time && iscarbon(target))

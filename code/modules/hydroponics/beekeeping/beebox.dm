@@ -40,7 +40,7 @@
 	var/bee_resources = 0
 
 
-/obj/structure/beebox/Initialize()
+/obj/structure/beebox/Initialize(mapload)
 	. = ..()
 	START_PROCESSING(SSobj, src)
 
@@ -58,7 +58,7 @@
 	var/random_reagent = FALSE
 
 
-/obj/structure/beebox/premade/Initialize()
+/obj/structure/beebox/premade/Initialize(mapload)
 	. = ..()
 
 	icon_state = "beebox"
@@ -155,7 +155,7 @@
 			to_chat(user, "<span class='warning'>There's no room for any more frames in the apiary!</span>")
 		return
 
-	if(istype(I, /obj/item/wrench))
+	if(I.tool_behaviour == TOOL_WRENCH)
 		if(default_unfasten_wrench(user, I, time = 20))
 			return
 

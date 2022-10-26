@@ -164,7 +164,7 @@
 /datum/brain_trauma/severe/monophobia/on_life()
 	..()
 	if(check_alone())
-		stress = min(stress + 0.5, 100)
+		stress = min(stress + 0.25, 100)
 		if(stress > 10 && (prob(5)))
 			stress_reaction()
 	else
@@ -224,6 +224,7 @@
 				else
 					to_chat(owner, "<span class='userdanger'>You feel your heart lurching in your chest...</span>")
 					owner.adjustOxyLoss(8)
+		else
 
 /datum/brain_trauma/severe/discoordination
 	name = "Discoordination"

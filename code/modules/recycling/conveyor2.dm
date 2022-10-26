@@ -145,7 +145,7 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 
 // attack with item, place item on conveyor
 /obj/machinery/conveyor/attackby(obj/item/I, mob/user, params)
-	if(istype(I, /obj/item/crowbar))
+	if(I.tool_behaviour == TOOL_CROWBAR)
 		user.visible_message("<span class='notice'>[user] struggles to pry up \the [src] with \the [I].</span>", \
 		"<span class='notice'>You struggle to pry up \the [src] with \the [I].</span>")
 		if(I.use_tool(src, user, 40, volume=40))
@@ -155,14 +155,14 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 			to_chat(user, "<span class='notice'>You remove the conveyor belt.</span>")
 			qdel(src)
 
-	else if(istype(I, /obj/item/wrench))
+	else if(I.tool_behaviour == TOOL_WRENCH)
 		if(!(stat & BROKEN))
 			I.play_tool_sound(src)
 			setDir(turn(dir,-45))
 			update_move_direction()
 			to_chat(user, "<span class='notice'>You rotate [src].</span>")
 
-	else if(istype(I, /obj/item/screwdriver))
+	else if(I.tool_behaviour == TOOL_SCREWDRIVER)
 		if(!(stat & BROKEN))
 			verted = verted * -1
 			update_move_direction()
@@ -268,15 +268,18 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 // timed process
 // if the switch changed, update the linked conveyors
 
-/obj/machinery/conveyor_switch/process()
-	if(!operated)
-		return
-	operated = 0
-
+/obj/machinery/conveyor_switch/proc/do_process()
+	set waitfor = FALSE
 	for(var/obj/machinery/conveyor/C in GLOB.conveyors_by_id[id])
 		C.operating = position
 		C.update_move_direction()
 		CHECK_TICK
+
+/obj/machinery/conveyor_switch/process()
+	if(!operated)
+		return
+	operated = 0
+	do_process()
 
 // attack with hand, switch position
 /obj/machinery/conveyor_switch/interact(mob/user)
@@ -306,7 +309,7 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 		CHECK_TICK
 
 /obj/machinery/conveyor_switch/attackby(obj/item/I, mob/user, params)
-	if(istype(I, /obj/item/crowbar))
+	if(I.tool_behaviour == TOOL_CROWBAR)
 		var/obj/item/conveyor_switch_construct/C = new/obj/item/conveyor_switch_construct(src.loc)
 		C.id = id
 		transfer_fingerprints_to(C)
@@ -318,7 +321,7 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 	desc = "A conveyor control switch. It appears to only go in one direction."
 	oneway = TRUE
 
-/obj/machinery/conveyor_switch/oneway/Initialize()
+/obj/machinery/conveyor_switch/oneway/Initialize(mapload)
 	. = ..()
 	if((dir == NORTH) || (dir == WEST))
 		invert_icon = TRUE
@@ -331,7 +334,7 @@ GLOBAL_LIST_EMPTY(conveyors_by_id)
 	w_class = WEIGHT_CLASS_NORMAL
 	var/id = "" //inherited by the switch
 
-/obj/item/conveyor_switch_construct/Initialize()
+/obj/item/conveyor_switch_construct/Initialize(mapload)
 	. = ..()
 	id = "[rand()]" //this couldn't possibly go wrong
 

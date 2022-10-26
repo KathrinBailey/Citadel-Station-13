@@ -14,7 +14,7 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 	verb_say = "states coldly"
 	var/list/message_log = list()
 
-/obj/machinery/doppler_array/Initialize()
+/obj/machinery/doppler_array/Initialize(mapload)
 	. = ..()
 	GLOB.doppler_arrays += src
 
@@ -54,7 +54,7 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 	return
 
 /obj/machinery/doppler_array/attackby(obj/item/I, mob/user, params)
-	if(istype(I, /obj/item/wrench))
+	if(I.tool_behaviour == TOOL_WRENCH)
 		if(!anchored && !isinspace())
 			anchored = TRUE
 			power_change()
@@ -114,6 +114,44 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 		LAZYADD(message_log, messages.Join(" "))
 	return TRUE
 
+/obj/machinery/doppler_array/proc/sense_wave_explosion(turf/epicenter, power, speed)
+	if(stat & NOPOWER)
+		return FALSE
+	var/turf/zone = get_turf(src)
+	if(zone.z != epicenter.z)
+		return FALSE
+
+	if(next_announce > world.time)
+		return FALSE
+	next_announce = world.time + cooldown
+
+	var/distance = get_dist(epicenter, zone)
+	var/direct = get_dir(zone, epicenter)
+
+	if(distance > max_dist)
+		return FALSE
+	if(!(direct & dir) && !integrated)
+		return FALSE
+
+
+	var/list/messages = list("Explosive shockwave detected.", \
+							 "Epicenter at: grid ([epicenter.x],[epicenter.y]). Shockwave expanding at a theoretical speed of [speed] m/s.", \
+							 "Wave energy: [power]MJ.")
+
+	if(integrated)
+		var/obj/item/clothing/head/helmet/space/hardsuit/helm = loc
+		if(!helm || !istype(helm, /obj/item/clothing/head/helmet/space/hardsuit))
+			return FALSE
+		helm.display_visor_message("Waveform explosion detected! Wave energy: [power]MJ.")
+	else
+		for(var/message in messages)
+			say(message)
+		if(LAZYLEN(message_log) > list_limit)
+			say("Storage buffer is full! Clearing buffers...")
+			LAZYCLEARLIST(message_log)
+		LAZYADD(message_log, messages.Join(" "))
+	return TRUE
+
 /obj/machinery/doppler_array/examine(mob/user)
 	. = ..()
 	. += "<span class='notice'>Its dish is facing to the [dir2text(dir)].</span>"
@@ -156,24 +194,23 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 
 	/*****The Point Calculator*****/
 
-	if(orig_light < 10)
+	if(orig_light < 5)
 		say("Explosion not large enough for research calculations.")
 		return
-	else if(orig_light < 4500)
-		point_gain = (83300 * orig_light) / (orig_light + 3000)
-	else
-		point_gain = TECHWEB_BOMB_POINTCAP
+	else if(orig_light < BOMB_TARGET_SIZE) // we want to give fewer points if below the target; this curve does that
+		point_gain = (BOMB_TARGET_POINTS * orig_light ** BOMB_SUB_TARGET_EXPONENT) / (BOMB_TARGET_SIZE**BOMB_SUB_TARGET_EXPONENT)
+	else // once we're at the target, switch to a hyperbolic function so we can't go too far above it, but bigger bombs always get more points
+		point_gain = (BOMB_TARGET_POINTS * 2 * orig_light) / (orig_light + BOMB_TARGET_SIZE)
 
 	/*****The Point Capper*****/
-	if(point_gain > linked_techweb.largest_bomb_value)
-		if(point_gain <= TECHWEB_BOMB_POINTCAP || linked_techweb.largest_bomb_value < TECHWEB_BOMB_POINTCAP)
-			var/old_tech_largest_bomb_value = linked_techweb.largest_bomb_value //held so we can pull old before we do math
-			linked_techweb.largest_bomb_value = point_gain
-			point_gain -= old_tech_largest_bomb_value
-			point_gain = min(point_gain,TECHWEB_BOMB_POINTCAP)
-		else
-			linked_techweb.largest_bomb_value = TECHWEB_BOMB_POINTCAP
-			point_gain = 1000
+
+	var/list/largest_values = linked_techweb.largest_values
+	if(!(LARGEST_BOMB in largest_values))
+		largest_values[LARGEST_BOMB] = 0
+	if(point_gain > largest_values[LARGEST_BOMB])
+		var/old_tech_largest_bomb_value = largest_values[LARGEST_BOMB] //held so we can pull old before we do math
+		linked_techweb.largest_values[LARGEST_BOMB] = point_gain
+		point_gain -= old_tech_largest_bomb_value
 		var/datum/bank_account/D = SSeconomy.get_dep_account(ACCOUNT_SCI)
 		if(D)
 			D.adjust_money(point_gain)
@@ -185,6 +222,6 @@ GLOBAL_LIST_EMPTY(doppler_arrays)
 		return
 
 
-/obj/machinery/doppler_array/research/science/Initialize()
+/obj/machinery/doppler_array/research/science/Initialize(mapload)
 	. = ..()
 	linked_techweb = SSresearch.science_tech

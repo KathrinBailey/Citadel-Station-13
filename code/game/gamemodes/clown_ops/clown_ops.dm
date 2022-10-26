@@ -1,7 +1,7 @@
 /datum/game_mode/nuclear/clown_ops
 	name = "clown ops"
 	config_tag = "clownops"
-
+	chaos = 8
 	announce_span = "danger"
 	announce_text = "Clown empire forces are approaching the station in an attempt to HONK it!\n\
 	<span class='danger'>Operatives</span>: Secure the nuclear authentication disk and use your bananium fission explosive to HONK the station.\n\
@@ -43,7 +43,7 @@
 	l_pocket = /obj/item/pinpointer/nuke/syndicate
 	r_pocket = /obj/item/bikehorn
 	id = /obj/item/card/id/syndicate
-	backpack_contents = list(/obj/item/storage/box/syndie=1,\
+	backpack_contents = list(/obj/item/storage/box/survival/syndie=1,\
 		/obj/item/kitchen/knife/combat/survival,
 		/obj/item/reagent_containers/spray/waterflower/lube)
 	implants = list(/obj/item/implant/sad_trombone)

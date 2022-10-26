@@ -8,10 +8,12 @@
 	closingLayer = CLOSED_BLASTDOOR_LAYER
 	sub_door = TRUE
 	explosion_block = 3
+	wave_explosion_block = EXPLOSION_BLOCK_BLAST_PROOF
+	wave_explosion_multiply = EXPLOSION_DAMPEN_BLAST_PROOF
 	heat_proof = TRUE
 	safe = FALSE
 	max_integrity = 600
-	armor = list("melee" = 50, "bullet" = 100, "laser" = 100, "energy" = 100, "bomb" = 50, "bio" = 100, "rad" = 100, "fire" = 100, "acid" = 70)
+	armor = list(MELEE = 50, BULLET = 100, LASER = 100, ENERGY = 100, BOMB = 50, BIO = 100, RAD = 100, FIRE = 100, ACID = 70)
 	resistance_flags = FIRE_PROOF
 	damage_deflection = 70
 	poddoor = TRUE
@@ -66,7 +68,7 @@
 		return ..()
 
 //"BLAST" doors are obviously stronger than regular doors when it comes to BLASTS.
-/obj/machinery/door/poddoor/ex_act(severity, target)
+/obj/machinery/door/poddoor/ex_act(severity, target, origin)
 	if(severity == 3)
 		return
 	..()

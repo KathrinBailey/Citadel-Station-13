@@ -3,17 +3,24 @@
 	desc = "It's gooey. Perhaps it's the chef's cooking?"
 	icon = 'icons/effects/blood.dmi'
 	icon_state = "floor1"
+	blend_mode = BLEND_MULTIPLY
 	random_icon_states = list("floor1", "floor2", "floor3", "floor4", "floor5", "floor6", "floor7")
 	blood_state = BLOOD_STATE_BLOOD
 	bloodiness = BLOOD_AMOUNT_PER_DECAL
 	color = BLOOD_COLOR_HUMAN //default so we don't have white splotches everywhere.
 	beauty = -100
+	persistent = TRUE
+	var/fixed_color = FALSE
 
 /obj/effect/decal/cleanable/blood/replace_decal(obj/effect/decal/cleanable/blood/C)
+	if(C.fixed_color)
+		qdel(C)
+		return FALSE
 	if (C.blood_DNA)
 		blood_DNA |= C.blood_DNA
+	qdel(C)
 	update_icon()
-	..()
+	return FALSE
 
 /obj/effect/decal/cleanable/blood/transfer_blood_dna()
 	..()
@@ -24,7 +31,26 @@
 	update_icon()
 
 /obj/effect/decal/cleanable/blood/update_icon()
-	color = blood_DNA_to_color()
+	. = ..()
+	if(!fixed_color)
+		add_atom_colour(blood_DNA_to_color(), FIXED_COLOUR_PRIORITY)
+		blend_mode = blood_DNA_to_blend()
+
+/obj/effect/decal/cleanable/blood/PersistenceSave(list/data)
+	. = ..()
+	data["color"] = color
+	data["blendmode"] = blend_mode
+
+/obj/effect/decal/cleanable/blood/PersistenceLoad(list/data)
+	. = ..()
+	if(data["color"])
+		fixed_color = TRUE
+		add_atom_colour(data["color"], FIXED_COLOUR_PRIORITY)
+	if(data["blendmode"])
+		blend_mode = data["blendmode"]
+	name = "dried blood"
+	desc = "Looks like it's been here a while. Eew"
+	bloodiness = 0
 
 /obj/effect/decal/cleanable/blood/old
 	name = "dried blood"
@@ -32,12 +58,13 @@
 	bloodiness = 0
 
 /obj/effect/decal/cleanable/blood/old/Initialize(mapload, list/datum/disease/diseases)
-	..()
+	. = ..()
 	icon_state += "-old"
 	add_blood_DNA(list("Non-human DNA" = "A+"))
 
 /obj/effect/decal/cleanable/blood/splats
 	random_icon_states = list("gibbl1", "gibbl2", "gibbl3", "gibbl4", "gibbl5")
+	persistence_allow_stacking = TRUE
 
 /obj/effect/decal/cleanable/blood/splatter
 	random_icon_states = list("splatter1", "splatter2", "splatter3", "splatter4", "splatter5")
@@ -48,18 +75,50 @@
 	random_icon_states = null
 	beauty = -50
 
+/obj/effect/decal/cleanable/blood/tracks/PersistenceSave(list/data)
+	. = ..()
+	data["dir"] = dir
+
+/obj/effect/decal/cleanable/blood/tracks/PersistenceLoad(list/data)
+	. = ..()
+	if(data["dir"])
+		setDir(text2num(data["dir"]))
+
 /obj/effect/decal/cleanable/trail_holder //not a child of blood on purpose
 	name = "blood"
-	icon_state = "ltrails_1"
+	icon = 'icons/effects/blood.dmi'
 	desc = "Your instincts say you shouldn't be following these."
+	blend_mode = BLEND_MULTIPLY
 	random_icon_states = null
 	beauty = -50
+	persistent = TRUE
+	persistence_allow_stacking = TRUE
 	var/list/existing_dirs = list()
+	var/fixed_color = FALSE
+
+/obj/effect/decal/cleanable/trail_holder/PersistenceSave(list/data)
+	. = ..()
+	data["dir"] = dir
+	data["color"] = color
+	data["blendmode"] = blend_mode
+
+/obj/effect/decal/cleanable/trail_holder/PersistenceLoad(list/data)
+	. = ..()
+	if(data["dir"])
+		setDir(text2num(data["dir"]))
+	if(data["color"])
+		fixed_color = TRUE
+		add_atom_colour(data["color"], FIXED_COLOUR_PRIORITY)
+	if(data["blendmode"])
+		blend_mode = data["blendmode"]
 
 /obj/effect/decal/cleanable/trail_holder/update_icon()
-	color = blood_DNA_to_color()
+	. = ..()
+	if(!fixed_color)
+		add_atom_colour(blood_DNA_to_color(), FIXED_COLOUR_PRIORITY)
+		blend_mode = blood_DNA_to_blend()
 
-/obj/effect/cleanable/trail_holder/Initialize()
+/obj/effect/cleanable/trail_holder/Initialize(mapload)
 	. = ..()
 	update_icon()
 
@@ -84,7 +143,18 @@
 	var/entered_dirs = 0
 	var/exited_dirs = 0
 	blood_state = BLOOD_STATE_BLOOD //the icon state to load images from
+	persistent = TRUE
+	persistence_allow_stacking = TRUE
 	var/list/shoe_types = list()
+
+/obj/effect/decal/cleanable/blood/footprints/PersistenceSave(list/data)
+	. = ..()
+	data["dir"] = dir
+
+/obj/effect/decal/cleanable/blood/footprints/PersistenceLoad(list/data)
+	. = ..()
+	if(data["dir"])
+		setDir(text2num(data["dir"]))
 
 /obj/effect/decal/cleanable/blood/footprints/Crossed(atom/movable/O)
 	if(ishuman(O))
@@ -143,7 +213,7 @@
 		return
 	if(color != C.color)
 		return
-	..()
+	return ..()
 
 /obj/effect/decal/cleanable/blood/footprints/can_bloodcrawl_in()
 	if((blood_state != BLOOD_STATE_OIL) && (blood_state != BLOOD_STATE_NOT_BLOODY))

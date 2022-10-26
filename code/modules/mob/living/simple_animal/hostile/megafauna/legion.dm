@@ -26,6 +26,7 @@ SHITCODE AHEAD. BE ADVISED. Also comment extravaganza
 	spacewalk = TRUE
 	icon_state = "mega_legion"
 	icon_living = "mega_legion"
+	health_doll_icon = "mega_legion"
 	desc = "One of many."
 	icon = 'icons/mob/lavaland/96x96megafauna.dmi'
 	attack_verb_continuous = "chomps"
@@ -42,8 +43,9 @@ SHITCODE AHEAD. BE ADVISED. Also comment extravaganza
 	retreat_distance = 5
 	minimum_distance = 5
 	ranged_cooldown_time = 10
-	medal_type = BOSS_MEDAL_LEGION
-	score_type = LEGION_SCORE
+	achievement_type = /datum/award/achievement/boss/legion_kill
+	crusher_achievement_type = /datum/award/achievement/boss/legion_crusher
+	score_achievement_type = /datum/award/score/legion_score
 	pixel_y = -16
 	pixel_x = -32
 	loot = list(/obj/item/stack/sheet/bone = 3)
@@ -57,7 +59,7 @@ SHITCODE AHEAD. BE ADVISED. Also comment extravaganza
 	var/size = 3
 	var/charging = FALSE
 
-/mob/living/simple_animal/hostile/megafauna/legion/Initialize()
+/mob/living/simple_animal/hostile/megafauna/legion/Initialize(mapload)
 	. = ..()
 	internal = new/obj/item/gps/internal/legion(src)
 
@@ -333,7 +335,7 @@ SHITCODE AHEAD. BE ADVISED. Also comment extravaganza
 	anchored = TRUE
 	density = TRUE
 	layer = ABOVE_OBJ_LAYER
-	armor = list("melee" = 0, "bullet" = 0, "laser" = 100,"energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 0, "acid" = 0)
+	armor = list(MELEE = 0, BULLET = 0, LASER = 100,ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 0, ACID = 0)
 	///What kind of projectile the actual damaging part should be.
 	var/projectile_type = /obj/item/projectile/beam/legion
 	///Time until the tracer gets shot
@@ -343,7 +345,7 @@ SHITCODE AHEAD. BE ADVISED. Also comment extravaganza
 	///Compared with the targeted mobs. If they have the faction, turret won't shoot.
 	var/faction = list("mining")
 
-/obj/structure/legionturret/Initialize()
+/obj/structure/legionturret/Initialize(mapload)
 	. = ..()
 	addtimer(CALLBACK(src, .proc/set_up_shot), initial_firing_time)
 
@@ -392,7 +394,7 @@ SHITCODE AHEAD. BE ADVISED. Also comment extravaganza
 	muzzle_type = /obj/effect/projectile/tracer/legion
 	impact_type = /obj/effect/projectile/tracer/legion
 	hitscan = TRUE
-	movement_type = UNSTOPPABLE
+	projectile_piercing = ALL
 
 ///Used for the legion turret tracer.
 /obj/effect/projectile/tracer/legion/tracer

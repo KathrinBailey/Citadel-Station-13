@@ -1,11 +1,3 @@
-/// IN THE FUTURE, WE WILL PROBABLY REFACTOR TO LESSEN THE NEED FOR UPDATE_MOBILITY, BUT FOR NOW.. WE CAN START DOING THIS.
-/// FOR BLOCKING MOVEMENT, USE TRAIT_MOBILITY_NOMOVE AS MUCH AS POSSIBLE. IT WILL MAKE REFACTORS IN THE FUTURE EASIER.
-/mob/living/ComponentInitialize()
-	. = ..()
-	RegisterSignal(src, SIGNAL_TRAIT(TRAIT_MOBILITY_NOMOVE), .proc/update_mobility)
-	RegisterSignal(src, SIGNAL_TRAIT(TRAIT_MOBILITY_NOPICKUP), .proc/update_mobility)
-	RegisterSignal(src, SIGNAL_TRAIT(TRAIT_MOBILITY_NOUSE), .proc/update_mobility)
-	RegisterSignal(src, SIGNAL_TRAIT(TRAIT_MOBILITY_NOREST), .proc/update_mobility)
 
 //Stuff like mobility flag updates, resting updates, etc.
 
@@ -17,6 +9,8 @@
 		resting = new_resting
 		if(!silent)
 			to_chat(src, "<span class='notice'>You are now [resting? "resting" : "getting up"].</span>")
+		if(resting == 1)
+			SEND_SIGNAL(src, COMSIG_LIVING_RESTING)
 		update_resting(updating)
 
 /mob/living/proc/update_resting(update_mobility = TRUE)
@@ -36,7 +30,7 @@
 	set name = "Rest"
 	set category = "IC"
 	if(client?.prefs?.autostand)
-		TOGGLE_BITFIELD(combat_flags, COMBAT_FLAG_INTENTIONALLY_RESTING)
+		(combat_flags ^= COMBAT_FLAG_INTENTIONALLY_RESTING)
 		to_chat(src, "<span class='notice'>You are now attempting to [(combat_flags & COMBAT_FLAG_INTENTIONALLY_RESTING) ? "[!resting ? "lay down and ": ""]stay down" : "[resting ? "get up and ": ""]stay up"].</span>")
 		if((combat_flags & COMBAT_FLAG_INTENTIONALLY_RESTING) && !resting)
 			set_resting(TRUE, FALSE)
@@ -125,14 +119,14 @@
 		mobility_flags &= ~(MOBILITY_USE | MOBILITY_PICKUP | MOBILITY_STORAGE | MOBILITY_HOLD)
 
 	if(HAS_TRAIT(src, TRAIT_MOBILITY_NOMOVE))
-		DISABLE_BITFIELD(mobility_flags, MOBILITY_MOVE)
+		mobility_flags &= ~(MOBILITY_MOVE)
 	if(HAS_TRAIT(src, TRAIT_MOBILITY_NOPICKUP))
-		DISABLE_BITFIELD(mobility_flags, MOBILITY_PICKUP)
+		mobility_flags &= ~(MOBILITY_PICKUP)
 	if(HAS_TRAIT(src, TRAIT_MOBILITY_NOUSE))
-		DISABLE_BITFIELD(mobility_flags, MOBILITY_USE)
+		mobility_flags &= ~(MOBILITY_USE)
 
 	if(daze)
-		DISABLE_BITFIELD(mobility_flags, MOBILITY_USE)
+		mobility_flags &= ~(MOBILITY_USE)
 
 	//Handle update-effects.
 	if(!CHECK_MOBILITY(src, MOBILITY_HOLD))
@@ -148,7 +142,7 @@
 		L.update_pull_movespeed()
 
 	//Handle lying down, voluntary or involuntary
-	density = !lying
+	update_density()
 	if(lying)
 		set_resting(TRUE, TRUE, FALSE)
 		if(layer == initial(layer)) //to avoid special cases like hiding larvas.

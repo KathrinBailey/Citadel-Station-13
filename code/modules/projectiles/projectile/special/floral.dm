@@ -2,9 +2,9 @@
 	name = "alpha somatoray"
 	icon_state = "energy"
 	damage = 0
-	damage_type = TOX
+	damage_type = TRUE
 	nodamage = 1
-	flag = "energy"
+	flag = ENERGY
 
 /obj/item/projectile/energy/floramut/on_hit(atom/target, blocked = FALSE)
 	. = ..()
@@ -21,5 +21,13 @@
 	icon_state = "energy2"
 	damage = 0
 	damage_type = TOX
-	nodamage = 1
-	flag = "energy"
+	nodamage = TRUE
+	flag = ENERGY
+
+/obj/item/projectile/energy/florarevolution
+	name = "gamma somatorary"
+	icon_state = "energy3"
+	damage = 0
+	damage_type = TOX
+	nodamage = TRUE
+	flag = ENERGY

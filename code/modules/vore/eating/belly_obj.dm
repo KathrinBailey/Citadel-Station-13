@@ -14,6 +14,7 @@
 /obj/belly
 	name = "belly"							// Name of this location
 	desc = "It's a belly! You're in it!"	// Flavor text description of inside sight/sound/smells/feels.
+	rad_flags = RAD_NO_CONTAMINATE | RAD_PROTECT_CONTENTS
 	var/vore_sound = "Gulp"					// Sound when ingesting someone
 	var/vore_verb = "ingest"				// Verb for eating with this in messages
 	var/release_sound = "Splatter"			// Sound for letting someone out.
@@ -146,7 +147,7 @@
 
 		//ommitted list
 		// "shrink_grow_size",
-/obj/belly/Initialize()
+/obj/belly/Initialize(mapload)
 	. = ..()
 	take_ownership(src.loc)
 
@@ -247,7 +248,7 @@
 			for(var/mob/living/H in hearing_mobs)
 				if(H && H.client && (isturf(H.loc) || (H.loc != src.contents)))
 					var/sound/releasement = GLOB.pred_release_sounds[release_sound]
-					H.playsound_local(owner.loc, releasement, vol = 75, vary = 1, falloff = VORE_SOUND_FALLOFF)
+					H.playsound_local(owner.loc, releasement, 75, TRUE)
 				else if(H?.client && (H in contents))
 					var/sound/releasement = GLOB.prey_release_sounds[release_sound]
 					SEND_SOUND(H,releasement)
@@ -277,14 +278,14 @@
 		SEND_SIGNAL(OW, COMSIG_ADD_MOOD_EVENT, "emptypred", /datum/mood_event/emptypred)
 		SEND_SIGNAL(ML, COMSIG_ADD_MOOD_EVENT, "emptyprey", /datum/mood_event/emptyprey)
 
-		if(CHECK_BITFIELD(ML.vore_flags,ABSORBED))
-			DISABLE_BITFIELD(ML.vore_flags,ABSORBED)
+		if((ML.vore_flags & ABSORBED))
+			ML.vore_flags &= ~(ABSORBED)
 			if(ishuman(M) && ishuman(OW))
 				var/mob/living/carbon/human/Prey = M
 				var/mob/living/carbon/human/Pred = OW
 				var/absorbed_count = 2 //Prey that we were, plus the pred gets a portion
 				for(var/mob/living/P in contents)
-					if(CHECK_BITFIELD(P.vore_flags,ABSORBED))
+					if((P.vore_flags & ABSORBED))
 						absorbed_count++
 				Pred.reagents.trans_to(Prey, Pred.reagents.total_volume / absorbed_count)
 
@@ -303,7 +304,7 @@
 			for(var/mob/living/H in hearing_mobs)
 				if(H && H.client && (isturf(H.loc) || (H.loc != src.contents)))
 					var/sound/releasement = GLOB.pred_release_sounds[release_sound]
-					H.playsound_local(owner.loc, releasement, vol = 75, vary = 1, falloff = VORE_SOUND_FALLOFF)
+					H.playsound_local(owner.loc, releasement, 75, TRUE)
 				else if(H?.client && (H in contents))
 					var/sound/releasement = GLOB.prey_release_sounds[release_sound]
 					SEND_SOUND(H,releasement)
@@ -365,7 +366,7 @@
 		for(var/mob/living/H in hearing_mobs)
 			if(H && H.client && (isturf(H.loc) || (H.loc != src.contents)))
 				var/sound/eating = GLOB.pred_vore_sounds[vore_sound]
-				H.playsound_local(owner.loc, eating, vol = 75, vary = 1, falloff = VORE_SOUND_FALLOFF)
+				H.playsound_local(owner.loc, eating, 75, TRUE)
 			else if(H?.client && (H in contents))
 				var/sound/eating = GLOB.prey_vore_sounds[vore_sound]
 				SEND_SOUND(H,eating)
@@ -389,7 +390,7 @@
 		formatted_message = replacetext(formatted_message,"%pred",owner)
 		formatted_message = replacetext(formatted_message,"%prey",english_list(contents))
 		for(var/mob/living/P in contents)
-			if(!CHECK_BITFIELD(P.vore_flags, ABSORBED)) //This is required first, in case there's a person absorbed and not absorbed in a stomach.
+			if(!(P.vore_flags & ABSORBED)) //This is required first, in case there's a person absorbed and not absorbed in a stomach.
 				total_bulge += P.mob_size
 		if(total_bulge >= bulge_size && bulge_size != 0)
 			return("<span class='warning'>[formatted_message]</span><BR>")
@@ -484,7 +485,7 @@
 
 // Handle a mob being absorbed
 /obj/belly/proc/absorb_living(var/mob/living/M)
-	ENABLE_BITFIELD(M.vore_flags, ABSORBED)
+	M.vore_flags |= ABSORBED
 	to_chat(M,"<span class='notice'>[owner]'s [lowertext(name)] absorbs your body, making you part of them.</span>")
 	to_chat(owner,"<span class='notice'>Your [lowertext(name)] absorbs [M]'s body, making them part of you.</span>")
 
@@ -498,7 +499,7 @@
 	for(var/belly in M.vore_organs)
 		var/obj/belly/B = belly
 		for(var/mob/living/Mm in B)
-			if(CHECK_BITFIELD(Mm.vore_flags, ABSORBED))
+			if((Mm.vore_flags & ABSORBED))
 				absorb_living(Mm)
 
 	//Update owner
@@ -584,14 +585,14 @@
 	if(is_wet)
 		for(var/mob/living/H in hearing_mobs)
 			if(H && H.client && (isturf(H.loc) || (H.loc != src.contents)))
-				H.playsound_local(owner.loc, pred_struggle_snuggle, vol = 75, vary = 1, falloff = VORE_SOUND_FALLOFF)
+				H.playsound_local(owner.loc, pred_struggle_snuggle, 75, TRUE)
 			else if(H && H.client && (H in contents))
 				SEND_SOUND(H,prey_struggle_snuggle)
 
 	else
 		for(var/mob/living/H in hearing_mobs)
 			if(H && H.client)
-				H.playsound_local(owner.loc, struggle_rustle, vol = 75, vary = 1, falloff = VORE_SOUND_FALLOFF)
+				H.playsound_local(owner.loc, struggle_rustle, 75, TRUE)
 
 	for(var/mob/living/H in hearing_mobs)
 		if(H && H.client && (isturf(H.loc)))

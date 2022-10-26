@@ -5,7 +5,7 @@
 	health = 250
 	icon_state = "alienp"
 
-/mob/living/carbon/alien/humanoid/royal/praetorian/Initialize()
+/mob/living/carbon/alien/humanoid/royal/praetorian/Initialize(mapload)
 	real_name = name
 	AddSpell(new /obj/effect/proc_holder/spell/aoe_turf/repulse/xeno(src))
 	AddAbility(new /obj/effect/proc_holder/alien/royal/praetorian/evolve())
@@ -20,7 +20,7 @@
 
 /obj/effect/proc_holder/alien/royal/praetorian/evolve
 	name = "Evolve"
-	desc = "Produce an internal egg sac capable of spawning children. Only one queen can exist at a time."
+	desc = "Produce an internal egg sac capable of spawning children. Only one queen can exist at a time. Costs 500 Plasma."
 	plasma_cost = 500
 
 	action_icon_state = "alien_evolve_praetorian"

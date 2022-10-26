@@ -32,7 +32,7 @@ Key procs
 	/// Unique ID. You can never have different modifications with the same ID. By default, this SHOULD NOT be set. Only set it for cases where you're dynamically making modifiers/need to have two types overwrite each other. If unset, uses path (converted to text) as ID.
 	var/id
 
-	/// Higher ones override lower priorities. This is NOT used for ID, ID must be unique, if it isn't unique the newer one overwrites automatically if overriding.
+	/// Determines order. Lower priorities are applied first.
 	var/priority = 0
 	var/flags = NONE
 
@@ -41,9 +41,9 @@ Key procs
 	/// Next two variables depend on this: Should we do advanced calculations?
 	var/complex_calculation = FALSE
 	/// Absolute max tiles we can boost to
-	var/absolute_max_tiles_per_second
+	var/absolute_max_tiles_per_second = INFINITY
 	/// Max tiles per second we can boost
-	var/max_tiles_per_second_boost
+	var/max_tiles_per_second_boost = INFINITY
 
 	/// Movetypes this applies to
 	var/movetypes = ALL
@@ -53,6 +53,8 @@ Key procs
 
 	/// Other modification datums this conflicts with.
 	var/conflicts_with
+
+
 
 /datum/movespeed_modifier/New()
 	. = ..()
@@ -66,8 +68,10 @@ Key procs
 	if(!complex_calculation || (multiplicative_slowdown > 0))		// we aren't limiting how much things can slowdown.. yet.
 		return existing + multiplicative_slowdown
 	var/current_tiles = 10 / max(existing, world.tick_lag)
-	var/minimum_speed = 10 / min(current_tiles + max_tiles_per_second_boost, max(current_tiles, absolute_max_tiles_per_second))
-	return max(minimum_speed, existing + multiplicative_slowdown)
+	// multiplicative_slowdown is negative due to our first check
+	var/max_buff_to = max(existing + multiplicative_slowdown, 10 / absolute_max_tiles_per_second, 10 / (current_tiles + max_tiles_per_second_boost))
+	// never slow the user
+	return min(existing, max_buff_to)
 
 GLOBAL_LIST_EMPTY(movespeed_modification_cache)
 
@@ -96,7 +100,7 @@ GLOBAL_LIST_EMPTY(movespeed_modification_cache)
 			return TRUE
 		remove_movespeed_modifier(existing, FALSE)
 	if(length(movespeed_modification))
-		BINARY_INSERT(type_or_datum.id, movespeed_modification, datum/movespeed_modifier, type_or_datum, priority, COMPARE_VALUE)
+		BINARY_INSERT(type_or_datum.id, movespeed_modification, /datum/movespeed_modifier, type_or_datum, priority, COMPARE_VALUE)
 	LAZYSET(movespeed_modification, type_or_datum.id, type_or_datum)
 	if(update)
 		update_movespeed()
@@ -161,8 +165,10 @@ GLOBAL_LIST_EMPTY(movespeed_modification_cache)
 /// Handles the special case of editing the movement var
 /mob/vv_edit_var(var_name, var_value)
 	if(var_name == NAMEOF(src, control_object))
-		var/obj/O = var_name
-		if(!istype(O) || (O.obj_flags & DANGEROUS_POSSESSION))
+		var/obj/O = var_value
+		if(!istype(O) && (var_value != null))
+			return FALSE
+		if(O.obj_flags & DANGEROUS_POSSESSION)
 			return FALSE
 	var/slowdown_edit = (var_name == NAMEOF(src, cached_multiplicative_slowdown))
 	var/diff
@@ -217,13 +223,25 @@ GLOBAL_LIST_EMPTY(movespeed_modification_cache)
 			else
 				continue
 		. = M.apply_multiplicative(., src)
-	var/old = cached_multiplicative_slowdown		// CITAEDL EDIT - To make things a bit less jarring, when in situations where
 	// your delay decreases, "give" the delay back to the client
 	cached_multiplicative_slowdown = .
-	var/diff = old - cached_multiplicative_slowdown
-	if((diff > 0) && client)
+	if(!client)
+		return
+	var/diff = (client.last_move - client.move_delay) - cached_multiplicative_slowdown
+	if(diff > 0)
 		if(client.move_delay > world.time + 1.5)
 			client.move_delay -= diff
+		var/timeleft = world.time - client.move_delay
+		var/elapsed = world.time - client.last_move
+		var/glide_size_current = glide_size
+		if((timeleft <= 0) || (elapsed > 20))
+			set_glide_size(16, TRUE)
+			return
+		var/pixels_moved = glide_size_current * elapsed * (1 / world.tick_lag)
+		// calculate glidesize needed to move to the next tile within timeleft deciseconds
+		var/ticks_allowed = timeleft / world.tick_lag
+		var/pixels_per_tick = pixels_moved / ticks_allowed
+		set_glide_size(pixels_per_tick * GLOB.glide_size_multiplier, TRUE)
 
 /// Get the move speed modifiers list of the mob
 /mob/proc/get_movespeed_modifiers()

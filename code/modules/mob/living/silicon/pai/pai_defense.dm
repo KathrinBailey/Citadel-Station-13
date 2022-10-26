@@ -1,5 +1,3 @@
-#define PAI_EMP_SILENCE_DURATION 3 MINUTES
-
 /mob/living/silicon/pai/blob_act(obj/structure/blob/B)
 	return FALSE
 
@@ -9,13 +7,13 @@
 		return
 	take_holo_damage(severity/2)
 	DefaultCombatKnockdown(severity*4)
-	silent = max(silent, (PAI_EMP_SILENCE_DURATION) / SSmobs.wait / severity)
+	short_radio()
 	if(holoform)
 		fold_in(force = TRUE)
 	emitter_next_use = world.time + emitter_emp_cd
 	//Need more effects that aren't instadeath or permanent law corruption.
 
-/mob/living/silicon/pai/ex_act(severity, target)
+/mob/living/silicon/pai/ex_act(severity, target, origin)
 	take_holo_damage(severity * 50)
 	switch(severity)
 		if(1)	//RIP
@@ -75,10 +73,10 @@
 		to_chat(src, "<span class='userdanger'>The impact degrades your holochassis!</span>")
 	return amount
 
-/mob/living/silicon/pai/adjustBruteLoss(amount, updating_health = TRUE, forced = FALSE)
+/mob/living/silicon/pai/adjustBruteLoss(amount, updating_health = TRUE, forced = FALSE, only_robotic = FALSE, only_organic = TRUE)
 	return take_holo_damage(amount)
 
-/mob/living/silicon/pai/adjustFireLoss(amount, updating_health = TRUE, forced = FALSE)
+/mob/living/silicon/pai/adjustFireLoss(amount, updating_health = TRUE, forced = FALSE, only_robotic = FALSE, only_organic = TRUE)
 	return take_holo_damage(amount)
 
 /mob/living/silicon/pai/adjustToxLoss(amount, updating_health = TRUE, forced = FALSE, toxins_type = TOX_DEFAULT)
