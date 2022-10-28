@@ -16129,11 +16129,11 @@
 /area/service/bar)
 "aMw" = (
 /obj/machinery/vending/dinnerware{
-	contraband = list(/obj/item/reagent_containers/food/condiment/flour = 4);
+	contraband = list(/obj/item/reagent_containers/food/condiment/flour=4);
 	desc = "This vendor is full of condiments to put on food.";
 	name = "\improper Condiments Vendor";
 	product_ads = "Get your sauces here!;No slave labour was used to make these products!;Nanotrasen Approved?!";
-	products = list(/obj/item/storage/bag/tray = 8, /obj/item/reagent_containers/food/drinks/drinkingglass = 10, /obj/item/storage/box/cups = 5, /obj/item/reagent_containers/food/condiment/pack/ketchup = 20, /obj/item/reagent_containers/food/condiment/pack/mustard = 20, /obj/item/reagent_containers/food/condiment/pack/hotsauce = 20, /obj/item/reagent_containers/food/condiment/pack/astrotame = 20, /obj/item/reagent_containers/food/condiment/saltshaker = 20, /obj/item/reagent_containers/food/condiment/peppermill = 20)
+	products = list(/obj/item/storage/bag/tray=8,/obj/item/reagent_containers/food/drinks/drinkingglass=10,/obj/item/storage/box/cups=5,/obj/item/reagent_containers/food/condiment/pack/ketchup=20,/obj/item/reagent_containers/food/condiment/pack/mustard=20,/obj/item/reagent_containers/food/condiment/pack/hotsauce=20,/obj/item/reagent_containers/food/condiment/pack/astrotame=20,/obj/item/reagent_containers/food/condiment/saltshaker=20,/obj/item/reagent_containers/food/condiment/peppermill=20)
 	},
 /turf/open/floor/wood,
 /area/service/bar)
@@ -17889,7 +17889,7 @@
 /area/service/bar)
 "aRA" = (
 /obj/machinery/vending/dinnerware{
-	contraband = list(/obj/item/kitchen/rollingpin = 2, /obj/item/kitchen/knife/butcher = 2, /obj/item/reagent_containers/food/condiment/flour = 4)
+	contraband = list(/obj/item/kitchen/rollingpin=2,/obj/item/kitchen/knife/butcher=2,/obj/item/reagent_containers/food/condiment/flour=4)
 	},
 /turf/open/floor/plasteel/cafeteria,
 /area/service/kitchen)
@@ -24597,6 +24597,9 @@
 /obj/effect/turf_decal/tile/red{
 	dir = 4
 	},
+/obj/machinery/posialert{
+	pixel_x = 32
+	},
 /turf/open/floor/plasteel/white,
 /area/science/robotics/lab)
 "biQ" = (
@@ -29095,9 +29098,6 @@
 /turf/open/floor/plasteel/white,
 /area/science)
 "btB" = (
-/obj/machinery/computer/bounty{
-	dir = 4
-	},
 /obj/effect/turf_decal/tile/blue{
 	dir = 1
 	},
@@ -30016,9 +30016,6 @@
 	department = "Cargo Bay";
 	departmentType = 2;
 	pixel_x = -30
-	},
-/obj/machinery/computer/bounty{
-	dir = 4
 	},
 /obj/effect/turf_decal/tile/brown{
 	dir = 1
@@ -54482,6 +54479,10 @@
 	},
 /turf/open/floor/carpet/arcade,
 /area/commons/arcade)
+"fCV" = (
+/obj/machinery/piratepad/civilian,
+/turf/open/floor/plasteel,
+/area/cargo/office)
 "fDn" = (
 /obj/structure/table,
 /obj/item/trash/chips{
@@ -63574,15 +63575,6 @@
 	},
 /turf/open/floor/plating,
 /area/maintenance/starboard/aft)
-"sWR" = (
-/obj/machinery/atmospherics/pipe/simple/supply/hidden{
-	dir = 4
-	},
-/obj/machinery/computer/bounty{
-	dir = 8
-	},
-/turf/open/floor/plasteel,
-/area/cargo/office)
 "sXy" = (
 /obj/machinery/door/airlock/external{
 	name = "Security External Airlock";
@@ -65860,6 +65852,12 @@
 /obj/item/assembly/signaler,
 /turf/open/floor/plating,
 /area/maintenance/bar)
+"wfZ" = (
+/obj/machinery/computer/piratepad_control/civilian{
+	dir = 1
+	},
+/turf/open/floor/plasteel,
+/area/cargo/office)
 "wgo" = (
 /obj/effect/turf_decal/stripes/line{
 	dir = 10
@@ -89994,7 +89992,7 @@ bnG
 bnz
 bpA
 bbR
-sWR
+bkM
 jlm
 bud
 eyM
@@ -90509,7 +90507,7 @@ boR
 bqs
 bbR
 bkM
-bbR
+fCV
 bwd
 bxB
 bvL
@@ -90766,7 +90764,7 @@ boT
 bbR
 bbR
 buI
-bbR
+wfZ
 bwd
 bxD
 byL
