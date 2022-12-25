@@ -7,7 +7,7 @@
 	species_traits = list(LIPS, NOEYES, NO_UNDERWEAR, HAS_FLESH, HAS_BONE)
 	inherent_biotypes = MOB_ORGANIC|MOB_HUMANOID|MOB_BUG
 	mutant_bodyparts = list("arachnid_legs" = "Plain", "arachnid_spinneret" = "Plain", "arachnid_mandibles" = "Plain")
-	attack_verb = "slash"
+	attack_verb = "claw"
 	attack_sound = 'sound/weapons/slash.ogg'
 	miss_sound = 'sound/weapons/slashmiss.ogg'
 	meat = /obj/item/reagent_containers/food/snacks/meat/slab/spider
@@ -54,6 +54,10 @@
 
 /datum/species/arachnid/on_species_loss(mob/living/carbon/human/H)
 	. = ..()
+	var/datum/action/innate/spin_web/SW = locate(/datum/action/innate/spin_web) in H.actions
+	var/datum/action/innate/spin_cocoon/SC = locate(/datum/action/innate/spin_cocoon) in H.actions
+	SC?.Remove(H)
+	SW?.Remove(H)
 
 /datum/action/innate/spin_web
 	name = "Spin Web"
